@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { mockOrders, mockReferrals } from '@/lib/mock-data';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -11,10 +12,21 @@ import { toast } from 'sonner';
 
 export default function WholesalerDashboard() {
   const { user } = useAuth();
+  const [orders, setOrders] = useState<any[]>([]);
+  const [referrals, setReferrals] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from('orders').select('*').eq('wholesaler_id', user.id).order('created_at', { ascending: false }).then(({ data }) => {
+      if (data) setOrders(data);
+    });
+    supabase.from('referrals').select('*').eq('referrer_user_id', user.id).then(({ data }) => {
+      if (data) setReferrals(data);
+    });
+  }, [user]);
+
   if (!user) return null;
 
-  const orders = mockOrders.filter(o => o.wholesaler_id === user.id);
-  const referrals = mockReferrals.filter(r => r.referrer_user_id === user.id);
   const referralLink = `${window.location.origin}/signup?ref=${user.referral_code}`;
 
   return (
@@ -36,32 +48,22 @@ export default function WholesalerDashboard() {
           {orders.length === 0 ? (
             <Card><CardContent className="py-12 text-center text-muted-foreground">No orders yet. Start buying!</CardContent></Card>
           ) : (
-            <Card>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Order ID</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Payment</TableHead>
+            <Card><CardContent className="p-0">
+              <Table>
+                <TableHeader><TableRow><TableHead>Order ID</TableHead><TableHead>Date</TableHead><TableHead>Total</TableHead><TableHead>Status</TableHead><TableHead>Payment</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {orders.map(o => (
+                    <TableRow key={o.id}>
+                      <TableCell className="font-mono text-xs">{o.id.slice(0, 8)}...</TableCell>
+                      <TableCell>{new Date(o.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell className="font-semibold">${Number(o.total_amount).toFixed(2)}</TableCell>
+                      <TableCell><Badge variant={o.status === 'Completed' ? 'default' : 'outline'}>{o.status}</Badge></TableCell>
+                      <TableCell><Badge variant={o.payment_status === 'paid' ? 'default' : 'outline'}>{o.payment_status}</Badge></TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {orders.map(o => (
-                      <TableRow key={o.id}>
-                        <TableCell className="font-mono text-xs">{o.id}</TableCell>
-                        <TableCell>{new Date(o.created_at).toLocaleDateString()}</TableCell>
-                        <TableCell className="font-semibold">${o.total_amount.toFixed(2)}</TableCell>
-                        <TableCell><Badge variant={o.status === 'Completed' ? 'default' : 'outline'}>{o.status}</Badge></TableCell>
-                        <TableCell><Badge variant={o.payment_status === 'paid' ? 'default' : 'outline'}>{o.payment_status}</Badge></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent></Card>
           )}
         </TabsContent>
 
@@ -80,26 +82,6 @@ export default function WholesalerDashboard() {
               </div>
             </CardContent>
           </Card>
-          {referrals.length > 0 && (
-            <Card>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader><TableRow><TableHead>User</TableHead><TableHead>Role</TableHead><TableHead>Date</TableHead><TableHead>Status</TableHead><TableHead>Credits</TableHead></TableRow></TableHeader>
-                  <TableBody>
-                    {referrals.map(r => (
-                      <TableRow key={r.id}>
-                        <TableCell>{r.referred_user_name}</TableCell>
-                        <TableCell><Badge variant="outline">{r.referred_user_role}</Badge></TableCell>
-                        <TableCell>{new Date(r.created_at).toLocaleDateString()}</TableCell>
-                        <TableCell>{r.rewarded ? <Badge className="bg-success text-success-foreground">Completed</Badge> : <Badge variant="outline">Pending</Badge>}</TableCell>
-                        <TableCell className="font-semibold">${r.reward_credits_awarded.toFixed(2)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
       </Tabs>
     </div>

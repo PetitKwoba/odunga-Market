@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart, getUnitPrice } from '@/lib/cart-context';
 import { useAuth } from '@/lib/auth-context';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -38,18 +39,49 @@ export default function Checkout() {
     );
   }
 
-  const handleOrder = () => {
+  const handleOrder = async () => {
     if (!shipping.name || !shipping.address || !shipping.city || !shipping.country || !shipping.phone) {
       toast.error('Please fill in all shipping fields');
       return;
     }
     setSubmitting(true);
-    setTimeout(() => {
-      clearCart();
-      toast.success('Order placed successfully! Payment is held by Waholo Market until your order is fulfilled. 🎉');
-      navigate('/dashboard/wholesaler');
+
+    // Create order in DB
+    const { data: order, error: orderError } = await supabase.from('orders').insert({
+      wholesaler_id: user.id,
+      total_amount: total,
+      shipping_address: shipping,
+      status: 'Pending',
+      payment_status: 'pending',
+    }).select().single();
+
+    if (orderError || !order) {
+      toast.error('Failed to create order: ' + (orderError?.message || 'Unknown error'));
       setSubmitting(false);
-    }, 1000);
+      return;
+    }
+
+    // Create order items
+    const orderItems = items.map(item => ({
+      order_id: order.id,
+      product_id: item.product.id,
+      producer_id: item.product.producer_id,
+      quantity: item.quantity,
+      unit_price: getUnitPrice(item.product, item.quantity),
+      subtotal: getUnitPrice(item.product, item.quantity) * item.quantity,
+    }));
+
+    const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
+    if (itemsError) {
+      toast.error('Failed to save order items: ' + itemsError.message);
+      setSubmitting(false);
+      return;
+    }
+
+    clearCart();
+    toast.success('Order placed successfully! 🎉');
+    navigate('/dashboard/wholesaler');
+    setSubmitting(false);
   };
 
   return (
@@ -61,7 +93,6 @@ export default function Checkout() {
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
-          {/* Payment info banner */}
           <Card className="border-primary/30 bg-primary/5">
             <CardContent className="flex items-start gap-3 p-4">
               <Info className="h-5 w-5 mt-0.5 text-primary shrink-0" />
@@ -76,47 +107,25 @@ export default function Checkout() {
             </CardContent>
           </Card>
 
-          {/* Cart items */}
           <Card>
             <CardHeader><CardTitle className="font-display text-lg">Order Summary</CardTitle></CardHeader>
             <CardContent>
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Qty</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Subtotal</TableHead>
-                    <TableHead></TableHead>
-                  </TableRow>
-                </TableHeader>
+                <TableHeader><TableRow><TableHead>Product</TableHead><TableHead>Qty</TableHead><TableHead>Price</TableHead><TableHead>Subtotal</TableHead><TableHead></TableHead></TableRow></TableHeader>
                 <TableBody>
                   {items.map(item => {
                     const price = getUnitPrice(item.product, item.quantity);
                     return (
                       <TableRow key={item.product.id}>
                         <TableCell>
-                          <div>
-                            <p className="font-medium">{item.product.name}</p>
-                            <p className="text-xs text-muted-foreground">{item.product.producer_name} · Ships from {item.product.producer_country}</p>
-                          </div>
+                          <div><p className="font-medium">{item.product.name}</p><p className="text-xs text-muted-foreground">{item.product.producer_name}</p></div>
                         </TableCell>
                         <TableCell>
-                          <Input
-                            type="number"
-                            min={item.product.moq}
-                            value={item.quantity}
-                            onChange={e => updateQuantity(item.product.id, parseInt(e.target.value) || 0)}
-                            className="w-20"
-                          />
+                          <Input type="number" min={item.product.moq} value={item.quantity} onChange={e => updateQuantity(item.product.id, parseInt(e.target.value) || 0)} className="w-20" />
                         </TableCell>
                         <TableCell>${price.toFixed(2)}</TableCell>
                         <TableCell className="font-semibold">${(price * item.quantity).toFixed(2)}</TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => removeItem(item.product.id)}>
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </TableCell>
+                        <TableCell><Button variant="ghost" size="icon" onClick={() => removeItem(item.product.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
                       </TableRow>
                     );
                   })}
@@ -125,7 +134,6 @@ export default function Checkout() {
             </CardContent>
           </Card>
 
-          {/* Shipping */}
           <Card>
             <CardHeader>
               <CardTitle className="font-display text-lg">Shipping Details</CardTitle>
@@ -141,28 +149,18 @@ export default function Checkout() {
           </Card>
         </div>
 
-        {/* Order total */}
         <div>
           <Card className="sticky top-20">
             <CardHeader><CardTitle className="font-display text-lg">Total</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Items ({items.length})</span>
-                <span>${total.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Shipping</span>
-                <span className="text-muted-foreground">Arranged by producer</span>
-              </div>
-              <div className="border-t pt-3 flex justify-between font-display font-bold text-lg">
-                <span>Total</span>
-                <span>${total.toFixed(2)}</span>
-              </div>
+              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Items ({items.length})</span><span>${total.toFixed(2)}</span></div>
+              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Shipping</span><span className="text-muted-foreground">Arranged by producer</span></div>
+              <div className="border-t pt-3 flex justify-between font-display font-bold text-lg"><span>Total</span><span>${total.toFixed(2)}</span></div>
               <Button className="w-full mt-2" size="lg" onClick={handleOrder} disabled={submitting}>
                 {submitting ? 'Placing Order...' : 'Pay & Place Order'}
               </Button>
               <p className="text-xs text-center text-muted-foreground">
-                Payment is held by Waholo Market. Producers are paid every Monday after deducting referral fees and a {PLATFORM_FEE_PERCENT}% maintenance fee.
+                Payment held by Waholo Market. Producers paid every Monday.
               </p>
             </CardContent>
           </Card>
