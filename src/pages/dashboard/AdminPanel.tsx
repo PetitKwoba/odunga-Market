@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Users, Package, ShoppingCart, Link2, CheckCircle, XCircle, Clock, FileText, Send, Eye } from 'lucide-react';
+import { Users, Package, ShoppingCart, Link2, CheckCircle, XCircle, Clock, FileText, Send, Eye, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
+import AdminAnalytics from '@/components/AdminAnalytics';
 
 interface Profile {
   user_id: string;
@@ -60,7 +61,10 @@ export default function AdminPanel() {
     supabase.from('profiles').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setProfiles(data as Profile[]); });
     supabase.from('user_roles').select('*').then(({ data }) => { if (data) setRoles(data as UserRoleRow[]); });
     supabase.from('products').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setProducts(data); });
-    supabase.from('orders').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setOrders(data); });
+    
+    // Fetch orders with their items
+    supabase.from('orders').select('*, order_items(*)').order('created_at', { ascending: false }).then(({ data }) => { if (data) setOrders(data); });
+    
     supabase.from('referrals').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setReferrals(data); });
     supabase.from('payouts').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setPayouts(data); });
     supabase.from('pos_transactions').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setPosTransactions(data); });
@@ -146,8 +150,11 @@ export default function AdminPanel() {
         ))}
       </div>
 
-      <Tabs defaultValue="pending" className="mt-6">
+      <Tabs defaultValue="analytics" className="mt-6">
         <TabsList className="flex flex-wrap">
+          <TabsTrigger value="analytics">
+            <BarChart3 className="mr-1.5 h-4 w-4" /> Analytics
+          </TabsTrigger>
           <TabsTrigger value="pending">
             Pending Approval {pendingUsers.length > 0 && <Badge className="ml-1.5 bg-secondary text-secondary-foreground">{pendingUsers.length}</Badge>}
           </TabsTrigger>
@@ -161,6 +168,16 @@ export default function AdminPanel() {
           <TabsTrigger value="team">Team Members</TabsTrigger>
           <TabsTrigger value="messages">Messages</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="analytics" className="mt-4">
+          <AdminAnalytics 
+            orders={orders}
+            products={products}
+            profiles={profiles}
+            posTransactions={posTransactions}
+            payouts={payouts}
+          />
+        </TabsContent>
 
         <TabsContent value="pending" className="mt-4">
           <Card><CardContent className="p-0">
