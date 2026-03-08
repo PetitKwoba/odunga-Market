@@ -112,17 +112,17 @@ export default function POSAnalytics({ transactions, formatCurrency }: POSAnalyt
     return Object.values(itemMap)
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 8);
-  }, [transactions]);
+  }, [filteredTransactions]);
 
   // Payment method breakdown
   const paymentBreakdown = useMemo(() => {
     const map: Record<string, number> = {};
-    transactions.forEach(t => {
+    filteredTransactions.forEach(t => {
       const method = t.payment_method || 'cash';
       map[method] = (map[method] || 0) + Number(t.total);
     });
     return Object.entries(map).map(([name, value]) => ({ name: name.charAt(0).toUpperCase() + name.slice(1), value: Math.round(value * 100) / 100 }));
-  }, [transactions]);
+  }, [filteredTransactions]);
 
   // Summary stats
   const stats = useMemo(() => {
