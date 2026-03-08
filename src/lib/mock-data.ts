@@ -40,6 +40,7 @@ export const mockUsers: User[] = [
     referred_by_user_id: null, referral_credits: 0, is_verified: true, is_approved: true,
     documents: [], document_requests: [],
     profile: { ...defaultProfile },
+    store_team: [],
     created_at: '2025-01-01T10:00:00Z', updated_at: '2025-01-01T10:00:00Z',
   },
   {
