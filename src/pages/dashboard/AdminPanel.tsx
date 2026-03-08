@@ -22,7 +22,7 @@ function getAllUsers(): User[] {
       ...u,
       documents: u.documents || [],
       document_requests: u.document_requests || [],
-      profile: u.profile || {},
+      profile: u.profile ? { ...defaultProfile, ...u.profile } : { ...defaultProfile },
     }));
   } catch { /* */ }
   return [];
