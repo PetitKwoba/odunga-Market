@@ -99,7 +99,7 @@ export default function POSAnalytics({ transactions, formatCurrency }: POSAnalyt
   const topItems = useMemo(() => {
     const itemMap: Record<string, { name: string; quantity: number; revenue: number }> = {};
 
-    transactions.forEach(t => {
+    filteredTransactions.forEach(t => {
       const items = Array.isArray(t.items) ? t.items : [];
       items.forEach((item: any) => {
         const name = item.name || 'Unknown';
