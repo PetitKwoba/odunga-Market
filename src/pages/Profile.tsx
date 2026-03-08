@@ -56,6 +56,8 @@ export default function ProfilePage() {
   const [documents, setDocuments] = useState<UserDocument[]>([]);
   const [docRequests, setDocRequests] = useState<DocumentRequest[]>([]);
   const [saving, setSaving] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   useEffect(() => {
     if (!user) return;
