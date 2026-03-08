@@ -7,8 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, ArrowLeft, ShoppingCart } from 'lucide-react';
+import { Trash2, ArrowLeft, ShoppingCart, Info } from 'lucide-react';
 import { toast } from 'sonner';
+
+const PLATFORM_FEE_PERCENT = 5;
 
 export default function Checkout() {
   const { items, updateQuantity, removeItem, clearCart, total } = useCart();
@@ -44,7 +46,7 @@ export default function Checkout() {
     setSubmitting(true);
     setTimeout(() => {
       clearCart();
-      toast.success('Order placed successfully! 🎉');
+      toast.success('Order placed successfully! Payment is held by Waholo Market until your order is fulfilled. 🎉');
       navigate('/dashboard/wholesaler');
       setSubmitting(false);
     }, 1000);
@@ -59,6 +61,21 @@ export default function Checkout() {
 
       <div className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
+          {/* Payment info banner */}
+          <Card className="border-primary/30 bg-primary/5">
+            <CardContent className="flex items-start gap-3 p-4">
+              <Info className="h-5 w-5 mt-0.5 text-primary shrink-0" />
+              <div className="text-sm">
+                <p className="font-medium text-foreground">How payments work on Waholo Market</p>
+                <ul className="mt-1 space-y-1 text-muted-foreground">
+                  <li>• Your payment is held securely by the platform.</li>
+                  <li>• Producers are paid every <strong>Monday</strong>, minus referral fees and a {PLATFORM_FEE_PERCENT}% platform maintenance fee.</li>
+                  <li>• The producer is responsible for arranging logistics and shipping to your address.</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Cart items */}
           <Card>
             <CardHeader><CardTitle className="font-display text-lg">Order Summary</CardTitle></CardHeader>
@@ -81,7 +98,7 @@ export default function Checkout() {
                         <TableCell>
                           <div>
                             <p className="font-medium">{item.product.name}</p>
-                            <p className="text-xs text-muted-foreground">{item.product.producer_name}</p>
+                            <p className="text-xs text-muted-foreground">{item.product.producer_name} · Ships from {item.product.producer_country}</p>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -110,7 +127,10 @@ export default function Checkout() {
 
           {/* Shipping */}
           <Card>
-            <CardHeader><CardTitle className="font-display text-lg">Shipping Details</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="font-display text-lg">Shipping Details</CardTitle>
+              <p className="text-sm text-muted-foreground">The producer will arrange logistics to this address.</p>
+            </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2"><Label>Full Name</Label><Input value={shipping.name} onChange={e => setShipping(s => ({ ...s, name: e.target.value }))} /></div>
               <div className="space-y-2"><Label>Phone</Label><Input value={shipping.phone} onChange={e => setShipping(s => ({ ...s, phone: e.target.value }))} /></div>
@@ -132,16 +152,18 @@ export default function Checkout() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Shipping</span>
-                <span className="text-muted-foreground">TBD</span>
+                <span className="text-muted-foreground">Arranged by producer</span>
               </div>
               <div className="border-t pt-3 flex justify-between font-display font-bold text-lg">
                 <span>Total</span>
                 <span>${total.toFixed(2)}</span>
               </div>
               <Button className="w-full mt-2" size="lg" onClick={handleOrder} disabled={submitting}>
-                {submitting ? 'Placing Order...' : 'Place Order'}
+                {submitting ? 'Placing Order...' : 'Pay & Place Order'}
               </Button>
-              <p className="text-xs text-center text-muted-foreground">Payment details will be arranged with the producer.</p>
+              <p className="text-xs text-center text-muted-foreground">
+                Payment is held by Waholo Market. Producers are paid every Monday after deducting referral fees and a {PLATFORM_FEE_PERCENT}% maintenance fee.
+              </p>
             </CardContent>
           </Card>
         </div>
