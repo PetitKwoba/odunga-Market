@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth-context';
 import { useCart } from '@/lib/cart-context';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Menu, X, LogOut, LayoutDashboard } from 'lucide-react';
+import { ShoppingCart, Menu, X, LogOut, LayoutDashboard, UserCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +57,9 @@ export default function Navbar() {
               <Button variant="outline" size="sm" onClick={() => navigate(dashboardPath)}>
                 <LayoutDashboard className="mr-1 h-4 w-4" /> Dashboard
               </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/profile')}>
+                <UserCircle className="mr-1 h-4 w-4" /> Profile
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => { logout(); navigate('/'); }}>
                 <LogOut className="mr-1 h-4 w-4" /> Logout
               </Button>
@@ -88,6 +91,7 @@ export default function Navbar() {
               {user ? (
                 <>
                   <Link to={dashboardPath} onClick={() => setOpen(false)} className="text-sm font-medium">Dashboard</Link>
+                  <Link to="/profile" onClick={() => setOpen(false)} className="text-sm font-medium">Profile</Link>
                   <button onClick={() => { logout(); navigate('/'); setOpen(false); }} className="text-left text-sm font-medium text-destructive">Logout</button>
                 </>
               ) : (

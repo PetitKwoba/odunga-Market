@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { User, UserRole } from './types';
+import { User, UserRole, defaultProfile } from './types';
 import { mockUsers } from './mock-data';
 
 interface AuthContextType {
@@ -15,9 +15,16 @@ const AuthContext = createContext<AuthContextType | null>(null);
 function getAllUsers(): User[] {
   const stored = localStorage.getItem('waholo_all_users');
   if (stored) {
-    try { return JSON.parse(stored); } catch { /* ignore */ }
+    try {
+      const parsed: User[] = JSON.parse(stored);
+      return parsed.map(u => ({
+        ...u,
+        documents: u.documents || [],
+        document_requests: u.document_requests || [],
+        profile: u.profile || { ...defaultProfile },
+      }));
+    } catch { /* ignore */ }
   }
-  // Initialize from mock data
   localStorage.setItem('waholo_all_users', JSON.stringify(mockUsers));
   return [...mockUsers];
 }
@@ -80,6 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         status: 'pending' as const,
       })),
       document_requests: [],
+      profile: { ...defaultProfile },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };

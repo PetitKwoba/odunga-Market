@@ -1,4 +1,4 @@
-import { User, ProducerProfile, Product, Order, Referral, ProductReferralSale } from './types';
+import { User, ProducerProfile, Product, Order, Referral, ProductReferralSale, defaultProfile } from './types';
 
 export const mockUsers: User[] = [
   {
@@ -7,6 +7,7 @@ export const mockUsers: User[] = [
     referred_by_user_id: null, referral_credits: 0, is_verified: true, is_approved: true,
     documents: [{ id: 'd1', name: 'Business Registration', file_name: 'business_reg.pdf', uploaded_at: '2025-01-15T10:00:00Z', status: 'approved' }],
     document_requests: [],
+    profile: { ...defaultProfile, phone: '+234800000000', address: '12 Lagos Rd', city: 'Lagos', industry: 'Textiles', bio: 'Premium textile producer', bank_name: 'First Bank', bank_account_number: '1234567890', bank_routing_number: '011', payout_method: 'bank_transfer' },
     created_at: '2025-01-15T10:00:00Z', updated_at: '2025-01-15T10:00:00Z',
   },
   {
@@ -15,6 +16,7 @@ export const mockUsers: User[] = [
     referred_by_user_id: null, referral_credits: 0, is_verified: true, is_approved: true,
     documents: [{ id: 'd2', name: 'Business Registration', file_name: 'greenleaf_cert.pdf', uploaded_at: '2025-02-01T10:00:00Z', status: 'approved' }],
     document_requests: [],
+    profile: { ...defaultProfile, phone: '+233200000000', address: '5 Accra Ave', city: 'Accra', industry: 'Agriculture', bio: 'Organic agro products' },
     created_at: '2025-02-01T10:00:00Z', updated_at: '2025-02-01T10:00:00Z',
   },
   {
@@ -23,6 +25,7 @@ export const mockUsers: User[] = [
     referred_by_user_id: 'u5', referral_credits: 0, is_verified: true, is_approved: true,
     documents: [{ id: 'd3', name: 'Trade License', file_name: 'trade_license.pdf', uploaded_at: '2025-03-01T10:00:00Z', status: 'approved' }],
     document_requests: [],
+    profile: { ...defaultProfile, phone: '+254700000000', address: '123 Market St', city: 'Nairobi', industry: 'Wholesale Trade' },
     created_at: '2025-03-01T10:00:00Z', updated_at: '2025-03-01T10:00:00Z',
   },
   {
@@ -30,6 +33,7 @@ export const mockUsers: User[] = [
     email: 'admin@waholo.com', country: 'US', referral_code: 'ADMIN01',
     referred_by_user_id: null, referral_credits: 0, is_verified: true, is_approved: true,
     documents: [], document_requests: [],
+    profile: { ...defaultProfile },
     created_at: '2025-01-01T10:00:00Z', updated_at: '2025-01-01T10:00:00Z',
   },
   {
@@ -37,6 +41,7 @@ export const mockUsers: User[] = [
     email: 'jane@example.com', country: 'UK', referral_code: 'JANE01',
     referred_by_user_id: null, referral_credits: 25, is_verified: true, is_approved: true,
     documents: [], document_requests: [],
+    profile: { ...defaultProfile, phone: '+44700000000', city: 'London', bio: 'Connecting buyers with the best African products' },
     created_at: '2025-02-10T10:00:00Z', updated_at: '2025-02-10T10:00:00Z',
   },
 ];

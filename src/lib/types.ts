@@ -17,6 +17,22 @@ export interface DocumentRequest {
   fulfilled: boolean;
 }
 
+export interface UserProfile {
+  phone: string;
+  address: string;
+  city: string;
+  bio: string;
+  avatar_url: string;
+  website: string;
+  tax_id: string;
+  registration_number: string;
+  industry: string;
+  bank_name: string;
+  bank_account_number: string;
+  bank_routing_number: string;
+  payout_method: 'bank_transfer' | 'mobile_money' | 'other';
+}
+
 export interface User {
   id: string;
   role: UserRole;
@@ -31,9 +47,26 @@ export interface User {
   is_approved: boolean;
   documents: UserDocument[];
   document_requests: DocumentRequest[];
+  profile: UserProfile;
   created_at: string;
   updated_at: string;
 }
+
+export const defaultProfile: UserProfile = {
+  phone: '',
+  address: '',
+  city: '',
+  bio: '',
+  avatar_url: '',
+  website: '',
+  tax_id: '',
+  registration_number: '',
+  industry: '',
+  bank_name: '',
+  bank_account_number: '',
+  bank_routing_number: '',
+  payout_method: 'bank_transfer',
+};
 
 export interface ProducerProfile {
   user_id: string;

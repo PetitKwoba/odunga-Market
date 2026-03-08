@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { mockProducts, mockOrders, mockReferrals } from '@/lib/mock-data';
+import { defaultProfile } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -17,11 +18,11 @@ function getAllUsers(): User[] {
   const stored = localStorage.getItem('waholo_all_users');
   if (stored) try {
     const parsed: User[] = JSON.parse(stored);
-    // Ensure all users have documents/document_requests fields (backwards compat)
     return parsed.map(u => ({
       ...u,
       documents: u.documents || [],
       document_requests: u.document_requests || [],
+      profile: u.profile ? { ...defaultProfile, ...u.profile } : { ...defaultProfile },
     }));
   } catch { /* */ }
   return [];
@@ -97,6 +98,8 @@ export default function AdminPanel() {
     refreshUsers(updated);
     setRequestDialogOpen(false);
     toast.success(`Document request sent to ${selectedUser.name}`);
+    // Simulate email notification
+    toast.info(`📧 Email sent to ${selectedUser.email}: "Please upload '${requestForm.document_name.trim()}' to your Waholo Market profile."`, { duration: 6000 });
   };
 
   const handleDocStatus = (userId: string, docId: string, status: 'approved' | 'rejected', note?: string) => {
