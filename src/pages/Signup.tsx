@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Factory, Store, Users } from 'lucide-react';
 
@@ -16,17 +16,49 @@ const roles: { value: UserRole; label: string; icon: React.ReactNode; desc: stri
   { value: 'referrer', label: 'Referrer', icon: <Users className="h-5 w-5" />, desc: 'Earn by inviting buyers' },
 ];
 
+const consentTexts: Record<string, string[]> = {
+  producer: [
+    'I agree to the Terms of Service and Privacy Policy.',
+    'I understand that payments from wholesalers are processed through Waholo Market and disbursed to me every Monday, minus the referral fee and a 5% platform maintenance fee.',
+    'I am responsible for arranging logistics and shipping for all orders I fulfill.',
+  ],
+  wholesaler: [
+    'I agree to the Terms of Service and Privacy Policy.',
+    'I understand that all payments are made through the Waholo Market platform and held until the order is processed.',
+    'I understand that the producer is responsible for logistics and shipping arrangements.',
+  ],
+  referrer: [
+    'I agree to the Terms of Service and Privacy Policy.',
+    'I understand that I earn referral rewards only after a referred wholesaler completes and pays for their first order.',
+    'I understand that rewards are set by each producer and paid from order proceeds.',
+  ],
+};
+
 export default function Signup() {
   const [searchParams] = useSearchParams();
   const refCode = searchParams.get('ref') || '';
   const [form, setForm] = useState({ name: '', email: '', password: '', role: '' as UserRole | '', business_name: '', country: '' });
+  const [consents, setConsents] = useState<boolean[]>([false, false, false]);
   const [loading, setLoading] = useState(false);
   const { signup } = useAuth();
   const navigate = useNavigate();
 
+  const currentConsents = form.role ? consentTexts[form.role] || [] : [];
+  const allConsented = currentConsents.length > 0 && consents.slice(0, currentConsents.length).every(Boolean);
+
+  const handleRoleChange = (role: UserRole) => {
+    setForm(f => ({ ...f, role }));
+    setConsents([false, false, false]);
+  };
+
+  const toggleConsent = (idx: number) => {
+    setConsents(prev => prev.map((v, i) => i === idx ? !v : v));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.role) { toast.error('Please select a role'); return; }
+    if (!allConsented) { toast.error('Please agree to all terms before continuing'); return; }
     setLoading(true);
     const ok = await signup({
       name: form.name, email: form.email, password: form.password,
@@ -67,7 +99,7 @@ export default function Signup() {
                   <button
                     key={r.value}
                     type="button"
-                    onClick={() => setForm(f => ({ ...f, role: r.value }))}
+                    onClick={() => handleRoleChange(r.value)}
                     className={`flex flex-col items-center gap-1 rounded-lg border-2 p-3 text-center transition-all ${
                       form.role === r.value ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/30'
                     }`}
@@ -90,7 +122,7 @@ export default function Signup() {
               </div>
             </div>
 
-            {form.role !== 'referrer' && (
+            {form.role !== 'referrer' && form.role !== '' && (
               <div className="space-y-2">
                 <Label htmlFor="biz">Business Name</Label>
                 <Input id="biz" value={form.business_name} onChange={e => setForm(f => ({ ...f, business_name: e.target.value }))} />
@@ -108,7 +140,27 @@ export default function Signup() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            {/* Consent checkboxes */}
+            {form.role && currentConsents.length > 0 && (
+              <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+                <Label className="text-sm font-semibold">Terms & Consent</Label>
+                {currentConsents.map((text, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <Checkbox
+                      id={`consent-${idx}`}
+                      checked={consents[idx]}
+                      onCheckedChange={() => toggleConsent(idx)}
+                      className="mt-0.5"
+                    />
+                    <label htmlFor={`consent-${idx}`} className="text-sm leading-snug text-muted-foreground cursor-pointer">
+                      {text}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <Button type="submit" className="w-full" disabled={loading || !allConsented}>
               {loading ? 'Creating account...' : 'Create Account'}
             </Button>
           </form>

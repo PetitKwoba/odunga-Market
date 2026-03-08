@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Factory, Store, Users, ArrowRight, Shield, Globe, TrendingUp } from 'lucide-react';
+import { Factory, Store, Users, ArrowRight, Shield, Globe, TrendingUp, Wallet, Truck, CalendarCheck } from 'lucide-react';
 
 export default function Landing() {
   return (
@@ -35,9 +35,21 @@ export default function Landing() {
           <h2 className="text-center font-display text-3xl font-bold md:text-4xl">How Waholo Market Works</h2>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
             {[
-              { icon: <Factory className="h-8 w-8" />, title: 'For Producers', desc: 'List your products, set bulk pricing, define referral rewards, and reach wholesalers globally. Manage orders from your dashboard.', cta: 'Start Selling', href: '/signup?role=producer' },
-              { icon: <Store className="h-8 w-8" />, title: 'For Wholesalers', desc: 'Browse thousands of products from verified manufacturers. Get the best bulk prices with transparent MOQs and delivery timelines.', cta: 'Start Buying', href: '/signup?role=wholesaler' },
-              { icon: <Users className="h-8 w-8" />, title: 'For Referrers', desc: 'Sign up for free, share your unique link, and earn rewards every time a referred wholesaler completes their first order.', cta: 'Start Earning', href: '/signup?role=referrer' },
+              {
+                icon: <Factory className="h-8 w-8" />, title: 'For Producers',
+                desc: 'List your products, set bulk pricing and referral rewards. You handle logistics and shipping. Payments are disbursed every Monday minus referral fees and a 5% platform fee.',
+                cta: 'Start Selling', href: '/signup?role=producer',
+              },
+              {
+                icon: <Store className="h-8 w-8" />, title: 'For Wholesalers',
+                desc: 'Browse products from verified manufacturers. Pay securely through the platform — your money is held until the order is processed. The producer arranges shipping to you.',
+                cta: 'Start Buying', href: '/signup?role=wholesaler',
+              },
+              {
+                icon: <Users className="h-8 w-8" />, title: 'For Referrers',
+                desc: 'Sign up free, share your unique link, and earn rewards when a referred wholesaler completes their first paid order. Rewards are funded by producers.',
+                cta: 'Start Earning', href: '/signup?role=referrer',
+              },
             ].map((item) => (
               <div key={item.title} className="rounded-xl border bg-card p-6 text-center shadow-sm transition-shadow hover:shadow-md">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">{item.icon}</div>
@@ -52,12 +64,44 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Payment & logistics flow */}
+      <section className="border-t bg-muted/30 px-4 py-16 md:py-24">
+        <div className="container mx-auto max-w-4xl">
+          <h2 className="text-center font-display text-3xl font-bold md:text-4xl">Secure Payments & Clear Logistics</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
+            All payments flow through Waholo Market for safety and transparency.
+          </p>
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {[
+              {
+                icon: <Wallet className="h-7 w-7" />, title: 'Payment Held Securely',
+                desc: 'Wholesalers pay through the platform. Funds are held until the order is fulfilled.',
+              },
+              {
+                icon: <CalendarCheck className="h-7 w-7" />, title: 'Weekly Payouts (Mondays)',
+                desc: 'Producers receive payouts every Monday, minus the referral fee and a 5% platform maintenance fee.',
+              },
+              {
+                icon: <Truck className="h-7 w-7" />, title: 'Producer Handles Logistics',
+                desc: 'Producers arrange all shipping and delivery. Lead times and shipping regions are displayed on every product.',
+              },
+            ].map(item => (
+              <div key={item.title} className="flex flex-col items-center rounded-xl border bg-card p-6 text-center shadow-sm">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">{item.icon}</div>
+                <h3 className="mt-3 font-display font-semibold">{item.title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Trust */}
       <section className="border-t bg-muted/50 px-4 py-16">
         <div className="container mx-auto max-w-4xl">
           <div className="grid gap-8 md:grid-cols-3">
             {[
-              { icon: <Shield className="h-6 w-6" />, title: 'Verified Producers', desc: 'All producers are vetted by our team.' },
+              { icon: <Shield className="h-6 w-6" />, title: 'Verified Producers', desc: 'All producers are vetted and approved by our admin team.' },
               { icon: <Globe className="h-6 w-6" />, title: 'Global Reach', desc: 'Ship to 50+ countries worldwide.' },
               { icon: <TrendingUp className="h-6 w-6" />, title: 'Best Bulk Prices', desc: 'Transparent tiered pricing on every product.' },
             ].map(t => (

@@ -11,8 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Package, Settings } from 'lucide-react';
+import { Plus, Package, Settings, Wallet, Truck, CalendarCheck, Info } from 'lucide-react';
 import { toast } from 'sonner';
+
+const PLATFORM_FEE_PERCENT = 5;
 
 export default function ProducerDashboard() {
   const { user } = useAuth();
@@ -34,10 +36,26 @@ export default function ProducerDashboard() {
       <h1 className="font-display text-3xl font-bold">Producer Dashboard</h1>
       <p className="mt-1 text-muted-foreground">{user.business_name || user.name}</p>
 
+      {/* Payment & logistics info banner */}
+      <Card className="mt-4 border-primary/30 bg-primary/5">
+        <CardContent className="flex items-start gap-3 p-4">
+          <Info className="h-5 w-5 mt-0.5 text-primary shrink-0" />
+          <div className="text-sm">
+            <p className="font-medium text-foreground">Payment & Logistics Reminder</p>
+            <ul className="mt-1 space-y-0.5 text-muted-foreground">
+              <li>• Payouts are sent every <strong>Monday</strong>, minus referral fees and a {PLATFORM_FEE_PERCENT}% platform maintenance fee.</li>
+              <li>• You are responsible for <strong>arranging logistics and shipping</strong> for all orders.</li>
+              <li>• Referrer rewards are only paid after a referred wholesaler's first completed paid order.</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+
       <Tabs defaultValue="products" className="mt-6">
         <TabsList>
           <TabsTrigger value="products">My Products</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="payouts">Payouts</TabsTrigger>
           <TabsTrigger value="referrals">Referral Settings</TabsTrigger>
         </TabsList>
 
@@ -60,6 +78,11 @@ export default function ProducerDashboard() {
                   <div className="grid gap-4 grid-cols-2">
                     <div className="space-y-2"><Label>MOQ</Label><Input type="number" placeholder="50" /></div>
                     <div className="space-y-2"><Label>Lead Time (days)</Label><Input type="number" placeholder="7" /></div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Shipping Regions</Label>
+                    <Input placeholder="e.g. West Africa, Europe, Middle East" />
+                    <p className="text-xs text-muted-foreground">You are responsible for arranging logistics to these regions.</p>
                   </div>
                   <Button className="w-full" onClick={() => toast.success('Product created! (demo)')}>Create Product</Button>
                 </div>
@@ -86,6 +109,9 @@ export default function ProducerDashboard() {
                       <span>MOQ: {p.moq}</span>
                       <span>Stock: {p.stock_quantity}</span>
                     </div>
+                    <p className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
+                      <Truck className="h-3 w-3" /> Lead time: {p.lead_time_days} days
+                    </p>
                   </CardContent>
                 </Card>
               ))}
@@ -95,6 +121,7 @@ export default function ProducerDashboard() {
 
         <TabsContent value="orders" className="mt-4 space-y-4">
           <h2 className="font-display text-xl font-semibold">Orders</h2>
+          <p className="text-sm text-muted-foreground">You are responsible for arranging logistics and shipping for confirmed orders.</p>
           {orders.length === 0 ? (
             <Card><CardContent className="py-12 text-center text-muted-foreground">No orders yet.</CardContent></Card>
           ) : (
@@ -138,11 +165,54 @@ export default function ProducerDashboard() {
           )}
         </TabsContent>
 
+        <TabsContent value="payouts" className="mt-4 space-y-4">
+          <h2 className="font-display text-xl font-semibold">Payout Schedule</h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary"><Wallet className="h-5 w-5" /></div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Pending Payout</p>
+                  <p className="font-display text-xl font-bold">${((orders.reduce((s, o) => s + o.total_amount, 0)) * (1 - PLATFORM_FEE_PERCENT / 100)).toFixed(2)}</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary"><CalendarCheck className="h-5 w-5" /></div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Next Payout</p>
+                  <p className="font-display text-xl font-bold">Monday</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground"><Truck className="h-5 w-5" /></div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Platform Fee</p>
+                  <p className="font-display text-xl font-bold">{PLATFORM_FEE_PERCENT}%</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          <Card>
+            <CardContent className="p-4 text-sm text-muted-foreground space-y-1">
+              <p>• Payouts include all completed orders from the previous week.</p>
+              <p>• Referral fees (set by you) and the {PLATFORM_FEE_PERCENT}% platform maintenance fee are deducted before payout.</p>
+              <p>• Referrer rewards are only triggered when a referred wholesaler completes their first paid order.</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="referrals" className="mt-4 space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="font-display text-lg flex items-center gap-2"><Settings className="h-5 w-5" /> Referral Reward Settings</CardTitle>
-              <CardDescription>Set the reward referrers earn when a buyer they referred completes their first order with your products.</CardDescription>
+              <CardDescription>
+                Set the reward referrers earn when a buyer they referred completes and pays for their first order with your products.
+                This amount is deducted from your payout.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -163,8 +233,8 @@ export default function ProducerDashboard() {
               </div>
               <p className="text-sm text-muted-foreground">
                 {rewardType === 'fixed'
-                  ? `Referrers will earn $${rewardValue || '0'} per qualifying first order that includes your products.`
-                  : `Referrers will earn ${rewardValue || '0'}% of the subtotal of your products in qualifying first orders.`}
+                  ? `Referrers will earn $${rewardValue || '0'} per qualifying first order that includes your products. This is deducted from your Monday payout.`
+                  : `Referrers will earn ${rewardValue || '0'}% of the subtotal of your products in qualifying first orders. This is deducted from your Monday payout.`}
               </p>
               <Button onClick={saveReward}>Save Settings</Button>
             </CardContent>
