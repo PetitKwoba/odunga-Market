@@ -16,14 +16,14 @@ import { toast } from 'sonner';
 
 export default function ProducerDashboard() {
   const { user } = useAuth();
+  const [rewardType, setRewardType] = useState<'fixed' | 'percentage'>('fixed');
+  const [rewardValue, setRewardValue] = useState('0');
+
   if (!user) return null;
 
   const products = mockProducts.filter(p => p.producer_id === user.id);
   const orders = mockOrders.filter(o => o.items.some(i => i.producer_id === user.id));
   const profile = mockProducerProfiles.find(p => p.user_id === user.id);
-
-  const [rewardType, setRewardType] = useState(profile?.referral_reward_type || 'fixed');
-  const [rewardValue, setRewardValue] = useState(String(profile?.referral_reward_value || 0));
 
   const saveReward = () => {
     toast.success(`Referral reward updated: ${rewardType === 'fixed' ? '$' : ''}${rewardValue}${rewardType === 'percentage' ? '%' : ''}`);
