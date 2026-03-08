@@ -344,6 +344,7 @@ export default function POSDashboard() {
           <TabsTrigger value="catalog"><Package className="mr-1 h-4 w-4" /> Catalog</TabsTrigger>
           <TabsTrigger value="invoices"><FileText className="mr-1 h-4 w-4" /> Invoices</TabsTrigger>
           <TabsTrigger value="history"><Receipt className="mr-1 h-4 w-4" /> History</TabsTrigger>
+          <TabsTrigger value="analytics"><BarChart3 className="mr-1 h-4 w-4" /> Analytics</TabsTrigger>
           <TabsTrigger value="settings"><Settings className="mr-1 h-4 w-4" /> Tax Settings</TabsTrigger>
         </TabsList>
 
