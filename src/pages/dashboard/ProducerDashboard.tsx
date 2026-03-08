@@ -121,8 +121,15 @@ export default function ProducerDashboard() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {products.map(p => (
-                <Card key={p.id}>
+                <Card key={p.id} className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => { setEditProduct(p); setEditOpen(true); }}>
                   <CardContent className="p-4">
+                    {p.images && p.images.length > 0 && p.images[0] ? (
+                      <div className="mb-3 h-32 w-full rounded-md overflow-hidden bg-muted">
+                        <img src={p.images[0]} alt={p.name} className="h-full w-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="mb-3 flex h-32 w-full items-center justify-center rounded-md bg-muted text-muted-foreground/40 text-xs">No image</div>
+                    )}
                     <div className="flex items-start justify-between">
                       <div><h3 className="font-display font-semibold">{p.name}</h3><p className="text-xs text-muted-foreground">{p.category}</p></div>
                       <Badge variant={p.is_active ? 'default' : 'outline'}>{p.is_active ? 'Active' : 'Inactive'}</Badge>
@@ -135,31 +142,17 @@ export default function ProducerDashboard() {
                     <p className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
                       <Truck className="h-3 w-3" /> Lead time: {p.lead_time_days} days
                     </p>
+                    <Button variant="outline" size="sm" className="mt-3 w-full" onClick={e => { e.stopPropagation(); setEditProduct(p); setEditOpen(true); }}>
+                      <Pencil className="mr-1 h-3 w-3" /> Edit Product
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
             </div>
           )}
 
-          <Dialog open={addOpen} onOpenChange={setAddOpen}>
-            <DialogContent className="max-w-lg">
-              <DialogHeader><DialogTitle className="font-display">Add New Product</DialogTitle></DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2"><Label>Product Name</Label><Input value={newProduct.name} onChange={e => setNewProduct(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Organic Cotton Fabric" /></div>
-                <div className="space-y-2"><Label>Description</Label><Textarea value={newProduct.description} onChange={e => setNewProduct(p => ({ ...p, description: e.target.value }))} placeholder="Describe your product..." /></div>
-                <div className="grid gap-4 grid-cols-2">
-                  <div className="space-y-2"><Label>Category</Label><Input value={newProduct.category} onChange={e => setNewProduct(p => ({ ...p, category: e.target.value }))} placeholder="e.g. Textiles" /></div>
-                  <div className="space-y-2"><Label>Base Price ($)</Label><Input type="number" value={newProduct.base_price} onChange={e => setNewProduct(p => ({ ...p, base_price: e.target.value }))} placeholder="0.00" /></div>
-                </div>
-                <div className="grid gap-4 grid-cols-3">
-                  <div className="space-y-2"><Label>MOQ</Label><Input type="number" value={newProduct.moq} onChange={e => setNewProduct(p => ({ ...p, moq: e.target.value }))} placeholder="50" /></div>
-                  <div className="space-y-2"><Label>Lead Time (days)</Label><Input type="number" value={newProduct.lead_time_days} onChange={e => setNewProduct(p => ({ ...p, lead_time_days: e.target.value }))} placeholder="7" /></div>
-                  <div className="space-y-2"><Label>Stock Qty</Label><Input type="number" value={newProduct.stock_quantity} onChange={e => setNewProduct(p => ({ ...p, stock_quantity: e.target.value }))} placeholder="1000" /></div>
-                </div>
-                <Button className="w-full" onClick={handleAddProduct}>Create Product</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <ProductEditDialog product={null} open={addOpen} onOpenChange={setAddOpen} onSaved={refreshProducts} isNew producerId={user.id} />
+          <ProductEditDialog product={editProduct} open={editOpen} onOpenChange={setEditOpen} onSaved={refreshProducts} />
         </TabsContent>
 
         <TabsContent value="orders" className="mt-4 space-y-4">
