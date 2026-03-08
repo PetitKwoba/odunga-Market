@@ -167,6 +167,10 @@ export default function ProducerDashboard() {
           )}
         </TabsContent>
 
+        <TabsContent value="team" className="mt-4">
+          <StoreTeamTab />
+        </TabsContent>
+
         <TabsContent value="payouts" className="mt-4 space-y-4">
           <h2 className="font-display text-xl font-semibold">Payout Schedule</h2>
           <div className="grid gap-4 md:grid-cols-3">
