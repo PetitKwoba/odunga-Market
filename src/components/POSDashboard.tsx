@@ -12,9 +12,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Package, Receipt, ShoppingCart, Trash2, Search, DollarSign, FileText, Download, Pencil, Settings } from 'lucide-react';
+import { Plus, Package, Receipt, ShoppingCart, Trash2, Search, DollarSign, FileText, Download, Pencil, Settings, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { generateInvoicePDF } from './InvoicePDF';
+import POSAnalytics from './POSAnalytics';
 
 interface CatalogItem {
   id: string;
