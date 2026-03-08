@@ -98,6 +98,8 @@ export default function AdminPanel() {
     refreshUsers(updated);
     setRequestDialogOpen(false);
     toast.success(`Document request sent to ${selectedUser.name}`);
+    // Simulate email notification
+    toast.info(`📧 Email sent to ${selectedUser.email}: "Please upload '${requestForm.document_name.trim()}' to your Waholo Market profile."`, { duration: 6000 });
   };
 
   const handleDocStatus = (userId: string, docId: string, status: 'approved' | 'rejected', note?: string) => {
