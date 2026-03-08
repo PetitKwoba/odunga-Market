@@ -208,35 +208,67 @@ export default function ProducerDashboard() {
         {/* ─── ORDERS TAB ─── */}
         <TabsContent value="orders" className="mt-4 space-y-4">
           <h2 className="font-display text-xl font-semibold">Orders</h2>
-          {orders.length === 0 ? (
-            <Card><CardContent className="py-12 text-center text-muted-foreground">No orders yet.</CardContent></Card>
-          ) : (
-            <Card><CardContent className="p-0">
-              <Table>
-                <TableHeader><TableRow><TableHead>Order</TableHead><TableHead>Total</TableHead><TableHead>Status</TableHead><TableHead>Date</TableHead><TableHead>Action</TableHead></TableRow></TableHeader>
-                <TableBody>
-                  {orders.map(o => (
-                    <TableRow key={o.id}>
-                      <TableCell className="font-mono text-xs">{o.id.slice(0, 8)}...</TableCell>
-                      <TableCell className="font-semibold">${Number(o.total_amount).toFixed(2)}</TableCell>
-                      <TableCell><Badge variant={o.status === 'Completed' ? 'default' : 'outline'}>{o.status}</Badge></TableCell>
-                      <TableCell>{new Date(o.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <Select defaultValue={o.status} onValueChange={(v) => updateOrderStatus(o.id, v)}>
-                          <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {['Pending', 'Confirmed', 'Shipped', 'Completed', 'Cancelled'].map(s => (
-                              <SelectItem key={s} value={s}>{s}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent></Card>
-          )}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div>
+              {orders.length === 0 ? (
+                <Card><CardContent className="py-12 text-center text-muted-foreground">No orders yet.</CardContent></Card>
+              ) : (
+                <Card><CardContent className="p-0">
+                  <Table>
+                    <TableHeader><TableRow><TableHead>Order</TableHead><TableHead>Total</TableHead><TableHead>Status</TableHead><TableHead>Action</TableHead><TableHead>Chat</TableHead></TableRow></TableHeader>
+                    <TableBody>
+                      {orders.map(o => (
+                        <TableRow key={o.id} className={selectedOrderId === o.id ? 'bg-primary/5' : ''}>
+                          <TableCell>
+                            <p className="font-mono text-xs">{o.id.slice(0, 8)}...</p>
+                            <p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</p>
+                          </TableCell>
+                          <TableCell className="font-semibold">${Number(o.total_amount).toFixed(2)}</TableCell>
+                          <TableCell><Badge variant={o.status === 'Completed' ? 'default' : 'outline'}>{o.status}</Badge></TableCell>
+                          <TableCell>
+                            <Select defaultValue={o.status} onValueChange={(v) => updateOrderStatus(o.id, v)}>
+                              <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {['Pending', 'Confirmed', 'Shipped', 'Completed', 'Cancelled'].map(s => (
+                                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant={selectedOrderId === o.id ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => { setSelectedOrderId(o.id); setSelectedOrderStatus(o.status); }}
+                            >
+                              <MessageCircle className="h-3 w-3" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent></Card>
+              )}
+            </div>
+            <div>
+              {selectedOrderId ? (
+                <OrderChat orderId={selectedOrderId} orderStatus={selectedOrderStatus} />
+              ) : (
+                <Card className="h-[400px] flex items-center justify-center">
+                  <CardContent className="text-center text-muted-foreground">
+                    <MessageCircle className="mx-auto mb-2 h-8 w-8 text-muted-foreground/40" />
+                    <p className="text-sm">Select an order to chat with the wholesaler</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* ─── POS TAB ─── */}
+        <TabsContent value="pos" className="mt-4">
+          <POSDashboard />
         </TabsContent>
 
         {/* ─── TEAM TAB ─── */}
