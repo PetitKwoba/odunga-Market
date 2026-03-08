@@ -147,8 +147,11 @@ export default function AdminPanel() {
         ))}
       </div>
 
-      <Tabs defaultValue="pending" className="mt-6">
+      <Tabs defaultValue="analytics" className="mt-6">
         <TabsList className="flex flex-wrap">
+          <TabsTrigger value="analytics">
+            <BarChart3 className="mr-1.5 h-4 w-4" /> Analytics
+          </TabsTrigger>
           <TabsTrigger value="pending">
             Pending Approval {pendingUsers.length > 0 && <Badge className="ml-1.5 bg-secondary text-secondary-foreground">{pendingUsers.length}</Badge>}
           </TabsTrigger>
@@ -162,6 +165,16 @@ export default function AdminPanel() {
           <TabsTrigger value="team">Team Members</TabsTrigger>
           <TabsTrigger value="messages">Messages</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="analytics" className="mt-4">
+          <AdminAnalytics 
+            orders={orders}
+            products={products}
+            profiles={profiles}
+            posTransactions={posTransactions}
+            payouts={payouts}
+          />
+        </TabsContent>
 
         <TabsContent value="pending" className="mt-4">
           <Card><CardContent className="p-0">
