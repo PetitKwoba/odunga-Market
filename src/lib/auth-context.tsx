@@ -15,9 +15,16 @@ const AuthContext = createContext<AuthContextType | null>(null);
 function getAllUsers(): User[] {
   const stored = localStorage.getItem('waholo_all_users');
   if (stored) {
-    try { return JSON.parse(stored); } catch { /* ignore */ }
+    try {
+      const parsed: User[] = JSON.parse(stored);
+      return parsed.map(u => ({
+        ...u,
+        documents: u.documents || [],
+        document_requests: u.document_requests || [],
+        profile: u.profile || { ...defaultProfile },
+      }));
+    } catch { /* ignore */ }
   }
-  // Initialize from mock data
   localStorage.setItem('waholo_all_users', JSON.stringify(mockUsers));
   return [...mockUsers];
 }
