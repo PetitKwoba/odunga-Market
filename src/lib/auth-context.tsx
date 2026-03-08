@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return true;
   }, []);
 
-  const signup = useCallback(async (data: { name: string; email: string; password: string; role: UserRole; business_name?: string; country: string; ref?: string }) => {
+  const signup = useCallback(async (data: { name: string; email: string; password: string; role: UserRole; business_name?: string; country: string; ref?: string; documents?: { name: string; file_name: string }[] }) => {
     const allUsers = getAllUsers();
 
     // Find referrer from all users
@@ -72,6 +72,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       referral_credits: 0,
       is_verified: true,
       is_approved: data.role === 'referrer' || data.role === 'admin',
+      documents: (data.documents || []).map((d, i) => ({
+        id: 'doc' + Date.now() + i,
+        name: d.name,
+        file_name: d.file_name,
+        uploaded_at: new Date().toISOString(),
+        status: 'pending' as const,
+      })),
+      document_requests: [],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
