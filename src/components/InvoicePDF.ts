@@ -1,0 +1,204 @@
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
+interface InvoiceItem {
+  name: string;
+  quantity: number;
+  price: number;
+  subtotal: number;
+}
+
+interface InvoiceData {
+  invoice_number: string;
+  client_name: string;
+  client_email?: string;
+  client_phone?: string;
+  due_date?: string | null;
+  notes?: string;
+  items: InvoiceItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  created_at: string;
+  // Branding
+  business_name: string;
+  logo_url?: string | null;
+  phone?: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+}
+
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(amount);
+}
+
+export async function generateInvoicePDF(data: InvoiceData) {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let y = 20;
+
+  // Try to load logo
+  if (data.logo_url) {
+    try {
+      const img = await loadImage(data.logo_url);
+      doc.addImage(img, 'PNG', 14, y, 30, 30);
+      y = 22;
+    } catch {
+      // Skip logo if it fails to load
+    }
+  }
+
+  // Company header
+  const headerX = data.logo_url ? 50 : 14;
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.text(data.business_name || 'My Business', headerX, y + 4);
+  
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100);
+  const contactLines: string[] = [];
+  if (data.email) contactLines.push(data.email);
+  if (data.phone) contactLines.push(data.phone);
+  if (data.address || data.city || data.country) {
+    contactLines.push([data.address, data.city, data.country].filter(Boolean).join(', '));
+  }
+  contactLines.forEach((line, i) => {
+    doc.text(line, headerX, y + 10 + i * 4);
+  });
+
+  // Invoice title
+  y = data.logo_url ? 58 : 46;
+  doc.setTextColor(0);
+  doc.setFontSize(24);
+  doc.setFont('helvetica', 'bold');
+  doc.text('INVOICE', pageWidth - 14, y, { align: 'right' });
+
+  // Invoice details
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  y += 10;
+  doc.text(`Invoice #: ${data.invoice_number}`, pageWidth - 14, y, { align: 'right' });
+  y += 5;
+  doc.text(`Date: ${new Date(data.created_at).toLocaleDateString('en-KE')}`, pageWidth - 14, y, { align: 'right' });
+  if (data.due_date) {
+    y += 5;
+    doc.text(`Due: ${new Date(data.due_date).toLocaleDateString('en-KE')}`, pageWidth - 14, y, { align: 'right' });
+  }
+
+  // Bill to
+  y += 12;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(100);
+  doc.text('BILL TO', 14, y);
+  doc.setTextColor(0);
+  doc.setFont('helvetica', 'normal');
+  y += 6;
+  doc.setFontSize(11);
+  doc.text(data.client_name, 14, y);
+  if (data.client_email) { y += 5; doc.setFontSize(9); doc.text(data.client_email, 14, y); }
+  if (data.client_phone) { y += 5; doc.setFontSize(9); doc.text(data.client_phone, 14, y); }
+
+  // Divider
+  y += 10;
+  doc.setDrawColor(220);
+  doc.line(14, y, pageWidth - 14, y);
+  y += 4;
+
+  // Items table
+  const tableBody = data.items.map(item => [
+    item.name,
+    item.quantity.toString(),
+    formatCurrency(item.price),
+    formatCurrency(item.subtotal),
+  ]);
+
+  autoTable(doc, {
+    startY: y,
+    head: [['Item', 'Qty', 'Unit Price', 'Amount']],
+    body: tableBody,
+    theme: 'striped',
+    headStyles: {
+      fillColor: [40, 40, 40],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      fontSize: 10,
+    },
+    bodyStyles: { fontSize: 9 },
+    columnStyles: {
+      0: { cellWidth: 'auto' },
+      1: { halign: 'center', cellWidth: 25 },
+      2: { halign: 'right', cellWidth: 35 },
+      3: { halign: 'right', cellWidth: 35 },
+    },
+    margin: { left: 14, right: 14 },
+  });
+
+  // Totals
+  const finalY = (doc as any).lastAutoTable?.finalY || y + 40;
+  let totY = finalY + 10;
+  const rightCol = pageWidth - 14;
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Subtotal:', rightCol - 45, totY);
+  doc.text(formatCurrency(data.subtotal), rightCol, totY, { align: 'right' });
+
+  totY += 6;
+  doc.text('Tax:', rightCol - 45, totY);
+  doc.text(formatCurrency(data.tax), rightCol, totY, { align: 'right' });
+
+  totY += 2;
+  doc.setDrawColor(180);
+  doc.line(rightCol - 55, totY, rightCol, totY);
+
+  totY += 6;
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Total:', rightCol - 45, totY);
+  doc.text(formatCurrency(data.total), rightCol, totY, { align: 'right' });
+
+  // Notes
+  if (data.notes) {
+    totY += 16;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(100);
+    doc.text('NOTES', 14, totY);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0);
+    totY += 5;
+    const splitNotes = doc.splitTextToSize(data.notes, pageWidth - 28);
+    doc.text(splitNotes, 14, totY);
+  }
+
+  // Footer
+  const footerY = doc.internal.pageSize.getHeight() - 15;
+  doc.setFontSize(8);
+  doc.setTextColor(150);
+  doc.text(`Generated by Waholo Market · ${data.business_name}`, pageWidth / 2, footerY, { align: 'center' });
+
+  // Save
+  doc.save(`${data.invoice_number}.pdf`);
+}
+
+function loadImage(url: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { reject('No context'); return; }
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
