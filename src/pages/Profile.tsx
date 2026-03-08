@@ -76,6 +76,11 @@ export default function ProfilePage() {
       payout_method: user.payout_method || 'bank_transfer',
     });
 
+    // Fetch logo
+    supabase.from('profiles').select('logo_url').eq('user_id', user.id).single().then(({ data }) => {
+      if (data?.logo_url) setLogoUrl(data.logo_url);
+    });
+
     // Fetch documents
     supabase.from('user_documents').select('*').eq('user_id', user.id).order('uploaded_at', { ascending: false }).then(({ data }) => {
       if (data) setDocuments(data as UserDocument[]);
