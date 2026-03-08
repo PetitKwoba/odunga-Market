@@ -88,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })),
       document_requests: [],
       profile: { ...defaultProfile },
+      store_team: [],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
