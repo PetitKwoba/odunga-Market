@@ -127,19 +127,19 @@ export default function POSAnalytics({ transactions, formatCurrency }: POSAnalyt
   // Summary stats
   const stats = useMemo(() => {
     const now = new Date();
-    const today = transactions.filter(t => new Date(t.created_at).toDateString() === now.toDateString());
+    const today = filteredTransactions.filter(t => new Date(t.created_at).toDateString() === now.toDateString());
     const yesterday = new Date(now);
     yesterday.setDate(now.getDate() - 1);
-    const yesterdayTxns = transactions.filter(t => new Date(t.created_at).toDateString() === yesterday.toDateString());
+    const yesterdayTxns = filteredTransactions.filter(t => new Date(t.created_at).toDateString() === yesterday.toDateString());
 
     const todayRevenue = today.reduce((s, t) => s + Number(t.total), 0);
     const yesterdayRevenue = yesterdayTxns.reduce((s, t) => s + Number(t.total), 0);
-    const totalRevenue = transactions.reduce((s, t) => s + Number(t.total), 0);
-    const avgOrder = transactions.length > 0 ? totalRevenue / transactions.length : 0;
+    const totalRevenue = filteredTransactions.reduce((s, t) => s + Number(t.total), 0);
+    const avgOrder = filteredTransactions.length > 0 ? totalRevenue / filteredTransactions.length : 0;
     const changePercent = yesterdayRevenue > 0 ? ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100 : 0;
 
-    return { todayRevenue, totalRevenue, avgOrder, txnCount: transactions.length, changePercent };
-  }, [transactions]);
+    return { todayRevenue, totalRevenue, avgOrder, txnCount: filteredTransactions.length, changePercent };
+  }, [filteredTransactions]);
 
   const revenueChartConfig = {
     revenue: { label: 'Revenue', color: 'hsl(var(--primary))' },
