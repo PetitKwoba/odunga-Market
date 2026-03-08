@@ -8,6 +8,10 @@ export const mockUsers: User[] = [
     documents: [{ id: 'd1', name: 'Business Registration', file_name: 'business_reg.pdf', uploaded_at: '2025-01-15T10:00:00Z', status: 'approved' }],
     document_requests: [],
     profile: { ...defaultProfile, phone: '+234800000000', address: '12 Lagos Rd', city: 'Lagos', industry: 'Textiles', bio: 'Premium textile producer', bank_name: 'First Bank', bank_account_number: '1234567890', bank_routing_number: '011', payout_method: 'bank_transfer' },
+    store_team: [
+      { id: 'tm1', name: 'Chidi Okonkwo', email: 'chidi@amara.com', phone: '+234800111111', role: 'store_manager', permissions: ['manage_products', 'manage_orders', 'view_orders', 'view_reports', 'manage_shipping'], is_active: true, added_at: '2025-02-01T10:00:00Z' },
+      { id: 'tm2', name: 'Fatima Bello', email: 'fatima@amara.com', phone: '+234800222222', role: 'delivery_person', permissions: ['view_orders', 'update_delivery_status'], is_active: true, added_at: '2025-02-15T10:00:00Z' },
+    ],
     created_at: '2025-01-15T10:00:00Z', updated_at: '2025-01-15T10:00:00Z',
   },
   {
