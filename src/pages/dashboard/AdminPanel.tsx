@@ -17,11 +17,11 @@ function getAllUsers(): User[] {
   const stored = localStorage.getItem('waholo_all_users');
   if (stored) try {
     const parsed: User[] = JSON.parse(stored);
-    // Ensure all users have documents/document_requests fields (backwards compat)
     return parsed.map(u => ({
       ...u,
       documents: u.documents || [],
       document_requests: u.document_requests || [],
+      profile: u.profile || {},
     }));
   } catch { /* */ }
   return [];
