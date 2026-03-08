@@ -10,7 +10,7 @@ export const mockUsers: User[] = [
   {
     id: 'u2', role: 'producer', name: 'GreenLeaf Agro', business_name: 'GreenLeaf Agro Inc',
     email: 'greenleaf@example.com', country: 'Ghana', referral_code: 'GREEN01',
-    referred_by_user_id: null, referral_credits: 0, is_verified: true,
+    referred_by_user_id: null, referral_credits: 0, is_verified: true, is_approved: true,
     created_at: '2025-02-01T10:00:00Z', updated_at: '2025-02-01T10:00:00Z',
   },
   {
