@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  signup: (data: { name: string; email: string; password: string; role: UserRole; business_name?: string; country: string; ref?: string }) => Promise<boolean>;
+  signup: (data: { name: string; email: string; password: string; role: UserRole; business_name?: string; country: string; ref?: string; documents?: { name: string; file_name: string }[] }) => Promise<boolean>;
   logout: () => void;
 }
 
