@@ -500,6 +500,7 @@ export type Database = {
           industry: string | null
           is_approved: boolean
           is_verified: boolean
+          logo_url: string | null
           name: string
           payout_method: string | null
           phone: string | null
@@ -528,6 +529,7 @@ export type Database = {
           industry?: string | null
           is_approved?: boolean
           is_verified?: boolean
+          logo_url?: string | null
           name: string
           payout_method?: string | null
           phone?: string | null
@@ -556,6 +558,7 @@ export type Database = {
           industry?: string | null
           is_approved?: boolean
           is_verified?: boolean
+          logo_url?: string | null
           name?: string
           payout_method?: string | null
           phone?: string | null
