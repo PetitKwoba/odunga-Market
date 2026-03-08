@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth-context';
 import { useCart } from '@/lib/cart-context';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Menu, X, LogOut, LayoutDashboard } from 'lucide-react';
+import { ShoppingCart, Menu, X, LogOut, LayoutDashboard, UserCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
