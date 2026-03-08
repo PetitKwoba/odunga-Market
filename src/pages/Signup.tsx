@@ -90,6 +90,10 @@ export default function Signup() {
     if (!form.role) { toast.error('Please select a role'); return; }
     if (!allConsented) { toast.error('Please agree to all terms before continuing'); return; }
     if (form.password.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+    if (!form.country) { toast.error('Please select your country'); return; }
+    if (form.role !== 'referrer' && !form.business_name.trim()) {
+      toast.error('Business name is required'); return;
+    }
 
     setLoading(true);
     const result = await signup({
