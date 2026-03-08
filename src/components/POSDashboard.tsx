@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,8 +11,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Package, Receipt, ShoppingCart, Trash2, Search, DollarSign, FileText, Pencil } from 'lucide-react';
+import { Plus, Package, Receipt, ShoppingCart, Trash2, Search, DollarSign, FileText, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import { generateInvoicePDF } from './InvoicePDF';
 
 interface CatalogItem {
   id: string;
@@ -53,6 +54,7 @@ interface Transaction {
   total: number;
   payment_method: string;
   created_at: string;
+  notes: string | null;
 }
 
 function formatCurrency(amount: number) {
@@ -70,18 +72,38 @@ export default function POSDashboard() {
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [customerName, setCustomerName] = useState('Walk-in');
   const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [transactionCode, setTransactionCode] = useState('');
 
   // New item form
   const [itemForm, setItemForm] = useState({ name: '', description: '', category: '', price: '', stock_quantity: '', sku: '' });
   // Invoice form
   const [invoiceForm, setInvoiceForm] = useState({ client_name: '', client_email: '', client_phone: '', notes: '', due_date: '' });
 
+  // Branding info
+  const [branding, setBranding] = useState<{ business_name: string; logo_url: string | null; phone: string; email: string; address: string; city: string; country: string }>({
+    business_name: '', logo_url: null, phone: '', email: '', address: '', city: '', country: '',
+  });
+
   useEffect(() => {
     if (!user) return;
     fetchCatalog();
     fetchTransactions();
     fetchInvoices();
+    fetchBranding();
   }, [user]);
+
+  const fetchBranding = async () => {
+    const { data } = await supabase.from('profiles').select('business_name, logo_url, phone, email, address, city, country').eq('user_id', user!.id).single();
+    if (data) setBranding({
+      business_name: data.business_name || data.email || 'My Business',
+      logo_url: data.logo_url,
+      phone: data.phone || '',
+      email: data.email || '',
+      address: data.address || '',
+      city: data.city || '',
+      country: data.country || '',
+    });
+  };
 
   const fetchCatalog = async () => {
     const { data } = await supabase.from('pos_catalog_items').select('*').eq('owner_id', user!.id).order('name');
@@ -142,6 +164,7 @@ export default function POSDashboard() {
       tax: 0,
       total: cartTotal,
       payment_method: paymentMethod,
+      notes: transactionCode ? `Ref: ${transactionCode}` : '',
     });
     if (error) { toast.error('Failed to record sale'); return; }
 
@@ -153,6 +176,7 @@ export default function POSDashboard() {
     toast.success('Sale completed! 🎉');
     setCart([]);
     setCustomerName('Walk-in');
+    setTransactionCode('');
     fetchCatalog();
     fetchTransactions();
   };
@@ -191,10 +215,37 @@ export default function POSDashboard() {
     else { toast.success('Invoice updated'); fetchInvoices(); }
   };
 
+  const downloadInvoicePDF = async (inv: Invoice) => {
+    const logoPublicUrl = branding.logo_url
+      ? supabase.storage.from('avatars').getPublicUrl(branding.logo_url).data.publicUrl
+      : null;
+
+    await generateInvoicePDF({
+      invoice_number: inv.invoice_number,
+      client_name: inv.client_name,
+      client_email: inv.client_email,
+      client_phone: inv.client_phone,
+      due_date: inv.due_date,
+      notes: inv.notes,
+      items: inv.items as any[],
+      subtotal: Number(inv.subtotal),
+      tax: Number(inv.tax),
+      total: Number(inv.total),
+      created_at: inv.created_at,
+      business_name: branding.business_name,
+      logo_url: logoPublicUrl,
+      phone: branding.phone,
+      email: branding.email,
+      address: branding.address,
+      city: branding.city,
+      country: branding.country,
+    });
+  };
+
   const filteredCatalog = catalog.filter(item =>
     item.name.toLowerCase().includes(search.toLowerCase()) ||
-    item.sku.toLowerCase().includes(search.toLowerCase()) ||
-    item.category.toLowerCase().includes(search.toLowerCase())
+    (item.sku || '').toLowerCase().includes(search.toLowerCase()) ||
+    (item.category || '').toLowerCase().includes(search.toLowerCase())
   );
 
   if (!user) return null;
@@ -312,6 +363,15 @@ export default function POSDashboard() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs">Transaction / Reference Code</Label>
+                    <Input
+                      value={transactionCode}
+                      onChange={e => setTransactionCode(e.target.value)}
+                      placeholder="e.g. M-Pesa code, receipt #"
+                      className="h-8 text-sm"
+                    />
+                  </div>
                   <Button className="w-full" onClick={completeSale} disabled={cart.length === 0}>
                     Complete Sale
                   </Button>
@@ -391,14 +451,19 @@ export default function POSDashboard() {
                       </TableCell>
                       <TableCell>{new Date(inv.created_at).toLocaleDateString('en-KE')}</TableCell>
                       <TableCell>
-                        <Select defaultValue={inv.status} onValueChange={v => updateInvoiceStatus(inv.id, v)}>
-                          <SelectTrigger className="w-28 h-8 text-xs"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {['draft', 'sent', 'paid', 'overdue', 'cancelled'].map(s => (
-                              <SelectItem key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => downloadInvoicePDF(inv)} title="Download PDF">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Select defaultValue={inv.status} onValueChange={v => updateInvoiceStatus(inv.id, v)}>
+                            <SelectTrigger className="w-24 h-8 text-xs"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {['draft', 'sent', 'paid', 'overdue', 'cancelled'].map(s => (
+                                <SelectItem key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -423,6 +488,7 @@ export default function POSDashboard() {
                     <TableHead>Items</TableHead>
                     <TableHead className="text-right">Total</TableHead>
                     <TableHead>Payment</TableHead>
+                    <TableHead>Ref Code</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -433,6 +499,7 @@ export default function POSDashboard() {
                       <TableCell className="text-sm">{(tx.items as any[]).map(i => `${i.name} x${i.quantity}`).join(', ')}</TableCell>
                       <TableCell className="text-right font-semibold">{formatCurrency(Number(tx.total))}</TableCell>
                       <TableCell><Badge variant="outline">{tx.payment_method}</Badge></TableCell>
+                      <TableCell className="font-mono text-xs">{tx.notes?.replace('Ref: ', '') || '-'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -477,8 +544,17 @@ export default function POSDashboard() {
             </div>
             <div className="space-y-1"><Label>Due Date</Label><Input type="date" value={invoiceForm.due_date} onChange={e => setInvoiceForm(f => ({ ...f, due_date: e.target.value }))} /></div>
             <div className="space-y-1"><Label>Notes</Label><Textarea value={invoiceForm.notes} onChange={e => setInvoiceForm(f => ({ ...f, notes: e.target.value }))} /></div>
-            <div className="border-t pt-2">
-              <p className="text-sm font-semibold">Items: {cart.length} | Total: {formatCurrency(cartTotal)}</p>
+            <div className="border-t pt-2 space-y-1">
+              <p className="text-sm font-semibold">Items ({cart.length}):</p>
+              <div className="space-y-1 max-h-32 overflow-y-auto">
+                {cart.map(c => (
+                  <div key={c.item.id} className="flex justify-between text-xs text-muted-foreground">
+                    <span>{c.item.name} × {c.quantity}</span>
+                    <span>{formatCurrency(c.item.price * c.quantity)}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-sm font-bold pt-1">Total: {formatCurrency(cartTotal)}</p>
             </div>
           </div>
           <DialogFooter>

@@ -10,8 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { User as UserIcon, Building2, CreditCard, FileText, Upload, AlertCircle, CheckCircle, Clock, X } from 'lucide-react';
+import { User as UserIcon, Building2, CreditCard, FileText, Upload, AlertCircle, CheckCircle, Clock, X, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProfileForm {
   phone: string;
