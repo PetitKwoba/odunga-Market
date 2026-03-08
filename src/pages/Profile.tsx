@@ -96,6 +96,21 @@ export default function ProfilePage() {
 
   const pendingRequests = docRequests.filter(r => !r.fulfilled);
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Please upload an image file'); return; }
+    setUploadingLogo(true);
+    const filePath = `logos/${user.id}/${Date.now()}_${file.name}`;
+    const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
+    if (uploadError) { toast.error('Upload failed: ' + uploadError.message); setUploadingLogo(false); return; }
+    const { error: updateError } = await supabase.from('profiles').update({ logo_url: filePath }).eq('user_id', user.id);
+    if (updateError) { toast.error('Failed to save logo'); setUploadingLogo(false); return; }
+    setLogoUrl(filePath);
+    setUploadingLogo(false);
+    toast.success('Logo uploaded successfully');
+  };
+
   const updateField = (field: keyof ProfileForm, value: string) => {
     setProfile(prev => ({ ...prev, [field]: value }));
   };
