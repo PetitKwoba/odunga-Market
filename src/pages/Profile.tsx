@@ -294,6 +294,30 @@ export default function ProfilePage() {
                 <CardDescription>Your business information for verification</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Logo Upload */}
+                <div className="space-y-2">
+                  <Label>Business Logo</Label>
+                  <div className="flex items-center gap-4">
+                    {logoUrl ? (
+                      <img
+                        src={supabase.storage.from('avatars').getPublicUrl(logoUrl).data.publicUrl}
+                        alt="Business logo"
+                        className="h-16 w-16 rounded-lg object-contain border bg-background"
+                      />
+                    ) : (
+                      <div className="h-16 w-16 rounded-lg border border-dashed flex items-center justify-center bg-muted">
+                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    )}
+                    <label className="cursor-pointer">
+                      <Button variant="outline" size="sm" className="gap-1" asChild disabled={uploadingLogo}>
+                        <span><Upload className="h-3.5 w-3.5" /> {uploadingLogo ? 'Uploading...' : 'Upload Logo'}</span>
+                      </Button>
+                      <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                    </label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">This logo will appear on your invoices and PDF documents.</p>
+                </div>
                 <div className="space-y-2">
                   <Label>Business Name</Label>
                   <Input value={user.business_name || ''} disabled className="bg-muted" />
