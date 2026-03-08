@@ -93,7 +93,7 @@ export default function POSAnalytics({ transactions, formatCurrency }: POSAnalyt
         revenue: Math.round(v.revenue * 100) / 100,
         orders: v.orders,
       }));
-  }, [transactions, period]);
+  }, [filteredTransactions, period]);
 
   // Top-selling items
   const topItems = useMemo(() => {
