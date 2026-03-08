@@ -17,6 +17,7 @@ import ReferrerDashboard from "./pages/dashboard/ReferrerDashboard";
 import WholesalerDashboard from "./pages/dashboard/WholesalerDashboard";
 import ProducerDashboard from "./pages/dashboard/ProducerDashboard";
 import AdminPanel from "./pages/dashboard/AdminPanel";
+import ProfilePage from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
