@@ -90,6 +90,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          payment_reference: string | null
           payment_status: string
           shipping_address: Json
           status: string
@@ -100,6 +101,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          payment_reference?: string | null
           payment_status?: string
           shipping_address?: Json
           status?: string
@@ -110,6 +112,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          payment_reference?: string | null
           payment_status?: string
           shipping_address?: Json
           status?: string
@@ -118,6 +121,53 @@ export type Database = {
           wholesaler_id?: string
         }
         Relationships: []
+      }
+      payouts: {
+        Row: {
+          created_at: string
+          gross_amount: number
+          id: string
+          net_amount: number
+          order_id: string
+          paid_at: string | null
+          platform_fee: number
+          producer_id: string
+          referral_fee: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          gross_amount?: number
+          id?: string
+          net_amount?: number
+          order_id: string
+          paid_at?: string | null
+          platform_fee?: number
+          producer_id: string
+          referral_fee?: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          gross_amount?: number
+          id?: string
+          net_amount?: number
+          order_id?: string
+          paid_at?: string | null
+          platform_fee?: number
+          producer_id?: string
+          referral_fee?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       producer_profiles: {
         Row: {

@@ -46,42 +46,56 @@ export default function Checkout() {
     }
     setSubmitting(true);
 
-    // Create order in DB
-    const { data: order, error: orderError } = await supabase.from('orders').insert({
-      wholesaler_id: user.id,
-      total_amount: total,
-      shipping_address: shipping,
-      status: 'Pending',
-      payment_status: 'pending',
-    }).select().single();
+    try {
+      // Create order in DB
+      const { data: order, error: orderError } = await supabase.from('orders').insert({
+        wholesaler_id: user.id,
+        total_amount: total,
+        shipping_address: shipping,
+        status: 'Pending',
+        payment_status: 'pending',
+      }).select().single();
 
-    if (orderError || !order) {
-      toast.error('Failed to create order: ' + (orderError?.message || 'Unknown error'));
+      if (orderError || !order) {
+        toast.error('Failed to create order: ' + (orderError?.message || 'Unknown error'));
+        return;
+      }
+
+      // Create order items
+      const orderItems = items.map(item => ({
+        order_id: order.id,
+        product_id: item.product.id,
+        producer_id: item.product.producer_id,
+        quantity: item.quantity,
+        unit_price: getUnitPrice(item.product, item.quantity),
+        subtotal: getUnitPrice(item.product, item.quantity) * item.quantity,
+      }));
+
+      const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
+      if (itemsError) {
+        toast.error('Failed to save order items: ' + itemsError.message);
+        return;
+      }
+
+      // Initialize Paystack payment
+      const callbackUrl = `${window.location.origin}/payment/callback`;
+      const { data: paystackData, error: paystackError } = await supabase.functions.invoke('paystack-initialize', {
+        body: { order_id: order.id, callback_url: callbackUrl },
+      });
+
+      if (paystackError || !paystackData?.authorization_url) {
+        toast.error('Payment initialization failed. Please try again.');
+        return;
+      }
+
+      // Clear cart and redirect to Paystack
+      clearCart();
+      window.location.href = paystackData.authorization_url;
+    } catch (err) {
+      toast.error('Something went wrong. Please try again.');
+    } finally {
       setSubmitting(false);
-      return;
     }
-
-    // Create order items
-    const orderItems = items.map(item => ({
-      order_id: order.id,
-      product_id: item.product.id,
-      producer_id: item.product.producer_id,
-      quantity: item.quantity,
-      unit_price: getUnitPrice(item.product, item.quantity),
-      subtotal: getUnitPrice(item.product, item.quantity) * item.quantity,
-    }));
-
-    const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
-    if (itemsError) {
-      toast.error('Failed to save order items: ' + itemsError.message);
-      setSubmitting(false);
-      return;
-    }
-
-    clearCart();
-    toast.success('Order placed successfully! 🎉');
-    navigate('/dashboard/wholesaler');
-    setSubmitting(false);
   };
 
   return (
