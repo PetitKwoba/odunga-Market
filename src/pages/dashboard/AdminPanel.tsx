@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { mockProducts, mockOrders, mockReferrals } from '@/lib/mock-data';
+import { defaultProfile } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
