@@ -21,6 +21,7 @@ export const mockUsers: User[] = [
     documents: [{ id: 'd2', name: 'Business Registration', file_name: 'greenleaf_cert.pdf', uploaded_at: '2025-02-01T10:00:00Z', status: 'approved' }],
     document_requests: [],
     profile: { ...defaultProfile, phone: '+233200000000', address: '5 Accra Ave', city: 'Accra', industry: 'Agriculture', bio: 'Organic agro products' },
+    store_team: [],
     created_at: '2025-02-01T10:00:00Z', updated_at: '2025-02-01T10:00:00Z',
   },
   {
