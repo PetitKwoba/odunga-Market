@@ -192,15 +192,24 @@ export default function Signup() {
 
             {form.role !== 'referrer' && form.role !== '' && (
               <div className="space-y-2">
-                <Label htmlFor="biz">Business Name</Label>
-                <Input id="biz" value={form.business_name} onChange={e => setForm(f => ({ ...f, business_name: e.target.value }))} />
+                <Label htmlFor="biz">Business Name <span className="text-destructive">*</span></Label>
+                <Input id="biz" value={form.business_name} onChange={e => setForm(f => ({ ...f, business_name: e.target.value }))} required />
               </div>
             )}
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                <Input id="country" value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))} placeholder="e.g. Nigeria" required />
+                <Label htmlFor="country">Country <span className="text-destructive">*</span></Label>
+                <Select value={form.country} onValueChange={v => setForm(f => ({ ...f, country: v }))}>
+                  <SelectTrigger id="country">
+                    <SelectValue placeholder="Select your country" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {ALL_COUNTRIES.map(c => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
