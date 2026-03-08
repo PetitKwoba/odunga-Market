@@ -4,7 +4,7 @@ export const mockUsers: User[] = [
   {
     id: 'u1', role: 'producer', name: 'Amara Textiles', business_name: 'Amara Textiles Ltd',
     email: 'amara@example.com', country: 'Nigeria', referral_code: 'AMARA01',
-    referred_by_user_id: null, referral_credits: 0, is_verified: true,
+    referred_by_user_id: null, referral_credits: 0, is_verified: true, is_approved: true,
     created_at: '2025-01-15T10:00:00Z', updated_at: '2025-01-15T10:00:00Z',
   },
   {
