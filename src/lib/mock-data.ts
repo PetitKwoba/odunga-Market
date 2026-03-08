@@ -28,7 +28,7 @@ export const mockUsers: User[] = [
   {
     id: 'u5', role: 'referrer', name: 'Jane Doe', business_name: null,
     email: 'jane@example.com', country: 'UK', referral_code: 'JANE01',
-    referred_by_user_id: null, referral_credits: 25, is_verified: true,
+    referred_by_user_id: null, referral_credits: 25, is_verified: true, is_approved: true,
     created_at: '2025-02-10T10:00:00Z', updated_at: '2025-02-10T10:00:00Z',
   },
 ];
