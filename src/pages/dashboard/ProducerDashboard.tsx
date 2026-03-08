@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -9,17 +9,51 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Settings, Wallet, Truck, CalendarCheck, Info, Users, Pencil } from 'lucide-react';
+import { Plus, Settings, Wallet, Truck, CalendarCheck, Info, Users, Pencil, Clock, CheckCircle2, DollarSign, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import StoreTeamTab from '@/components/StoreTeamTab';
 import ProductEditDialog from '@/components/ProductEditDialog';
+import { Separator } from '@/components/ui/separator';
 
 const PLATFORM_FEE_PERCENT = 5;
+
+function getNextMonday(): Date {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = day === 0 ? 1 : day === 1 ? 0 : 8 - day;
+  const next = new Date(now);
+  next.setDate(now.getDate() + diff);
+  next.setHours(9, 0, 0, 0);
+  return next;
+}
+
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(amount);
+}
+
+function daysUntilMonday(): number {
+  const now = new Date();
+  const day = now.getDay();
+  return day === 0 ? 1 : day === 1 ? 0 : 8 - day;
+}
+
+interface Payout {
+  id: string;
+  order_id: string;
+  gross_amount: number;
+  platform_fee: number;
+  referral_fee: number;
+  net_amount: number;
+  status: string;
+  paid_at: string | null;
+  created_at: string;
+}
 
 export default function ProducerDashboard() {
   const { user } = useAuth();
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
+  const [payouts, setPayouts] = useState<Payout[]>([]);
   const [addOpen, setAddOpen] = useState(false);
   const [editProduct, setEditProduct] = useState<any>(null);
   const [editOpen, setEditOpen] = useState(false);
@@ -28,11 +62,9 @@ export default function ProducerDashboard() {
 
   useEffect(() => {
     if (!user) return;
-    // Fetch products
     supabase.from('products').select('*').eq('producer_id', user.id).order('created_at', { ascending: false }).then(({ data }) => {
       if (data) setProducts(data);
     });
-    // Fetch orders with this producer's items
     supabase.from('order_items').select('*, orders(*)').eq('producer_id', user.id).then(({ data }) => {
       if (data) {
         const orderMap = new Map<string, any>();
@@ -45,14 +77,29 @@ export default function ProducerDashboard() {
         setOrders(Array.from(orderMap.values()));
       }
     });
-    // Fetch producer profile for referral settings
     supabase.from('producer_profiles').select('*').eq('user_id', user.id).single().then(({ data }) => {
       if (data) {
         setRewardType(data.referral_reward_type as 'fixed' | 'percentage');
         setRewardValue(String(data.referral_reward_value));
       }
     });
+    supabase.from('payouts').select('*').eq('producer_id', user.id).order('created_at', { ascending: false }).then(({ data }) => {
+      if (data) setPayouts(data as Payout[]);
+    });
   }, [user]);
+
+  const payoutStats = useMemo(() => {
+    const pending = payouts.filter(p => p.status === 'pending');
+    const paid = payouts.filter(p => p.status === 'paid');
+    return {
+      pendingAmount: pending.reduce((s, p) => s + Number(p.net_amount), 0),
+      pendingCount: pending.length,
+      paidAmount: paid.reduce((s, p) => s + Number(p.net_amount), 0),
+      paidCount: paid.length,
+      totalGross: payouts.reduce((s, p) => s + Number(p.gross_amount), 0),
+      totalFees: payouts.reduce((s, p) => s + Number(p.platform_fee) + Number(p.referral_fee), 0),
+    };
+  }, [payouts]);
 
   if (!user) return null;
 
@@ -79,7 +126,8 @@ export default function ProducerDashboard() {
     }
   };
 
-  const totalRevenue = orders.reduce((s, o) => s + (o.total_amount || 0), 0);
+  const nextMonday = getNextMonday();
+  const daysLeft = daysUntilMonday();
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -104,16 +152,16 @@ export default function ProducerDashboard() {
           <TabsTrigger value="products">My Products</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
           <TabsTrigger value="team"><Users className="mr-1 h-4 w-4" /> Team</TabsTrigger>
-          <TabsTrigger value="payouts">Payouts</TabsTrigger>
+          <TabsTrigger value="payouts"><Wallet className="mr-1 h-4 w-4" /> Payouts</TabsTrigger>
           <TabsTrigger value="referrals">Referral Settings</TabsTrigger>
         </TabsList>
 
+        {/* ─── PRODUCTS TAB ─── */}
         <TabsContent value="products" className="mt-4 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-xl font-semibold">Products ({products.length})</h2>
             <Button onClick={() => setAddOpen(true)}><Plus className="mr-1 h-4 w-4" /> Add Product</Button>
           </div>
-
           {products.length === 0 ? (
             <Card><CardContent className="py-12 text-center text-muted-foreground">No products yet. Add your first product!</CardContent></Card>
           ) : (
@@ -148,11 +196,11 @@ export default function ProducerDashboard() {
               ))}
             </div>
           )}
-
           <ProductEditDialog product={null} open={addOpen} onOpenChange={setAddOpen} onSaved={refreshProducts} isNew producerId={user.id} />
           <ProductEditDialog product={editProduct} open={editOpen} onOpenChange={setEditOpen} onSaved={refreshProducts} />
         </TabsContent>
 
+        {/* ─── ORDERS TAB ─── */}
         <TabsContent value="orders" className="mt-4 space-y-4">
           <h2 className="font-display text-xl font-semibold">Orders</h2>
           {orders.length === 0 ? (
@@ -186,19 +234,156 @@ export default function ProducerDashboard() {
           )}
         </TabsContent>
 
+        {/* ─── TEAM TAB ─── */}
         <TabsContent value="team" className="mt-4">
           <StoreTeamTab />
         </TabsContent>
 
-        <TabsContent value="payouts" className="mt-4 space-y-4">
-          <h2 className="font-display text-xl font-semibold">Payout Schedule</h2>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card><CardContent className="flex items-center gap-3 p-4"><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary"><Wallet className="h-5 w-5" /></div><div><p className="text-sm text-muted-foreground">Pending Payout</p><p className="font-display text-xl font-bold">${(totalRevenue * (1 - PLATFORM_FEE_PERCENT / 100)).toFixed(2)}</p></div></CardContent></Card>
-            <Card><CardContent className="flex items-center gap-3 p-4"><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary"><CalendarCheck className="h-5 w-5" /></div><div><p className="text-sm text-muted-foreground">Next Payout</p><p className="font-display text-xl font-bold">Monday</p></div></CardContent></Card>
-            <Card><CardContent className="flex items-center gap-3 p-4"><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground"><Truck className="h-5 w-5" /></div><div><p className="text-sm text-muted-foreground">Platform Fee</p><p className="font-display text-xl font-bold">{PLATFORM_FEE_PERCENT}%</p></div></CardContent></Card>
+        {/* ─── PAYOUTS TAB ─── */}
+        <TabsContent value="payouts" className="mt-4 space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-xl font-semibold">Payouts & Earnings</h2>
+            <Badge variant="outline" className="gap-1.5 px-3 py-1.5 text-sm">
+              <CalendarCheck className="h-3.5 w-3.5" />
+              Next payout: {daysLeft === 0 ? 'Today' : daysLeft === 1 ? 'Tomorrow' : `${daysLeft} days`}
+            </Badge>
           </div>
+
+          {/* Summary Cards */}
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Clock className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Pending Payout</p>
+                  <p className="font-display text-xl font-bold">{formatCurrency(payoutStats.pendingAmount)}</p>
+                  <p className="text-xs text-muted-foreground">{payoutStats.pendingCount} order{payoutStats.pendingCount !== 1 ? 's' : ''}</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <CheckCircle2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Total Paid Out</p>
+                  <p className="font-display text-xl font-bold">{formatCurrency(payoutStats.paidAmount)}</p>
+                  <p className="text-xs text-muted-foreground">{payoutStats.paidCount} payout{payoutStats.paidCount !== 1 ? 's' : ''}</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <TrendingUp className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Total Gross Revenue</p>
+                  <p className="font-display text-xl font-bold">{formatCurrency(payoutStats.totalGross)}</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <DollarSign className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Total Fees Deducted</p>
+                  <p className="font-display text-xl font-bold">{formatCurrency(payoutStats.totalFees)}</p>
+                  <p className="text-xs text-muted-foreground">Platform + Referral</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Next Payout Info */}
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="p-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                    <CalendarCheck className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-display font-semibold">Next Monday Disbursement</p>
+                    <p className="text-sm text-muted-foreground">
+                      {nextMonday.toLocaleDateString('en-KE', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Estimated amount</p>
+                  <p className="font-display text-2xl font-bold text-primary">{formatCurrency(payoutStats.pendingAmount)}</p>
+                </div>
+              </div>
+              <Separator className="my-3" />
+              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                <span>Gross: {formatCurrency(payouts.filter(p => p.status === 'pending').reduce((s, p) => s + Number(p.gross_amount), 0))}</span>
+                <span>Platform fee ({PLATFORM_FEE_PERCENT}%): -{formatCurrency(payouts.filter(p => p.status === 'pending').reduce((s, p) => s + Number(p.platform_fee), 0))}</span>
+                <span>Referral fees: -{formatCurrency(payouts.filter(p => p.status === 'pending').reduce((s, p) => s + Number(p.referral_fee), 0))}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Payout History Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-display text-lg">Payout History</CardTitle>
+              <CardDescription>All your earnings from confirmed orders</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              {payouts.length === 0 ? (
+                <div className="py-12 text-center text-muted-foreground">
+                  <Wallet className="mx-auto mb-2 h-8 w-8 text-muted-foreground/40" />
+                  <p>No payouts yet. Payouts are created when wholesalers pay for orders.</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Order</TableHead>
+                      <TableHead className="text-right">Gross</TableHead>
+                      <TableHead className="text-right">Platform Fee</TableHead>
+                      <TableHead className="text-right">Referral Fee</TableHead>
+                      <TableHead className="text-right">Net Amount</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {payouts.map(p => (
+                      <TableRow key={p.id}>
+                        <TableCell className="text-sm">{new Date(p.created_at).toLocaleDateString('en-KE')}</TableCell>
+                        <TableCell className="font-mono text-xs">{p.order_id.slice(0, 8)}...</TableCell>
+                        <TableCell className="text-right">{formatCurrency(Number(p.gross_amount))}</TableCell>
+                        <TableCell className="text-right text-muted-foreground">-{formatCurrency(Number(p.platform_fee))}</TableCell>
+                        <TableCell className="text-right text-muted-foreground">-{formatCurrency(Number(p.referral_fee))}</TableCell>
+                        <TableCell className="text-right font-semibold">{formatCurrency(Number(p.net_amount))}</TableCell>
+                        <TableCell>
+                          {p.status === 'paid' ? (
+                            <Badge variant="default" className="gap-1">
+                              <CheckCircle2 className="h-3 w-3" /> Paid
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="gap-1">
+                              <Clock className="h-3 w-3" /> Pending
+                            </Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
+        {/* ─── REFERRALS TAB ─── */}
         <TabsContent value="referrals" className="mt-4 space-y-4">
           <Card>
             <CardHeader>
