@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Settings, Wallet, Truck, CalendarCheck, Info, Users, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
-import { toast } from 'sonner';
 import StoreTeamTab from '@/components/StoreTeamTab';
 import ProductEditDialog from '@/components/ProductEditDialog';
 
