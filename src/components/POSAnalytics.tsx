@@ -328,10 +328,18 @@ export default function POSAnalytics({ transactions, formatCurrency }: POSAnalyt
               </Button>
             )}
             {(startDate || endDate) && (
-              <span className="text-xs text-muted-foreground ml-auto">
+              <span className="text-xs text-muted-foreground">
                 Showing {filteredTransactions.length} of {transactions.length} transactions
               </span>
             )}
+            <div className="flex items-center gap-2 ml-auto">
+              <Button variant="outline" size="sm" onClick={exportCSV} className="h-8 text-xs">
+                <Download className="h-3.5 w-3.5 mr-1" /> CSV
+              </Button>
+              <Button variant="outline" size="sm" onClick={exportPDF} className="h-8 text-xs">
+                <FileText className="h-3.5 w-3.5 mr-1" /> PDF
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
