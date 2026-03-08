@@ -49,6 +49,7 @@ export const mockUsers: User[] = [
     referred_by_user_id: null, referral_credits: 25, is_verified: true, is_approved: true,
     documents: [], document_requests: [],
     profile: { ...defaultProfile, phone: '+44700000000', city: 'London', bio: 'Connecting buyers with the best African products' },
+    store_team: [],
     created_at: '2025-02-10T10:00:00Z', updated_at: '2025-02-10T10:00:00Z',
   },
 ];
