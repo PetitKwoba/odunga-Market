@@ -61,6 +61,8 @@ export default function ProducerDashboard() {
   const [editOpen, setEditOpen] = useState(false);
   const [rewardType, setRewardType] = useState<'fixed' | 'percentage'>('fixed');
   const [rewardValue, setRewardValue] = useState('0');
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [selectedOrderStatus, setSelectedOrderStatus] = useState<string>('');
 
   useEffect(() => {
     if (!user) return;
