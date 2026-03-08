@@ -601,6 +601,11 @@ export default function POSDashboard() {
           )}
         </TabsContent>
 
+        {/* ─── ANALYTICS ─── */}
+        <TabsContent value="analytics" className="mt-4">
+          <POSAnalytics transactions={transactions} formatCurrency={formatCurrency} />
+        </TabsContent>
+
         {/* ─── TAX SETTINGS ─── */}
         <TabsContent value="settings" className="mt-4 space-y-4">
           <Card>
