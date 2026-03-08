@@ -86,6 +86,44 @@ export type Database = {
           },
         ]
       }
+      order_messages: {
+        Row: {
+          created_at: string
+          flag_reason: string | null
+          id: string
+          is_flagged: boolean
+          message: string
+          order_id: string
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string
+          flag_reason?: string | null
+          id?: string
+          is_flagged?: boolean
+          message: string
+          order_id: string
+          sender_id: string
+        }
+        Update: {
+          created_at?: string
+          flag_reason?: string | null
+          id?: string
+          is_flagged?: boolean
+          message?: string
+          order_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_messages_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           created_at: string
@@ -168,6 +206,150 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pos_catalog_items: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          images: string[] | null
+          is_active: boolean
+          name: string
+          owner_id: string
+          price: number
+          sku: string | null
+          stock_quantity: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean
+          name: string
+          owner_id: string
+          price?: number
+          sku?: string | null
+          stock_quantity?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean
+          name?: string
+          owner_id?: string
+          price?: number
+          sku?: string | null
+          stock_quantity?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pos_invoices: {
+        Row: {
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          due_date: string | null
+          id: string
+          invoice_number: string
+          items: Json
+          notes: string | null
+          owner_id: string
+          status: string
+          subtotal: number
+          tax: number
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          client_email?: string | null
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          items?: Json
+          notes?: string | null
+          owner_id: string
+          status?: string
+          subtotal?: number
+          tax?: number
+          total?: number
+          updated_at?: string
+        }
+        Update: {
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          items?: Json
+          notes?: string | null
+          owner_id?: string
+          status?: string
+          subtotal?: number
+          tax?: number
+          total?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pos_transactions: {
+        Row: {
+          created_at: string
+          customer_name: string | null
+          customer_phone: string | null
+          id: string
+          items: Json
+          notes: string | null
+          owner_id: string
+          payment_method: string
+          payment_status: string
+          subtotal: number
+          tax: number
+          total: number
+        }
+        Insert: {
+          created_at?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          id?: string
+          items?: Json
+          notes?: string | null
+          owner_id: string
+          payment_method?: string
+          payment_status?: string
+          subtotal?: number
+          tax?: number
+          total?: number
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          id?: string
+          items?: Json
+          notes?: string | null
+          owner_id?: string
+          payment_method?: string
+          payment_status?: string
+          subtotal?: number
+          tax?: number
+          total?: number
+        }
+        Relationships: []
       }
       producer_profiles: {
         Row: {
