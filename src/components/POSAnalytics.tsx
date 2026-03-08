@@ -60,8 +60,20 @@ function getDateKey(date: Date, period: Period): string {
 
 export default function POSAnalytics({ transactions, formatCurrency }: POSAnalyticsProps) {
   const [period, setPeriod] = useState<Period>('daily');
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
-  // Revenue trend data
+  const filteredTransactions = useMemo(() => {
+    if (!startDate && !endDate) return transactions;
+    return transactions.filter(t => {
+      const d = new Date(t.created_at);
+      if (startDate && d < new Date(startDate.setHours(0, 0, 0, 0))) return false;
+      if (endDate && d > new Date(new Date(endDate).setHours(23, 59, 59, 999))) return false;
+      return true;
+    });
+  }, [transactions, startDate, endDate]);
+
+  const clearDates = () => { setStartDate(undefined); setEndDate(undefined); };
   const revenueTrend = useMemo(() => {
     const grouped: Record<string, { date: Date; revenue: number; orders: number }> = {};
 
