@@ -14,6 +14,7 @@ import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
 import PaymentCallback from "./pages/PaymentCallback";
+import ReferrerDashboard from "./pages/dashboard/ReferrerDashboard";
 import WholesalerDashboard from "./pages/dashboard/WholesalerDashboard";
 import ProducerDashboard from "./pages/dashboard/ProducerDashboard";
 import AdminPanel from "./pages/dashboard/AdminPanel";
