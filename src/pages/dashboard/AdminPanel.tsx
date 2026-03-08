@@ -45,6 +45,11 @@ export default function AdminPanel() {
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [referrals, setReferrals] = useState<any[]>([]);
+  const [payouts, setPayouts] = useState<any[]>([]);
+  const [posTransactions, setPosTransactions] = useState<any[]>([]);
+  const [posInvoices, setPosInvoices] = useState<any[]>([]);
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [orderMessages, setOrderMessages] = useState<any[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [userDocs, setUserDocs] = useState<UserDoc[]>([]);
   const [docDialogOpen, setDocDialogOpen] = useState(false);
@@ -57,6 +62,11 @@ export default function AdminPanel() {
     supabase.from('products').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setProducts(data); });
     supabase.from('orders').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setOrders(data); });
     supabase.from('referrals').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setReferrals(data); });
+    supabase.from('payouts').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setPayouts(data); });
+    supabase.from('pos_transactions').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setPosTransactions(data); });
+    supabase.from('pos_invoices').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setPosInvoices(data); });
+    supabase.from('store_team_members').select('*').order('added_at', { ascending: false }).then(({ data }) => { if (data) setTeamMembers(data); });
+    supabase.from('order_messages').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setOrderMessages(data); });
   }, []);
 
   const getRoleForUser = (userId: string) => roles.find(r => r.user_id === userId)?.role || 'unknown';
@@ -137,13 +147,19 @@ export default function AdminPanel() {
       </div>
 
       <Tabs defaultValue="pending" className="mt-6">
-        <TabsList>
+        <TabsList className="flex flex-wrap">
           <TabsTrigger value="pending">
             Pending Approval {pendingUsers.length > 0 && <Badge className="ml-1.5 bg-secondary text-secondary-foreground">{pendingUsers.length}</Badge>}
           </TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="payouts">Payouts</TabsTrigger>
+          <TabsTrigger value="referrals">Referrals</TabsTrigger>
+          <TabsTrigger value="pos">POS Transactions</TabsTrigger>
+          <TabsTrigger value="invoices">Invoices</TabsTrigger>
+          <TabsTrigger value="team">Team Members</TabsTrigger>
+          <TabsTrigger value="messages">Messages</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending" className="mt-4">
@@ -231,6 +247,134 @@ export default function AdminPanel() {
                     <TableCell><Badge variant={o.status === 'Completed' ? 'default' : 'outline'}>{o.status}</Badge></TableCell>
                     <TableCell><Badge variant={o.payment_status === 'paid' ? 'default' : 'outline'}>{o.payment_status}</Badge></TableCell>
                     <TableCell>{new Date(o.created_at).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent></Card>
+        </TabsContent>
+
+        <TabsContent value="payouts" className="mt-4">
+          <Card><CardContent className="p-0">
+            <Table>
+              <TableHeader><TableRow><TableHead>Producer</TableHead><TableHead>Order</TableHead><TableHead>Gross</TableHead><TableHead>Platform Fee</TableHead><TableHead>Referral Fee</TableHead><TableHead>Net Amount</TableHead><TableHead>Status</TableHead><TableHead>Paid</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {payouts.map(p => (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">{profiles.find(pr => pr.user_id === p.producer_id)?.name || '—'}</TableCell>
+                    <TableCell className="font-mono text-xs">{p.order_id.slice(0, 8)}...</TableCell>
+                    <TableCell>${Number(p.gross_amount).toFixed(2)}</TableCell>
+                    <TableCell className="text-destructive">-${Number(p.platform_fee).toFixed(2)}</TableCell>
+                    <TableCell className="text-destructive">-${Number(p.referral_fee).toFixed(2)}</TableCell>
+                    <TableCell className="font-semibold text-success">${Number(p.net_amount).toFixed(2)}</TableCell>
+                    <TableCell><Badge variant={p.status === 'paid' ? 'default' : 'outline'}>{p.status}</Badge></TableCell>
+                    <TableCell>{p.paid_at ? new Date(p.paid_at).toLocaleDateString() : '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent></Card>
+        </TabsContent>
+
+        <TabsContent value="referrals" className="mt-4">
+          <Card><CardContent className="p-0">
+            <Table>
+              <TableHeader><TableRow><TableHead>Referrer</TableHead><TableHead>Referred User</TableHead><TableHead>Credits Awarded</TableHead><TableHead>Rewarded</TableHead><TableHead>First Order</TableHead><TableHead>Date</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {referrals.map(r => (
+                  <TableRow key={r.id}>
+                    <TableCell className="font-medium">{profiles.find(p => p.user_id === r.referrer_user_id)?.name || '—'}</TableCell>
+                    <TableCell>{profiles.find(p => p.user_id === r.referred_user_id)?.name || '—'}</TableCell>
+                    <TableCell className="font-semibold text-success">${Number(r.reward_credits_awarded).toFixed(2)}</TableCell>
+                    <TableCell>{r.rewarded ? <Badge className="bg-success text-success-foreground">Yes</Badge> : <Badge variant="outline">No</Badge>}</TableCell>
+                    <TableCell className="font-mono text-xs">{r.first_order_id ? r.first_order_id.slice(0, 8) + '...' : '—'}</TableCell>
+                    <TableCell>{new Date(r.created_at).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent></Card>
+        </TabsContent>
+
+        <TabsContent value="pos" className="mt-4">
+          <Card><CardContent className="p-0">
+            <Table>
+              <TableHeader><TableRow><TableHead>Store Owner</TableHead><TableHead>Customer</TableHead><TableHead>Phone</TableHead><TableHead>Items</TableHead><TableHead>Subtotal</TableHead><TableHead>Tax</TableHead><TableHead>Total</TableHead><TableHead>Payment</TableHead><TableHead>Date</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {posTransactions.map(t => (
+                  <TableRow key={t.id}>
+                    <TableCell className="font-medium">{profiles.find(p => p.user_id === t.owner_id)?.name || '—'}</TableCell>
+                    <TableCell>{t.customer_name || 'Walk-in'}</TableCell>
+                    <TableCell>{t.customer_phone || '—'}</TableCell>
+                    <TableCell>{Array.isArray(t.items) ? t.items.length : 0}</TableCell>
+                    <TableCell>${Number(t.subtotal).toFixed(2)}</TableCell>
+                    <TableCell>${Number(t.tax).toFixed(2)}</TableCell>
+                    <TableCell className="font-semibold">${Number(t.total).toFixed(2)}</TableCell>
+                    <TableCell><Badge>{t.payment_method}</Badge></TableCell>
+                    <TableCell>{new Date(t.created_at).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent></Card>
+        </TabsContent>
+
+        <TabsContent value="invoices" className="mt-4">
+          <Card><CardContent className="p-0">
+            <Table>
+              <TableHeader><TableRow><TableHead>Invoice #</TableHead><TableHead>Owner</TableHead><TableHead>Client</TableHead><TableHead>Email</TableHead><TableHead>Total</TableHead><TableHead>Status</TableHead><TableHead>Due Date</TableHead><TableHead>Created</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {posInvoices.map(i => (
+                  <TableRow key={i.id}>
+                    <TableCell className="font-mono">{i.invoice_number}</TableCell>
+                    <TableCell className="font-medium">{profiles.find(p => p.user_id === i.owner_id)?.name || '—'}</TableCell>
+                    <TableCell>{i.client_name}</TableCell>
+                    <TableCell>{i.client_email || '—'}</TableCell>
+                    <TableCell className="font-semibold">${Number(i.total).toFixed(2)}</TableCell>
+                    <TableCell><Badge variant={i.status === 'paid' ? 'default' : 'outline'}>{i.status}</Badge></TableCell>
+                    <TableCell>{i.due_date ? new Date(i.due_date).toLocaleDateString() : '—'}</TableCell>
+                    <TableCell>{new Date(i.created_at).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent></Card>
+        </TabsContent>
+
+        <TabsContent value="team" className="mt-4">
+          <Card><CardContent className="p-0">
+            <Table>
+              <TableHeader><TableRow><TableHead>Store Owner</TableHead><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Phone</TableHead><TableHead>Role</TableHead><TableHead>Active</TableHead><TableHead>Added</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {teamMembers.map(m => (
+                  <TableRow key={m.id}>
+                    <TableCell className="font-medium">{profiles.find(p => p.user_id === m.producer_id)?.name || '—'}</TableCell>
+                    <TableCell>{m.name}</TableCell>
+                    <TableCell>{m.email}</TableCell>
+                    <TableCell>{m.phone || '—'}</TableCell>
+                    <TableCell><Badge variant="outline">{m.custom_role_name || m.role}</Badge></TableCell>
+                    <TableCell>{m.is_active ? <Badge className="bg-success text-success-foreground">Yes</Badge> : <Badge variant="outline">No</Badge>}</TableCell>
+                    <TableCell>{new Date(m.added_at).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent></Card>
+        </TabsContent>
+
+        <TabsContent value="messages" className="mt-4">
+          <Card><CardContent className="p-0">
+            <Table>
+              <TableHeader><TableRow><TableHead>Order</TableHead><TableHead>Sender</TableHead><TableHead>Message</TableHead><TableHead>Flagged</TableHead><TableHead>Flag Reason</TableHead><TableHead>Date</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {orderMessages.map(msg => (
+                  <TableRow key={msg.id}>
+                    <TableCell className="font-mono text-xs">{msg.order_id.slice(0, 8)}...</TableCell>
+                    <TableCell className="font-medium">{profiles.find(p => p.user_id === msg.sender_id)?.name || '—'}</TableCell>
+                    <TableCell className="max-w-xs truncate">{msg.message}</TableCell>
+                    <TableCell>{msg.is_flagged ? <Badge className="bg-destructive text-destructive-foreground">Yes</Badge> : <Badge variant="outline">No</Badge>}</TableCell>
+                    <TableCell>{msg.flag_reason || '—'}</TableCell>
+                    <TableCell>{new Date(msg.created_at).toLocaleDateString()}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
