@@ -7,8 +7,30 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Factory, Store, Users } from 'lucide-react';
+
+const AFRICAN_COUNTRIES = [
+  'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon',
+  'Cape Verde', 'Central African Republic', 'Chad', 'Comoros', 'Congo', 'DR Congo',
+  'Djibouti', 'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia',
+  'Gabon', 'Gambia', 'Ghana', 'Guinea', 'Guinea-Bissau', 'Ivory Coast', 'Kenya',
+  'Lesotho', 'Liberia', 'Libya', 'Madagascar', 'Malawi', 'Mali', 'Mauritania',
+  'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger', 'Nigeria', 'Rwanda',
+  'São Tomé and Príncipe', 'Senegal', 'Seychelles', 'Sierra Leone', 'Somalia',
+  'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda',
+  'Zambia', 'Zimbabwe',
+];
+
+const OTHER_COUNTRIES = [
+  'United Arab Emirates', 'United Kingdom', 'United States', 'China', 'India',
+  'Turkey', 'Saudi Arabia', 'Germany', 'France', 'Netherlands', 'Belgium',
+  'Brazil', 'Canada', 'Australia', 'Japan', 'South Korea', 'Singapore',
+  'Malaysia', 'Indonesia', 'Thailand', 'Vietnam', 'Pakistan', 'Bangladesh',
+];
+
+const ALL_COUNTRIES = [...AFRICAN_COUNTRIES, ...OTHER_COUNTRIES].sort();
 
 const roles: { value: UserRole; label: string; icon: React.ReactNode; desc: string }[] = [
   { value: 'producer', label: 'Producer', icon: <Factory className="h-5 w-5" />, desc: 'Sell your products globally' },
@@ -68,6 +90,10 @@ export default function Signup() {
     if (!form.role) { toast.error('Please select a role'); return; }
     if (!allConsented) { toast.error('Please agree to all terms before continuing'); return; }
     if (form.password.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+    if (!form.country) { toast.error('Please select your country'); return; }
+    if (form.role !== 'referrer' && !form.business_name.trim()) {
+      toast.error('Business name is required'); return;
+    }
 
     setLoading(true);
     const result = await signup({
@@ -166,15 +192,24 @@ export default function Signup() {
 
             {form.role !== 'referrer' && form.role !== '' && (
               <div className="space-y-2">
-                <Label htmlFor="biz">Business Name</Label>
-                <Input id="biz" value={form.business_name} onChange={e => setForm(f => ({ ...f, business_name: e.target.value }))} />
+                <Label htmlFor="biz">Business Name <span className="text-destructive">*</span></Label>
+                <Input id="biz" value={form.business_name} onChange={e => setForm(f => ({ ...f, business_name: e.target.value }))} required />
               </div>
             )}
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                <Input id="country" value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))} placeholder="e.g. Nigeria" required />
+                <Label htmlFor="country">Country <span className="text-destructive">*</span></Label>
+                <Select value={form.country} onValueChange={v => setForm(f => ({ ...f, country: v }))}>
+                  <SelectTrigger id="country">
+                    <SelectValue placeholder="Select your country" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {ALL_COUNTRIES.map(c => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
