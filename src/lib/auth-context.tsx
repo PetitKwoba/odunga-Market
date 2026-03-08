@@ -87,6 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         status: 'pending' as const,
       })),
       document_requests: [],
+      profile: { ...defaultProfile },
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
