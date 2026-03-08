@@ -57,6 +57,9 @@ export default function Navbar() {
               <Button variant="outline" size="sm" onClick={() => navigate(dashboardPath)}>
                 <LayoutDashboard className="mr-1 h-4 w-4" /> Dashboard
               </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/profile')}>
+                <UserCircle className="mr-1 h-4 w-4" /> Profile
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => { logout(); navigate('/'); }}>
                 <LogOut className="mr-1 h-4 w-4" /> Logout
               </Button>
