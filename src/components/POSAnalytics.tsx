@@ -10,8 +10,6 @@ interface Transaction {
   customer_name: string;
   items: any[];
   total: number;
-  subtotal: number;
-  tax: number;
   payment_method: string;
   created_at: string;
   notes: string | null;
