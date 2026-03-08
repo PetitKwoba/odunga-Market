@@ -1,4 +1,4 @@
-import { User, ProducerProfile, Product, Order, Referral } from './types';
+import { User, ProducerProfile, Product, Order, Referral, ProductReferralSale } from './types';
 
 export const mockUsers: User[] = [
   {
