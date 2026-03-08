@@ -58,23 +58,7 @@ export default function ProducerDashboard() {
 
   if (!user) return null;
 
-  const handleAddProduct = async () => {
-    if (!newProduct.name.trim()) { toast.error('Product name is required'); return; }
-    const { error } = await supabase.from('products').insert({
-      producer_id: user.id,
-      name: newProduct.name.trim(),
-      description: newProduct.description.trim(),
-      category: newProduct.category.trim(),
-      base_price: parseFloat(newProduct.base_price) || 0,
-      moq: parseInt(newProduct.moq) || 1,
-      lead_time_days: parseInt(newProduct.lead_time_days) || 7,
-      stock_quantity: parseInt(newProduct.stock_quantity) || 0,
-    });
-    if (error) { toast.error('Failed to create product: ' + error.message); return; }
-    toast.success('Product created!');
-    setAddOpen(false);
-    setNewProduct({ name: '', description: '', category: '', base_price: '', moq: '', lead_time_days: '', stock_quantity: '' });
-    // Refresh
+  const refreshProducts = async () => {
     const { data } = await supabase.from('products').select('*').eq('producer_id', user.id).order('created_at', { ascending: false });
     if (data) setProducts(data);
   };
