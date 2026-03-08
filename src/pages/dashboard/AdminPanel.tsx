@@ -45,6 +45,11 @@ export default function AdminPanel() {
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [referrals, setReferrals] = useState<any[]>([]);
+  const [payouts, setPayouts] = useState<any[]>([]);
+  const [posTransactions, setPosTransactions] = useState<any[]>([]);
+  const [posInvoices, setPosInvoices] = useState<any[]>([]);
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [orderMessages, setOrderMessages] = useState<any[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [userDocs, setUserDocs] = useState<UserDoc[]>([]);
   const [docDialogOpen, setDocDialogOpen] = useState(false);
@@ -57,6 +62,11 @@ export default function AdminPanel() {
     supabase.from('products').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setProducts(data); });
     supabase.from('orders').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setOrders(data); });
     supabase.from('referrals').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setReferrals(data); });
+    supabase.from('payouts').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setPayouts(data); });
+    supabase.from('pos_transactions').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setPosTransactions(data); });
+    supabase.from('pos_invoices').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setPosInvoices(data); });
+    supabase.from('store_team_members').select('*').order('added_at', { ascending: false }).then(({ data }) => { if (data) setTeamMembers(data); });
+    supabase.from('order_messages').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setOrderMessages(data); });
   }, []);
 
   const getRoleForUser = (userId: string) => roles.find(r => r.user_id === userId)?.role || 'unknown';
