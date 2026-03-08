@@ -171,6 +171,117 @@ export default function POSAnalytics({ transactions, formatCurrency }: POSAnalyt
     return { todayRevenue, totalRevenue, avgOrder, txnCount: filteredTransactions.length, changePercent };
   }, [filteredTransactions]);
 
+  // --- PDF Export ---
+  const exportPDF = useCallback(() => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let y = 20;
+
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Sales Analytics Report', 14, y);
+    y += 8;
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100);
+    const rangeText = startDate || endDate
+      ? `Period: ${startDate ? format(startDate, 'MMM d, yyyy') : 'Start'} – ${endDate ? format(endDate, 'MMM d, yyyy') : 'Now'}`
+      : `Generated: ${format(new Date(), 'MMM d, yyyy')}`;
+    doc.text(rangeText, 14, y);
+    y += 10;
+
+    // Summary
+    doc.setTextColor(0);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Summary', 14, y);
+    y += 6;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const summaryData = [
+      ['Total Revenue', formatCurrency(stats.totalRevenue)],
+      ['Total Transactions', String(stats.txnCount)],
+      ['Average Order Value', formatCurrency(stats.avgOrder)],
+      ["Today's Revenue", formatCurrency(stats.todayRevenue)],
+    ];
+    autoTable(doc, {
+      startY: y,
+      body: summaryData,
+      theme: 'plain',
+      styles: { fontSize: 10 },
+      columnStyles: { 0: { fontStyle: 'bold', cellWidth: 60 } },
+      margin: { left: 14, right: 14 },
+    });
+    y = (doc as any).lastAutoTable?.finalY + 10 || y + 40;
+
+    // Revenue Trend
+    if (revenueTrend.length > 0) {
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Revenue Trend (${period})`, 14, y);
+      y += 6;
+      autoTable(doc, {
+        startY: y,
+        head: [['Period', 'Revenue', 'Orders']],
+        body: revenueTrend.map(r => [r.label, formatCurrency(r.revenue), String(r.orders)]),
+        headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+        bodyStyles: { fontSize: 9 },
+        margin: { left: 14, right: 14 },
+      });
+      y = (doc as any).lastAutoTable?.finalY + 10 || y + 40;
+    }
+
+    // Top Selling Items
+    if (topItems.length > 0) {
+      if (y > 230) { doc.addPage(); y = 20; }
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Top Selling Items', 14, y);
+      y += 6;
+      autoTable(doc, {
+        startY: y,
+        head: [['Item', 'Quantity Sold', 'Revenue']],
+        body: topItems.map(i => [i.name, String(i.quantity), formatCurrency(i.revenue)]),
+        headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+        bodyStyles: { fontSize: 9 },
+        margin: { left: 14, right: 14 },
+      });
+      y = (doc as any).lastAutoTable?.finalY + 10 || y + 40;
+    }
+
+    // Payment Methods
+    if (paymentBreakdown.length > 0) {
+      if (y > 230) { doc.addPage(); y = 20; }
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Payment Method Breakdown', 14, y);
+      y += 6;
+      const totalPay = paymentBreakdown.reduce((s, p) => s + p.value, 0);
+      autoTable(doc, {
+        startY: y,
+        head: [['Method', 'Amount', '% of Total']],
+        body: paymentBreakdown.map(p => [p.name, formatCurrency(p.value), totalPay > 0 ? `${((p.value / totalPay) * 100).toFixed(1)}%` : '0%']),
+        headStyles: { fillColor: [40, 40, 40], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+        bodyStyles: { fontSize: 9 },
+        margin: { left: 14, right: 14 },
+      });
+    }
+
+    // Footer
+    const pages = doc.getNumberOfPages();
+    for (let i = 1; i <= pages; i++) {
+      doc.setPage(i);
+      const footerY = doc.internal.pageSize.getHeight() - 10;
+      doc.setFontSize(8);
+      doc.setTextColor(150);
+      doc.text(`Sales Analytics Report · Page ${i} of ${pages}`, pageWidth / 2, footerY, { align: 'center' });
+    }
+
+    const dateLabel = startDate && endDate ? `${format(startDate, 'yyyyMMdd')}-${format(endDate, 'yyyyMMdd')}` : format(new Date(), 'yyyyMMdd');
+    doc.save(`sales-report-${dateLabel}.pdf`);
+  }, [stats, revenueTrend, topItems, paymentBreakdown, period, startDate, endDate, formatCurrency]);
+
   const revenueChartConfig = {
     revenue: { label: 'Revenue', color: 'hsl(var(--primary))' },
     orders: { label: 'Orders', color: 'hsl(var(--accent))' },
