@@ -1,13 +1,17 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { mockProducts } from '@/lib/mock-data';
+import { useAuth } from '@/lib/auth-context';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search, Package } from 'lucide-react';
+import { Search, Package, Copy } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Products() {
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
 
@@ -21,6 +25,18 @@ export default function Products() {
       return true;
     });
   }, [search, category]);
+
+  const canRefer = user && (user.role === 'referrer' || user.role === 'wholesaler' || user.role === 'producer');
+
+  const copyRefLink = (productId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (user) {
+      const link = `${window.location.origin}/products/${productId}?ref=${user.referral_code}`;
+      navigator.clipboard.writeText(link);
+      toast.success('Product referral link copied!');
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -74,7 +90,19 @@ export default function Products() {
                     <span className="font-display text-lg font-bold">${p.base_price.toFixed(2)}</span>
                     <span className="text-xs text-muted-foreground">/ unit · MOQ {p.moq}</span>
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">Lead time: {p.lead_time_days} days</p>
+                  <div className="mt-2 flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">Lead time: {p.lead_time_days} days</p>
+                    {canRefer && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 gap-1 text-xs text-secondary hover:text-secondary"
+                        onClick={(e) => copyRefLink(p.id, e)}
+                      >
+                        <Copy className="h-3 w-3" /> Share & Earn
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </Link>

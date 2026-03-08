@@ -101,3 +101,17 @@ export interface Referral {
   reward_credits_awarded: number;
   rewarded: boolean;
 }
+
+export interface ProductReferralSale {
+  id: string;
+  referrer_user_id: string;
+  product_id: string;
+  product_name: string;
+  producer_name: string;
+  order_id: string;
+  buyer_name: string;
+  quantity: number;
+  subtotal: number;
+  commission_earned: number;
+  created_at: string;
+}

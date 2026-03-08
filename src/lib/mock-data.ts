@@ -1,4 +1,4 @@
-import { User, ProducerProfile, Product, Order, Referral } from './types';
+import { User, ProducerProfile, Product, Order, Referral, ProductReferralSale } from './types';
 
 export const mockUsers: User[] = [
   {
@@ -105,5 +105,14 @@ export const mockReferrals: Referral[] = [
     referred_user_name: 'BulkBuy Co', referred_user_email_masked: 'b***@example.com',
     referred_user_role: 'wholesaler', created_at: '2025-03-01T10:00:00Z',
     first_order_id: 'o1', reward_credits_awarded: 25, rewarded: true,
+  },
+];
+
+export const mockProductReferralSales: ProductReferralSale[] = [
+  {
+    id: 'prs1', referrer_user_id: 'u5', product_id: 'p2', product_name: 'Cotton Blend T-Shirt Blanks',
+    producer_name: 'Amara Textiles', order_id: 'o1', buyer_name: 'BulkBuy Co',
+    quantity: 500, subtotal: 1400, commission_earned: 25,
+    created_at: '2025-03-15T10:00:00Z',
   },
 ];
