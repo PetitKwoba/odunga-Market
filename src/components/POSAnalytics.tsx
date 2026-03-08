@@ -77,7 +77,7 @@ export default function POSAnalytics({ transactions, formatCurrency }: POSAnalyt
   const revenueTrend = useMemo(() => {
     const grouped: Record<string, { date: Date; revenue: number; orders: number }> = {};
 
-    transactions.forEach(t => {
+    filteredTransactions.forEach(t => {
       const d = new Date(t.created_at);
       const key = getDateKey(d, period);
       if (!grouped[key]) grouped[key] = { date: d, revenue: 0, orders: 0 };
