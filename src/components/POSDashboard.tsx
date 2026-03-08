@@ -12,9 +12,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Package, Receipt, ShoppingCart, Trash2, Search, DollarSign, FileText, Download, Pencil, Settings } from 'lucide-react';
+import { Plus, Package, Receipt, ShoppingCart, Trash2, Search, DollarSign, FileText, Download, Pencil, Settings, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { generateInvoicePDF } from './InvoicePDF';
+import POSAnalytics from './POSAnalytics';
 
 interface CatalogItem {
   id: string;
@@ -343,6 +344,7 @@ export default function POSDashboard() {
           <TabsTrigger value="catalog"><Package className="mr-1 h-4 w-4" /> Catalog</TabsTrigger>
           <TabsTrigger value="invoices"><FileText className="mr-1 h-4 w-4" /> Invoices</TabsTrigger>
           <TabsTrigger value="history"><Receipt className="mr-1 h-4 w-4" /> History</TabsTrigger>
+          <TabsTrigger value="analytics"><BarChart3 className="mr-1 h-4 w-4" /> Analytics</TabsTrigger>
           <TabsTrigger value="settings"><Settings className="mr-1 h-4 w-4" /> Tax Settings</TabsTrigger>
         </TabsList>
 
@@ -597,6 +599,11 @@ export default function POSDashboard() {
               </Table>
             </CardContent></Card>
           )}
+        </TabsContent>
+
+        {/* ─── ANALYTICS ─── */}
+        <TabsContent value="analytics" className="mt-4">
+          <POSAnalytics transactions={transactions} formatCurrency={formatCurrency} />
         </TabsContent>
 
         {/* ─── TAX SETTINGS ─── */}
