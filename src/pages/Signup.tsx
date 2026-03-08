@@ -35,8 +35,13 @@ export default function Signup() {
     });
     setLoading(false);
     if (ok) {
-      toast.success('Account created! Welcome to Waholo Market.');
-      navigate('/');
+      if (form.role === 'producer' || form.role === 'wholesaler') {
+        toast.success('Account created! Your account is pending admin approval.');
+        navigate('/login');
+      } else {
+        toast.success('Account created! Welcome to Waholo Market.');
+        navigate('/');
+      }
     } else {
       toast.error('Signup failed');
     }
