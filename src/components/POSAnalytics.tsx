@@ -1,9 +1,14 @@
 import { useState, useMemo } from 'react';
+import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Package, BarChart3 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
+import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Package, BarChart3, CalendarIcon, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Transaction {
   id: string;
