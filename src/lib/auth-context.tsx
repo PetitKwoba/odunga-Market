@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { User, UserRole } from './types';
+import { User, UserRole, defaultProfile } from './types';
 import { mockUsers } from './mock-data';
 
 interface AuthContextType {
