@@ -56,6 +56,7 @@ export default function ProducerDashboard() {
         <TabsList>
           <TabsTrigger value="products">My Products</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="team"><Users className="mr-1 h-4 w-4" /> Team</TabsTrigger>
           <TabsTrigger value="payouts">Payouts</TabsTrigger>
           <TabsTrigger value="referrals">Referral Settings</TabsTrigger>
         </TabsList>
