@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { User as UserIcon, Building2, CreditCard, FileText, Upload, AlertCircle, CheckCircle, Clock, X } from 'lucide-react';
+import { User as UserIcon, Building2, CreditCard, FileText, Upload, AlertCircle, CheckCircle, Clock, X, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ProfileForm {
@@ -56,6 +56,8 @@ export default function ProfilePage() {
   const [documents, setDocuments] = useState<UserDocument[]>([]);
   const [docRequests, setDocRequests] = useState<DocumentRequest[]>([]);
   const [saving, setSaving] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -74,6 +76,11 @@ export default function ProfilePage() {
       payout_method: user.payout_method || 'bank_transfer',
     });
 
+    // Fetch logo
+    supabase.from('profiles').select('logo_url').eq('user_id', user.id).single().then(({ data }) => {
+      if (data?.logo_url) setLogoUrl(data.logo_url);
+    });
+
     // Fetch documents
     supabase.from('user_documents').select('*').eq('user_id', user.id).order('uploaded_at', { ascending: false }).then(({ data }) => {
       if (data) setDocuments(data as UserDocument[]);
@@ -88,6 +95,21 @@ export default function ProfilePage() {
   if (!user) return null;
 
   const pendingRequests = docRequests.filter(r => !r.fulfilled);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast.error('Please upload an image file'); return; }
+    setUploadingLogo(true);
+    const filePath = `logos/${user.id}/${Date.now()}_${file.name}`;
+    const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
+    if (uploadError) { toast.error('Upload failed: ' + uploadError.message); setUploadingLogo(false); return; }
+    const { error: updateError } = await supabase.from('profiles').update({ logo_url: filePath }).eq('user_id', user.id);
+    if (updateError) { toast.error('Failed to save logo'); setUploadingLogo(false); return; }
+    setLogoUrl(filePath);
+    setUploadingLogo(false);
+    toast.success('Logo uploaded successfully');
+  };
 
   const updateField = (field: keyof ProfileForm, value: string) => {
     setProfile(prev => ({ ...prev, [field]: value }));
@@ -272,6 +294,30 @@ export default function ProfilePage() {
                 <CardDescription>Your business information for verification</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Logo Upload */}
+                <div className="space-y-2">
+                  <Label>Business Logo</Label>
+                  <div className="flex items-center gap-4">
+                    {logoUrl ? (
+                      <img
+                        src={supabase.storage.from('avatars').getPublicUrl(logoUrl).data.publicUrl}
+                        alt="Business logo"
+                        className="h-16 w-16 rounded-lg object-contain border bg-background"
+                      />
+                    ) : (
+                      <div className="h-16 w-16 rounded-lg border border-dashed flex items-center justify-center bg-muted">
+                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    )}
+                    <label className="cursor-pointer">
+                      <Button variant="outline" size="sm" className="gap-1" asChild disabled={uploadingLogo}>
+                        <span><Upload className="h-3.5 w-3.5" /> {uploadingLogo ? 'Uploading...' : 'Upload Logo'}</span>
+                      </Button>
+                      <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                    </label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">This logo will appear on your invoices and PDF documents.</p>
+                </div>
                 <div className="space-y-2">
                   <Label>Business Name</Label>
                   <Input value={user.business_name || ''} disabled className="bg-muted" />
