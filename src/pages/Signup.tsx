@@ -1,25 +1,20 @@
 import { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { useAuth } from '@/lib/auth-context';
-import { UserRole } from '@/lib/types';
+import { useAuth, UserRole } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { Factory, Store, Users, Upload, FileText, X } from 'lucide-react';
+import { Factory, Store, Users } from 'lucide-react';
 
 const roles: { value: UserRole; label: string; icon: React.ReactNode; desc: string }[] = [
   { value: 'producer', label: 'Producer', icon: <Factory className="h-5 w-5" />, desc: 'Sell your products globally' },
   { value: 'wholesaler', label: 'Wholesaler', icon: <Store className="h-5 w-5" />, desc: 'Buy in bulk at best prices' },
   { value: 'referrer', label: 'Referrer', icon: <Users className="h-5 w-5" />, desc: 'Earn by inviting buyers' },
 ];
-
-const requiredDocs: Record<string, string[]> = {
-  producer: ['Business Registration Certificate', 'Tax ID / TIN Document', 'Product Catalog or Samples'],
-  wholesaler: ['Business Registration Certificate', 'Trade License'],
-};
 
 const consentTexts: Record<string, string[]> = {
   producer: [
@@ -42,64 +37,70 @@ const consentTexts: Record<string, string[]> = {
 export default function Signup() {
   const [searchParams] = useSearchParams();
   const refCode = searchParams.get('ref') || '';
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: '' as UserRole | '', business_name: '', country: '' });
+  const preselectedRole = searchParams.get('role') as UserRole | null;
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: (preselectedRole || '') as UserRole | '',
+    business_name: '',
+    country: '',
+  });
   const [consents, setConsents] = useState<boolean[]>([false, false, false]);
-  const [uploadedDocs, setUploadedDocs] = useState<{ name: string; file_name: string }[]>([]);
   const [loading, setLoading] = useState(false);
-  const { signup } = useAuth();
+  const { signup, signInWithOAuth } = useAuth();
   const navigate = useNavigate();
 
   const currentConsents = form.role ? consentTexts[form.role] || [] : [];
   const allConsented = currentConsents.length > 0 && consents.slice(0, currentConsents.length).every(Boolean);
-  const currentRequiredDocs = form.role ? requiredDocs[form.role] || [] : [];
 
   const handleRoleChange = (role: UserRole) => {
     setForm(f => ({ ...f, role }));
     setConsents([false, false, false]);
-    setUploadedDocs([]);
   };
 
   const toggleConsent = (idx: number) => {
     setConsents(prev => prev.map((v, i) => i === idx ? !v : v));
   };
 
-  const handleFileSelect = (docName: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    // Mock: just store the file name
-    setUploadedDocs(prev => {
-      const filtered = prev.filter(d => d.name !== docName);
-      return [...filtered, { name: docName, file_name: file.name }];
-    });
-    toast.success(`${file.name} selected`);
-  };
-
-  const removeDoc = (docName: string) => {
-    setUploadedDocs(prev => prev.filter(d => d.name !== docName));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.role) { toast.error('Please select a role'); return; }
     if (!allConsented) { toast.error('Please agree to all terms before continuing'); return; }
+    if (form.password.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+
     setLoading(true);
-    const ok = await signup({
-      name: form.name, email: form.email, password: form.password,
-      role: form.role as UserRole, business_name: form.business_name || undefined,
-      country: form.country, ref: refCode || undefined,
-      documents: uploadedDocs,
+    const result = await signup({
+      name: form.name,
+      email: form.email,
+      password: form.password,
+      role: form.role as UserRole,
+      business_name: form.business_name || undefined,
+      country: form.country,
+      ref: refCode || undefined,
     });
     setLoading(false);
-    if (ok) {
-      if (form.role === 'producer' || form.role === 'wholesaler') {
-        toast.success('Account created! Your account is pending admin approval.');
-        navigate('/login');
-      } else {
-        toast.success('Account created! Welcome to Waholo Market.');
-        navigate('/');
-      }
+
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
+
+    if (result.needsConfirmation) {
+      toast.success('Account created! Please check your email to verify your account before signing in.', { duration: 8000 });
+      navigate('/login');
     } else {
-      toast.error('Signup failed');
+      toast.success('Account created! Welcome to Waholo Market.');
+      navigate('/');
+    }
+  };
+
+  const handleOAuth = async (provider: 'google' | 'apple') => {
+    setLoading(true);
+    const result = await signInWithOAuth(provider);
+    setLoading(false);
+    if (result.error) {
+      toast.error(result.error);
     }
   };
 
@@ -113,7 +114,24 @@ export default function Signup() {
             <p className="mt-1 text-sm text-secondary font-medium">🎉 You were referred! Code: {refCode}</p>
           )}
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {/* OAuth buttons */}
+          <div className="grid grid-cols-2 gap-3">
+            <Button variant="outline" className="w-full gap-2" onClick={() => handleOAuth('google')} disabled={loading}>
+              <svg className="h-4 w-4" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+              Google
+            </Button>
+            <Button variant="outline" className="w-full gap-2" onClick={() => handleOAuth('apple')} disabled={loading}>
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+              Apple
+            </Button>
+          </div>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center"><Separator /></div>
+            <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">or sign up with email</span></div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Role selection */}
             <div className="space-y-2">
@@ -160,43 +178,9 @@ export default function Signup() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required />
+                <Input id="password" type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} required minLength={6} />
               </div>
             </div>
-
-            {/* Document uploads for producers/wholesalers */}
-            {currentRequiredDocs.length > 0 && (
-              <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
-                <Label className="text-sm font-semibold flex items-center gap-2">
-                  <Upload className="h-4 w-4" /> Required Documents
-                </Label>
-                <p className="text-xs text-muted-foreground">Upload the following documents to speed up your approval. You can also submit them later.</p>
-                {currentRequiredDocs.map(docName => {
-                  const uploaded = uploadedDocs.find(d => d.name === docName);
-                  return (
-                    <div key={docName} className="flex items-center gap-3">
-                      <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">{docName}</p>
-                        {uploaded ? (
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-xs text-primary truncate">{uploaded.file_name}</span>
-                            <button type="button" onClick={() => removeDoc(docName)} className="text-destructive hover:text-destructive/80">
-                              <X className="h-3 w-3" />
-                            </button>
-                          </div>
-                        ) : (
-                          <label className="text-xs text-primary hover:underline cursor-pointer">
-                            Choose file
-                            <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" onChange={e => handleFileSelect(docName, e)} />
-                          </label>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
 
             {/* Consent checkboxes */}
             {form.role && currentConsents.length > 0 && (
@@ -222,7 +206,7 @@ export default function Signup() {
               {loading ? 'Creating account...' : 'Create Account'}
             </Button>
           </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
+          <p className="text-center text-sm text-muted-foreground">
             Already have an account? <Link to="/login" className="font-medium text-primary hover:underline">Sign in</Link>
           </p>
         </CardContent>

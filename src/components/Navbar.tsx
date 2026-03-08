@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth-context';
 import { useCart } from '@/lib/cart-context';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Menu, X, LogOut, LayoutDashboard, UserCircle } from 'lucide-react';
+import { ShoppingCart, Menu, LogOut, LayoutDashboard, UserCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +24,11 @@ export default function Navbar() {
     { label: 'Browse Products', href: '/products' },
     { label: 'How it Works', href: '/#how-it-works' },
   ];
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
@@ -60,7 +65,7 @@ export default function Navbar() {
               <Button variant="ghost" size="sm" onClick={() => navigate('/profile')}>
                 <UserCircle className="mr-1 h-4 w-4" /> Profile
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => { logout(); navigate('/'); }}>
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
                 <LogOut className="mr-1 h-4 w-4" /> Logout
               </Button>
             </>
@@ -92,7 +97,7 @@ export default function Navbar() {
                 <>
                   <Link to={dashboardPath} onClick={() => setOpen(false)} className="text-sm font-medium">Dashboard</Link>
                   <Link to="/profile" onClick={() => setOpen(false)} className="text-sm font-medium">Profile</Link>
-                  <button onClick={() => { logout(); navigate('/'); setOpen(false); }} className="text-left text-sm font-medium text-destructive">Logout</button>
+                  <button onClick={async () => { await logout(); navigate('/'); setOpen(false); }} className="text-left text-sm font-medium text-destructive">Logout</button>
                 </>
               ) : (
                 <>

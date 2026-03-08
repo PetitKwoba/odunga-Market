@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { User, UserProfile, defaultProfile } from '@/lib/types';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,81 +13,151 @@ import { Separator } from '@/components/ui/separator';
 import { User as UserIcon, Building2, CreditCard, FileText, Upload, AlertCircle, CheckCircle, Clock, X } from 'lucide-react';
 import { toast } from 'sonner';
 
-function getAllUsers(): User[] {
-  const stored = localStorage.getItem('waholo_all_users');
-  if (stored) try {
-    const parsed: User[] = JSON.parse(stored);
-    return parsed.map(u => ({
-      ...u,
-      documents: u.documents || [],
-      document_requests: u.document_requests || [],
-      profile: u.profile || { ...defaultProfile },
-    }));
-  } catch { /* */ }
-  return [];
+interface ProfileForm {
+  phone: string;
+  address: string;
+  city: string;
+  bio: string;
+  website: string;
+  tax_id: string;
+  registration_number: string;
+  industry: string;
+  bank_name: string;
+  bank_account_number: string;
+  bank_routing_number: string;
+  payout_method: string;
 }
 
-function saveAllUsers(users: User[]) {
-  localStorage.setItem('waholo_all_users', JSON.stringify(users));
+interface UserDocument {
+  id: string;
+  name: string;
+  file_name: string;
+  uploaded_at: string;
+  status: string;
+  note: string | null;
+}
+
+interface DocumentRequest {
+  id: string;
+  document_name: string;
+  description: string | null;
+  requested_at: string;
+  fulfilled: boolean;
 }
 
 export default function ProfilePage() {
-  const { user } = useAuth();
-  const [profile, setProfile] = useState<UserProfile>({ ...defaultProfile });
+  const { user, refreshProfile } = useAuth();
+  const [profile, setProfile] = useState<ProfileForm>({
+    phone: '', address: '', city: '', bio: '', website: '',
+    tax_id: '', registration_number: '', industry: '',
+    bank_name: '', bank_account_number: '', bank_routing_number: '',
+    payout_method: 'bank_transfer',
+  });
+  const [documents, setDocuments] = useState<UserDocument[]>([]);
+  const [docRequests, setDocRequests] = useState<DocumentRequest[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    const allUsers = getAllUsers();
-    const current = allUsers.find(u => u.id === user.id);
-    if (current?.profile) setProfile({ ...defaultProfile, ...current.profile });
+    setProfile({
+      phone: user.phone || '',
+      address: user.address || '',
+      city: user.city || '',
+      bio: user.bio || '',
+      website: user.website || '',
+      tax_id: user.tax_id || '',
+      registration_number: user.registration_number || '',
+      industry: user.industry || '',
+      bank_name: user.bank_name || '',
+      bank_account_number: user.bank_account_number || '',
+      bank_routing_number: user.bank_routing_number || '',
+      payout_method: user.payout_method || 'bank_transfer',
+    });
+
+    // Fetch documents
+    supabase.from('user_documents').select('*').eq('user_id', user.id).order('uploaded_at', { ascending: false }).then(({ data }) => {
+      if (data) setDocuments(data as UserDocument[]);
+    });
+
+    // Fetch document requests
+    supabase.from('document_requests').select('*').eq('user_id', user.id).order('requested_at', { ascending: false }).then(({ data }) => {
+      if (data) setDocRequests(data as DocumentRequest[]);
+    });
   }, [user]);
 
   if (!user) return null;
 
-  const allUsers = getAllUsers();
-  const currentUser = allUsers.find(u => u.id === user.id) || user;
-  const pendingRequests = (currentUser.document_requests || []).filter(r => !r.fulfilled);
+  const pendingRequests = docRequests.filter(r => !r.fulfilled);
 
-  const updateField = (field: keyof UserProfile, value: string) => {
+  const updateField = (field: keyof ProfileForm, value: string) => {
     setProfile(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setSaving(true);
-    const users = getAllUsers();
-    const updated = users.map(u => u.id === user.id ? { ...u, profile, updated_at: new Date().toISOString() } : u);
-    saveAllUsers(updated);
-    localStorage.setItem('waholo_user', JSON.stringify({ ...currentUser, profile, updated_at: new Date().toISOString() }));
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        phone: profile.phone,
+        address: profile.address,
+        city: profile.city,
+        bio: profile.bio,
+        website: profile.website,
+        tax_id: profile.tax_id,
+        registration_number: profile.registration_number,
+        industry: profile.industry,
+        bank_name: profile.bank_name,
+        bank_account_number: profile.bank_account_number,
+        bank_routing_number: profile.bank_routing_number,
+        payout_method: profile.payout_method,
+      })
+      .eq('user_id', user.id);
+
     setSaving(false);
-    toast.success('Profile saved successfully');
+    if (error) {
+      toast.error('Failed to save profile: ' + error.message);
+    } else {
+      await refreshProfile();
+      toast.success('Profile saved successfully');
+    }
   };
 
-  const handleDocUpload = (requestId: string, docName: string, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDocUpload = async (requestId: string, docName: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const users = getAllUsers();
-    const updated = users.map(u => {
-      if (u.id !== user.id) return u;
-      return {
-        ...u,
-        documents: [
-          ...u.documents,
-          {
-            id: 'doc' + Date.now(),
-            name: docName,
-            file_name: file.name,
-            uploaded_at: new Date().toISOString(),
-            status: 'pending' as const,
-          },
-        ],
-        document_requests: u.document_requests.map(r => r.id === requestId ? { ...r, fulfilled: true } : r),
-      };
+
+    // Upload file to storage
+    const filePath = `${user.id}/${Date.now()}_${file.name}`;
+    const { error: uploadError } = await supabase.storage.from('documents').upload(filePath, file);
+    if (uploadError) {
+      toast.error('File upload failed: ' + uploadError.message);
+      return;
+    }
+
+    // Create document record
+    const { error: docError } = await supabase.from('user_documents').insert({
+      user_id: user.id,
+      name: docName,
+      file_name: file.name,
+      file_url: filePath,
     });
-    saveAllUsers(updated);
+    if (docError) {
+      toast.error('Failed to save document record');
+      return;
+    }
+
+    // Mark request as fulfilled
+    if (requestId) {
+      await supabase.from('document_requests').update({ fulfilled: true }).eq('id', requestId);
+    }
+
     toast.success(`${file.name} uploaded for "${docName}"`);
-    // Force re-render
-    window.location.reload();
+
+    // Refresh
+    const { data: docs } = await supabase.from('user_documents').select('*').eq('user_id', user.id).order('uploaded_at', { ascending: false });
+    if (docs) setDocuments(docs as UserDocument[]);
+    const { data: reqs } = await supabase.from('document_requests').select('*').eq('user_id', user.id);
+    if (reqs) setDocRequests(reqs as DocumentRequest[]);
   };
 
   const showBusiness = user.role === 'producer' || user.role === 'wholesaler';
@@ -98,12 +168,11 @@ export default function ProfilePage() {
       <h1 className="font-display text-3xl font-bold">My Profile</h1>
       <p className="mt-1 text-muted-foreground">Manage your account details</p>
 
-      {/* Pending document requests banner */}
       {pendingRequests.length > 0 && (
-        <Card className="mt-4 border-warning/50 bg-warning/5">
+        <Card className="mt-4 border-secondary/50 bg-secondary/5">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <AlertCircle className="h-5 w-5 text-warning" />
+              <AlertCircle className="h-5 w-5 text-secondary" />
               <p className="font-medium">Admin has requested {pendingRequests.length} document(s)</p>
             </div>
             <div className="space-y-2">
@@ -134,7 +203,7 @@ export default function ProfilePage() {
           {showBank && <TabsTrigger value="payment" className="gap-1"><CreditCard className="h-4 w-4" /> Payment</TabsTrigger>}
           <TabsTrigger value="documents" className="gap-1">
             <FileText className="h-4 w-4" /> Documents
-            {pendingRequests.length > 0 && <Badge className="ml-1 bg-warning text-warning-foreground text-[10px] px-1.5 py-0">{pendingRequests.length}</Badge>}
+            {pendingRequests.length > 0 && <Badge className="ml-1 bg-secondary text-secondary-foreground text-[10px] px-1.5 py-0">{pendingRequests.length}</Badge>}
           </TabsTrigger>
         </TabsList>
 
@@ -271,11 +340,11 @@ export default function ProfilePage() {
               <CardDescription>Documents submitted for verification</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {currentUser.documents.length === 0 && pendingRequests.length === 0 ? (
+              {documents.length === 0 && pendingRequests.length === 0 && (
                 <p className="py-8 text-center text-sm text-muted-foreground">No documents uploaded yet.</p>
-              ) : null}
+              )}
 
-              {currentUser.documents.map(doc => (
+              {documents.map(doc => (
                 <div key={doc.id} className="flex items-center justify-between rounded-lg border p-3">
                   <div className="flex items-center gap-3">
                     <FileText className="h-4 w-4 text-muted-foreground" />
@@ -287,8 +356,7 @@ export default function ProfilePage() {
                   <Badge
                     className={
                       doc.status === 'approved' ? 'bg-success text-success-foreground' :
-                      doc.status === 'rejected' ? 'bg-destructive text-destructive-foreground' :
-                      ''
+                      doc.status === 'rejected' ? 'bg-destructive text-destructive-foreground' : ''
                     }
                     variant={doc.status === 'pending' ? 'outline' : 'default'}
                   >
@@ -303,9 +371,9 @@ export default function ProfilePage() {
               {pendingRequests.length > 0 && (
                 <>
                   <Separator className="my-3" />
-                  <p className="text-sm font-semibold flex items-center gap-2"><AlertCircle className="h-4 w-4 text-warning" /> Requested Documents</p>
+                  <p className="text-sm font-semibold flex items-center gap-2"><AlertCircle className="h-4 w-4 text-secondary" /> Requested Documents</p>
                   {pendingRequests.map(req => (
-                    <div key={req.id} className="flex items-center justify-between rounded-lg border border-warning/30 bg-warning/5 p-3">
+                    <div key={req.id} className="flex items-center justify-between rounded-lg border border-secondary/30 bg-secondary/5 p-3">
                       <div>
                         <p className="text-sm font-medium">{req.document_name}</p>
                         {req.description && <p className="text-xs text-muted-foreground">{req.description}</p>}

@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { mockProducts, mockProducerProfiles } from '@/lib/mock-data';
+import { useProducts, ProductWithProducer } from '@/hooks/use-products';
 import { useAuth } from '@/lib/auth-context';
 import { useCart } from '@/lib/cart-context';
 import { Button } from '@/components/ui/button';
@@ -8,8 +8,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Package, ArrowLeft, ShoppingCart, Shield, Clock, Boxes, Copy, Share2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
+import { Product, BulkTier } from '@/lib/types';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -17,19 +18,23 @@ export default function ProductDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addItem } = useCart();
-  const product = mockProducts.find(p => p.id === id);
+  const { data: products, isLoading } = useProducts();
   const [qty, setQty] = useState('');
 
-  // Track referral code from product link
   const refCode = searchParams.get('ref') || '';
   useEffect(() => {
     if (refCode && id) {
-      // Store product-level referral attribution in session
       const existing = JSON.parse(sessionStorage.getItem('waholo_product_refs') || '{}');
       existing[id] = refCode;
       sessionStorage.setItem('waholo_product_refs', JSON.stringify(existing));
     }
   }, [refCode, id]);
+
+  const product = useMemo(() => (products || []).find(p => p.id === id), [products, id]);
+
+  if (isLoading) {
+    return <div className="container mx-auto flex items-center justify-center px-4 py-20"><p className="text-muted-foreground">Loading...</p></div>;
+  }
 
   if (!product) {
     return (
@@ -40,7 +45,25 @@ export default function ProductDetail() {
     );
   }
 
-  const producer = mockProducerProfiles.find(p => p.user_id === product.producer_id);
+  const bulkPricing: BulkTier[] = Array.isArray(product.bulk_pricing) ? product.bulk_pricing as BulkTier[] : [];
+
+  // Convert to Product type for cart
+  const cartProduct: Product = {
+    id: product.id,
+    producer_id: product.producer_id,
+    producer_name: product.producer_name,
+    producer_country: product.producer_country,
+    name: product.name,
+    description: product.description || '',
+    category: product.category,
+    images: product.images || [],
+    moq: product.moq,
+    base_price: Number(product.base_price),
+    bulk_pricing: bulkPricing,
+    stock_quantity: product.stock_quantity,
+    lead_time_days: product.lead_time_days,
+    is_active: product.is_active,
+  };
 
   const handleAddToCart = () => {
     const quantity = parseInt(qty);
@@ -48,12 +71,11 @@ export default function ProductDetail() {
       toast.error(`Minimum order quantity is ${product.moq}`);
       return;
     }
-    addItem(product, quantity);
+    addItem(cartProduct, quantity);
     toast.success(`Added ${quantity}x ${product.name} to cart`);
     setQty('');
   };
 
-  // Generate referral link for this product
   const productRefLink = user?.referral_code
     ? `${window.location.origin}/products/${product.id}?ref=${user.referral_code}`
     : null;
@@ -66,6 +88,7 @@ export default function ProductDetail() {
   };
 
   const isReferrerOrCanRefer = user && (user.role === 'referrer' || user.role === 'wholesaler' || user.role === 'producer');
+  const basePrice = Number(product.base_price);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -73,23 +96,24 @@ export default function ProductDetail() {
         <ArrowLeft className="mr-1 h-4 w-4" /> Back to Products
       </Button>
 
-      {/* Referral attribution banner */}
       {refCode && !user && (
         <Card className="mb-4 border-secondary/50 bg-secondary/5">
           <CardContent className="flex items-center gap-2 p-3 text-sm">
             <Share2 className="h-4 w-4 text-secondary" />
-            <span>You were referred to this product! <Button variant="link" className="h-auto p-0" onClick={() => navigate(`/signup?ref=${refCode}`)}>Sign up as a Wholesaler</Button> to place an order.</span>
+            <span>You were referred! <Button variant="link" className="h-auto p-0" onClick={() => navigate(`/signup?ref=${refCode}`)}>Sign up as a Wholesaler</Button> to place an order.</span>
           </CardContent>
         </Card>
       )}
 
       <div className="grid gap-8 lg:grid-cols-2">
-        {/* Image */}
-        <div className="aspect-square rounded-xl bg-muted flex items-center justify-center">
-          <Package className="h-20 w-20 text-muted-foreground/30" />
+        <div className="aspect-square rounded-xl bg-muted flex items-center justify-center overflow-hidden">
+          {product.images && product.images.length > 0 && product.images[0] !== '/placeholder.svg' ? (
+            <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" loading="lazy" />
+          ) : (
+            <Package className="h-20 w-20 text-muted-foreground/30" />
+          )}
         </div>
 
-        {/* Info */}
         <div>
           <div className="flex items-start gap-2">
             <Badge variant="secondary">{product.category}</Badge>
@@ -101,7 +125,7 @@ export default function ProductDetail() {
           <p className="mt-4 text-foreground/80">{product.description}</p>
 
           <div className="mt-6 flex items-baseline gap-2">
-            <span className="font-display text-3xl font-bold">${product.base_price.toFixed(2)}</span>
+            <span className="font-display text-3xl font-bold">${basePrice.toFixed(2)}</span>
             <span className="text-muted-foreground">/ unit</span>
           </div>
 
@@ -111,67 +135,49 @@ export default function ProductDetail() {
             <span className="flex items-center gap-1"><Shield className="h-4 w-4" /> Verified Producer</span>
           </div>
 
-          {/* Bulk pricing */}
-          <Card className="mt-6">
-            <CardContent className="p-4">
-              <h3 className="font-display font-semibold mb-2">Bulk Pricing</h3>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Price / Unit</TableHead>
-                    <TableHead>Savings</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {product.bulk_pricing.map((tier, i) => (
-                    <TableRow key={i}>
-                      <TableCell>{tier.min_qty}{tier.max_qty ? ` – ${tier.max_qty}` : '+'}</TableCell>
-                      <TableCell className="font-semibold">${tier.price.toFixed(2)}</TableCell>
-                      <TableCell className="text-success">
-                        {tier.price < product.base_price
-                          ? `-${((1 - tier.price / product.base_price) * 100).toFixed(0)}%`
-                          : '—'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          {bulkPricing.length > 0 && (
+            <Card className="mt-6">
+              <CardContent className="p-4">
+                <h3 className="font-display font-semibold mb-2">Bulk Pricing</h3>
+                <Table>
+                  <TableHeader><TableRow><TableHead>Quantity</TableHead><TableHead>Price / Unit</TableHead><TableHead>Savings</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {bulkPricing.map((tier, i) => (
+                      <TableRow key={i}>
+                        <TableCell>{tier.min_qty}{tier.max_qty ? ` – ${tier.max_qty}` : '+'}</TableCell>
+                        <TableCell className="font-semibold">${tier.price.toFixed(2)}</TableCell>
+                        <TableCell className="text-success">
+                          {tier.price < basePrice ? `-${((1 - tier.price / basePrice) * 100).toFixed(0)}%` : '—'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Add to cart for wholesalers */}
           {user?.role === 'wholesaler' ? (
             <div className="mt-6 flex items-end gap-3">
               <div className="flex-1">
                 <label className="mb-1 block text-sm font-medium">Quantity (min {product.moq})</label>
                 <Input type="number" min={product.moq} value={qty} onChange={e => setQty(e.target.value)} placeholder={`${product.moq}`} />
               </div>
-              <Button onClick={handleAddToCart} className="gap-1">
-                <ShoppingCart className="h-4 w-4" /> Add to Cart
-              </Button>
+              <Button onClick={handleAddToCart} className="gap-1"><ShoppingCart className="h-4 w-4" /> Add to Cart</Button>
             </div>
           ) : (
             <div className="mt-6 rounded-lg border bg-muted/50 p-4 text-center text-sm text-muted-foreground">
               {user ? 'Only wholesalers can place orders.' : (
-                <>
-                  <Button variant="link" onClick={() => navigate(`/signup?role=wholesaler${refCode ? `&ref=${refCode}` : ''}`)}>Sign up as a Wholesaler</Button> to place orders.
-                </>
+                <><Button variant="link" onClick={() => navigate(`/signup?role=wholesaler${refCode ? `&ref=${refCode}` : ''}`)}>Sign up as a Wholesaler</Button> to place orders.</>
               )}
             </div>
           )}
 
-          {/* Referral share link for referrers */}
           {isReferrerOrCanRefer && productRefLink && (
             <Card className="mt-4 border-secondary/30 bg-secondary/5">
               <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Share2 className="h-4 w-4 text-secondary" />
-                  <span className="text-sm font-medium">Share & Earn</span>
-                </div>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Share this product link. When someone signs up and buys through your link, you earn a commission!
-                </p>
+                <div className="flex items-center gap-2 mb-2"><Share2 className="h-4 w-4 text-secondary" /><span className="text-sm font-medium">Share & Earn</span></div>
+                <p className="text-xs text-muted-foreground mb-2">Share this product link. When someone buys through your link, you earn a commission!</p>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 rounded-md border bg-muted px-3 py-2 text-xs truncate">{productRefLink}</code>
                   <Button onClick={copyProductRefLink} size="sm" variant="outline"><Copy className="mr-1 h-3 w-3" /> Copy</Button>
