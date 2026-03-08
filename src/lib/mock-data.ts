@@ -31,6 +31,7 @@ export const mockUsers: User[] = [
     documents: [{ id: 'd3', name: 'Trade License', file_name: 'trade_license.pdf', uploaded_at: '2025-03-01T10:00:00Z', status: 'approved' }],
     document_requests: [],
     profile: { ...defaultProfile, phone: '+254700000000', address: '123 Market St', city: 'Nairobi', industry: 'Wholesale Trade' },
+    store_team: [],
     created_at: '2025-03-01T10:00:00Z', updated_at: '2025-03-01T10:00:00Z',
   },
   {
