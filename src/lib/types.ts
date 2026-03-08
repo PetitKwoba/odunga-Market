@@ -33,6 +33,49 @@ export interface UserProfile {
   payout_method: 'bank_transfer' | 'mobile_money' | 'other';
 }
 
+export type StoreTeamRole = 'store_admin' | 'store_manager' | 'order_handler' | 'viewer' | 'delivery_person' | 'custom';
+
+export interface StoreTeamMember {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: StoreTeamRole;
+  custom_role_name?: string;
+  permissions: StorePermission[];
+  is_active: boolean;
+  added_at: string;
+}
+
+export type StorePermission =
+  | 'manage_products'
+  | 'manage_orders'
+  | 'view_orders'
+  | 'manage_payouts'
+  | 'manage_team'
+  | 'view_reports'
+  | 'manage_shipping'
+  | 'update_delivery_status';
+
+export const ROLE_PERMISSIONS: Record<Exclude<StoreTeamRole, 'custom'>, StorePermission[]> = {
+  store_admin: ['manage_products', 'manage_orders', 'view_orders', 'manage_payouts', 'manage_team', 'view_reports', 'manage_shipping', 'update_delivery_status'],
+  store_manager: ['manage_products', 'manage_orders', 'view_orders', 'view_reports', 'manage_shipping'],
+  order_handler: ['view_orders', 'manage_orders', 'manage_shipping'],
+  viewer: ['view_orders', 'view_reports'],
+  delivery_person: ['view_orders', 'update_delivery_status'],
+};
+
+export const PERMISSION_LABELS: Record<StorePermission, string> = {
+  manage_products: 'Manage Products',
+  manage_orders: 'Manage Orders',
+  view_orders: 'View Orders',
+  manage_payouts: 'Manage Payouts',
+  manage_team: 'Manage Team',
+  view_reports: 'View Reports',
+  manage_shipping: 'Manage Shipping',
+  update_delivery_status: 'Update Delivery Status',
+};
+
 export interface User {
   id: string;
   role: UserRole;
@@ -48,6 +91,7 @@ export interface User {
   documents: UserDocument[];
   document_requests: DocumentRequest[];
   profile: UserProfile;
+  store_team: StoreTeamMember[];
   created_at: string;
   updated_at: string;
 }

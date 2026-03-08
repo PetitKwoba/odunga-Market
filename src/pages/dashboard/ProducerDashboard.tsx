@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Package, Settings, Wallet, Truck, CalendarCheck, Info } from 'lucide-react';
+import { Plus, Package, Settings, Wallet, Truck, CalendarCheck, Info, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import StoreTeamTab from '@/components/StoreTeamTab';
 
 const PLATFORM_FEE_PERCENT = 5;
 
@@ -55,6 +56,7 @@ export default function ProducerDashboard() {
         <TabsList>
           <TabsTrigger value="products">My Products</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="team"><Users className="mr-1 h-4 w-4" /> Team</TabsTrigger>
           <TabsTrigger value="payouts">Payouts</TabsTrigger>
           <TabsTrigger value="referrals">Referral Settings</TabsTrigger>
         </TabsList>
@@ -163,6 +165,10 @@ export default function ProducerDashboard() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="team" className="mt-4">
+          <StoreTeamTab />
         </TabsContent>
 
         <TabsContent value="payouts" className="mt-4 space-y-4">
