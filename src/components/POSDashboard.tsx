@@ -11,7 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Package, Receipt, ShoppingCart, Trash2, Search, DollarSign, FileText, Download } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Plus, Package, Receipt, ShoppingCart, Trash2, Search, DollarSign, FileText, Download, Pencil, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { generateInvoicePDF } from './InvoicePDF';
 
@@ -61,6 +62,8 @@ function formatCurrency(amount: number) {
   return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(amount);
 }
 
+const DEFAULT_TAX_RATE = 16; // Kenya VAT
+
 export default function POSDashboard() {
   const { user } = useAuth();
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
@@ -69,13 +72,23 @@ export default function POSDashboard() {
   const [cart, setCart] = useState<CartLineItem[]>([]);
   const [search, setSearch] = useState('');
   const [addItemOpen, setAddItemOpen] = useState(false);
+  const [editItemOpen, setEditItemOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<CatalogItem | null>(null);
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [customerName, setCustomerName] = useState('Walk-in');
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [transactionCode, setTransactionCode] = useState('');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Tax config
+  const [taxEnabled, setTaxEnabled] = useState(true);
+  const [taxRate, setTaxRate] = useState(DEFAULT_TAX_RATE);
+  const [taxLabel, setTaxLabel] = useState('VAT');
 
   // New item form
   const [itemForm, setItemForm] = useState({ name: '', description: '', category: '', price: '', stock_quantity: '', sku: '' });
+  // Edit item form
+  const [editForm, setEditForm] = useState({ name: '', description: '', category: '', price: '', stock_quantity: '', sku: '' });
   // Invoice form
   const [invoiceForm, setInvoiceForm] = useState({ client_name: '', client_email: '', client_phone: '', notes: '', due_date: '' });
 
@@ -90,7 +103,23 @@ export default function POSDashboard() {
     fetchTransactions();
     fetchInvoices();
     fetchBranding();
+    // Load tax settings from localStorage
+    const savedTax = localStorage.getItem(`pos_tax_${user.id}`);
+    if (savedTax) {
+      try {
+        const t = JSON.parse(savedTax);
+        setTaxEnabled(t.enabled ?? true);
+        setTaxRate(t.rate ?? DEFAULT_TAX_RATE);
+        setTaxLabel(t.label ?? 'VAT');
+      } catch {}
+    }
   }, [user]);
+
+  // Save tax settings
+  useEffect(() => {
+    if (!user) return;
+    localStorage.setItem(`pos_tax_${user.id}`, JSON.stringify({ enabled: taxEnabled, rate: taxRate, label: taxLabel }));
+  }, [taxEnabled, taxRate, taxLabel, user]);
 
   const fetchBranding = async () => {
     const { data } = await supabase.from('profiles').select('business_name, logo_url, phone, email, address, city, country').eq('user_id', user!.id).single();
@@ -138,6 +167,46 @@ export default function POSDashboard() {
     fetchCatalog();
   };
 
+  const openEditItem = (item: CatalogItem) => {
+    setEditingItem(item);
+    setEditForm({
+      name: item.name,
+      description: item.description || '',
+      category: item.category || '',
+      price: item.price.toString(),
+      stock_quantity: item.stock_quantity.toString(),
+      sku: item.sku || '',
+    });
+    setEditItemOpen(true);
+  };
+
+  const updateCatalogItem = async () => {
+    if (!editingItem || !editForm.name || !editForm.price) { toast.error('Name and price required'); return; }
+    const { error } = await supabase.from('pos_catalog_items').update({
+      name: editForm.name,
+      description: editForm.description,
+      category: editForm.category,
+      price: parseFloat(editForm.price),
+      stock_quantity: parseInt(editForm.stock_quantity) || 0,
+      sku: editForm.sku,
+    }).eq('id', editingItem.id);
+    if (error) { toast.error('Failed to update item'); return; }
+    toast.success('Item updated');
+    setEditItemOpen(false);
+    setEditingItem(null);
+    fetchCatalog();
+  };
+
+  const deleteCatalogItem = async (id: string) => {
+    const { error } = await supabase.from('pos_catalog_items').delete().eq('id', id);
+    if (error) { toast.error('Failed to delete item'); return; }
+    toast.success('Item deleted');
+    setDeleteConfirmId(null);
+    // Remove from cart if present
+    setCart(prev => prev.filter(c => c.item.id !== id));
+    fetchCatalog();
+  };
+
   const addToCart = (item: CatalogItem) => {
     setCart(prev => {
       const existing = prev.find(c => c.item.id === item.id);
@@ -151,7 +220,9 @@ export default function POSDashboard() {
     setCart(prev => prev.map(c => c.item.id === itemId ? { ...c, quantity: qty } : c));
   };
 
-  const cartTotal = cart.reduce((s, c) => s + c.item.price * c.quantity, 0);
+  const cartSubtotal = cart.reduce((s, c) => s + c.item.price * c.quantity, 0);
+  const cartTax = taxEnabled ? cartSubtotal * (taxRate / 100) : 0;
+  const cartTotal = cartSubtotal + cartTax;
 
   const completeSale = async () => {
     if (cart.length === 0) { toast.error('Cart is empty'); return; }
@@ -160,15 +231,14 @@ export default function POSDashboard() {
       owner_id: user!.id,
       customer_name: customerName || 'Walk-in',
       items,
-      subtotal: cartTotal,
-      tax: 0,
+      subtotal: cartSubtotal,
+      tax: cartTax,
       total: cartTotal,
       payment_method: paymentMethod,
       notes: transactionCode ? `Ref: ${transactionCode}` : '',
     });
     if (error) { toast.error('Failed to record sale'); return; }
 
-    // Decrease stock
     for (const c of cart) {
       await supabase.from('pos_catalog_items').update({ stock_quantity: Math.max(0, c.item.stock_quantity - c.quantity) }).eq('id', c.item.id);
     }
@@ -193,8 +263,8 @@ export default function POSDashboard() {
       client_email: invoiceForm.client_email,
       client_phone: invoiceForm.client_phone,
       items,
-      subtotal: cartTotal,
-      tax: 0,
+      subtotal: cartSubtotal,
+      tax: cartTax,
       total: cartTotal,
       invoice_number: invNumber,
       due_date: invoiceForm.due_date || null,
@@ -273,12 +343,12 @@ export default function POSDashboard() {
           <TabsTrigger value="catalog"><Package className="mr-1 h-4 w-4" /> Catalog</TabsTrigger>
           <TabsTrigger value="invoices"><FileText className="mr-1 h-4 w-4" /> Invoices</TabsTrigger>
           <TabsTrigger value="history"><Receipt className="mr-1 h-4 w-4" /> History</TabsTrigger>
+          <TabsTrigger value="settings"><Settings className="mr-1 h-4 w-4" /> Tax Settings</TabsTrigger>
         </TabsList>
 
         {/* ─── SALES TERMINAL ─── */}
         <TabsContent value="terminal" className="mt-4">
           <div className="grid gap-4 lg:grid-cols-3">
-            {/* Product Grid */}
             <div className="lg:col-span-2 space-y-3">
               <div className="flex gap-2">
                 <div className="relative flex-1">
@@ -347,6 +417,16 @@ export default function POSDashboard() {
                 )}
 
                 <div className="border-t pt-3 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Subtotal</span>
+                    <span>{formatCurrency(cartSubtotal)}</span>
+                  </div>
+                  {taxEnabled && (
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>{taxLabel} ({taxRate}%)</span>
+                      <span>{formatCurrency(cartTax)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between font-display font-bold text-lg">
                     <span>Total</span>
                     <span>{formatCurrency(cartTotal)}</span>
@@ -402,6 +482,7 @@ export default function POSDashboard() {
                     <TableHead>SKU</TableHead>
                     <TableHead className="text-right">Price</TableHead>
                     <TableHead className="text-right">Stock</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -412,6 +493,16 @@ export default function POSDashboard() {
                       <TableCell className="font-mono text-xs">{item.sku || '-'}</TableCell>
                       <TableCell className="text-right">{formatCurrency(item.price)}</TableCell>
                       <TableCell className="text-right">{item.stock_quantity}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditItem(item)} title="Edit">
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDeleteConfirmId(item.id)} title="Delete">
+                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -507,6 +598,43 @@ export default function POSDashboard() {
             </CardContent></Card>
           )}
         </TabsContent>
+
+        {/* ─── TAX SETTINGS ─── */}
+        <TabsContent value="settings" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-display text-lg">Tax / VAT Configuration</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-sm">Enable Tax</p>
+                  <p className="text-xs text-muted-foreground">Automatically apply tax to sales and invoices</p>
+                </div>
+                <Switch checked={taxEnabled} onCheckedChange={setTaxEnabled} />
+              </div>
+              {taxEnabled && (
+                <>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>Tax Label</Label>
+                      <Input value={taxLabel} onChange={e => setTaxLabel(e.target.value)} placeholder="e.g. VAT, GST, Sales Tax" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Tax Rate (%)</Label>
+                      <Input type="number" min={0} max={100} step={0.5} value={taxRate} onChange={e => setTaxRate(parseFloat(e.target.value) || 0)} />
+                    </div>
+                  </div>
+                  <div className="rounded-lg border bg-muted/50 p-3">
+                    <p className="text-sm">
+                      <strong>Preview:</strong> A {formatCurrency(1000)} item will have {formatCurrency(1000 * taxRate / 100)} {taxLabel} added, totalling {formatCurrency(1000 + 1000 * taxRate / 100)}.
+                    </p>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Add Item Dialog */}
@@ -528,6 +656,41 @@ export default function POSDashboard() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddItemOpen(false)}>Cancel</Button>
             <Button onClick={addCatalogItem}>Add Item</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Item Dialog */}
+      <Dialog open={editItemOpen} onOpenChange={setEditItemOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Edit Catalog Item</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1"><Label>Name *</Label><Input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} /></div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1"><Label>Price (KES) *</Label><Input type="number" value={editForm.price} onChange={e => setEditForm(f => ({ ...f, price: e.target.value }))} /></div>
+              <div className="space-y-1"><Label>Stock Qty</Label><Input type="number" value={editForm.stock_quantity} onChange={e => setEditForm(f => ({ ...f, stock_quantity: e.target.value }))} /></div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1"><Label>Category</Label><Input value={editForm.category} onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))} /></div>
+              <div className="space-y-1"><Label>SKU</Label><Input value={editForm.sku} onChange={e => setEditForm(f => ({ ...f, sku: e.target.value }))} /></div>
+            </div>
+            <div className="space-y-1"><Label>Description</Label><Textarea value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditItemOpen(false)}>Cancel</Button>
+            <Button onClick={updateCatalogItem}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirm Dialog */}
+      <Dialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Delete Item</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">Are you sure you want to delete this catalog item? This action cannot be undone.</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => deleteConfirmId && deleteCatalogItem(deleteConfirmId)}>Delete</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -554,6 +717,8 @@ export default function POSDashboard() {
                   </div>
                 ))}
               </div>
+              <div className="flex justify-between text-xs pt-1"><span>Subtotal</span><span>{formatCurrency(cartSubtotal)}</span></div>
+              {taxEnabled && <div className="flex justify-between text-xs text-muted-foreground"><span>{taxLabel} ({taxRate}%)</span><span>{formatCurrency(cartTax)}</span></div>}
               <p className="text-sm font-bold pt-1">Total: {formatCurrency(cartTotal)}</p>
             </div>
           </div>
