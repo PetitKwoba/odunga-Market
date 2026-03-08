@@ -91,6 +91,7 @@ export interface User {
   documents: UserDocument[];
   document_requests: DocumentRequest[];
   profile: UserProfile;
+  store_team: StoreTeamMember[];
   created_at: string;
   updated_at: string;
 }
