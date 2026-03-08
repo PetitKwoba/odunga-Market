@@ -61,7 +61,10 @@ export default function AdminPanel() {
     supabase.from('profiles').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setProfiles(data as Profile[]); });
     supabase.from('user_roles').select('*').then(({ data }) => { if (data) setRoles(data as UserRoleRow[]); });
     supabase.from('products').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setProducts(data); });
-    supabase.from('orders').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setOrders(data); });
+    
+    // Fetch orders with their items
+    supabase.from('orders').select('*, order_items(*)').order('created_at', { ascending: false }).then(({ data }) => { if (data) setOrders(data); });
+    
     supabase.from('referrals').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setReferrals(data); });
     supabase.from('payouts').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setPayouts(data); });
     supabase.from('pos_transactions').select('*').order('created_at', { ascending: false }).then(({ data }) => { if (data) setPosTransactions(data); });
