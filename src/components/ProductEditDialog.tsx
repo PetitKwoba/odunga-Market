@@ -117,11 +117,16 @@ export default function ProductEditDialog({ product, open, onOpenChange, onSaved
       is_active: form.is_active,
     };
 
+    const dbPayload = {
+      ...payload,
+      bulk_pricing: JSON.parse(JSON.stringify(bulkTiers)),
+    };
+
     let error;
     if (isNew) {
-      ({ error } = await supabase.from('products').insert({ ...payload, producer_id: producerId! }));
+      ({ error } = await supabase.from('products').insert([{ ...dbPayload, producer_id: producerId! }]));
     } else {
-      ({ error } = await supabase.from('products').update(payload).eq('id', product!.id));
+      ({ error } = await supabase.from('products').update(dbPayload).eq('id', product!.id));
     }
 
     if (error) {
