@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { mockProducts, mockProducerProfiles } from '@/lib/mock-data';
 import { useAuth } from '@/lib/auth-context';
 import { useCart } from '@/lib/cart-context';
@@ -7,17 +7,29 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Package, ArrowLeft, ShoppingCart, Shield, Clock, Boxes } from 'lucide-react';
-import { useState } from 'react';
+import { Package, ArrowLeft, ShoppingCart, Shield, Clock, Boxes, Copy, Share2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addItem } = useCart();
   const product = mockProducts.find(p => p.id === id);
   const [qty, setQty] = useState('');
+
+  // Track referral code from product link
+  const refCode = searchParams.get('ref') || '';
+  useEffect(() => {
+    if (refCode && id) {
+      // Store product-level referral attribution in session
+      const existing = JSON.parse(sessionStorage.getItem('waholo_product_refs') || '{}');
+      existing[id] = refCode;
+      sessionStorage.setItem('waholo_product_refs', JSON.stringify(existing));
+    }
+  }, [refCode, id]);
 
   if (!product) {
     return (
@@ -41,11 +53,35 @@ export default function ProductDetail() {
     setQty('');
   };
 
+  // Generate referral link for this product
+  const productRefLink = user?.referral_code
+    ? `${window.location.origin}/products/${product.id}?ref=${user.referral_code}`
+    : null;
+
+  const copyProductRefLink = () => {
+    if (productRefLink) {
+      navigator.clipboard.writeText(productRefLink);
+      toast.success('Product referral link copied!');
+    }
+  };
+
+  const isReferrerOrCanRefer = user && (user.role === 'referrer' || user.role === 'wholesaler' || user.role === 'producer');
+
   return (
     <div className="container mx-auto px-4 py-8">
       <Button variant="ghost" size="sm" className="mb-4" onClick={() => navigate('/products')}>
         <ArrowLeft className="mr-1 h-4 w-4" /> Back to Products
       </Button>
+
+      {/* Referral attribution banner */}
+      {refCode && !user && (
+        <Card className="mb-4 border-secondary/50 bg-secondary/5">
+          <CardContent className="flex items-center gap-2 p-3 text-sm">
+            <Share2 className="h-4 w-4 text-secondary" />
+            <span>You were referred to this product! <Button variant="link" className="h-auto p-0" onClick={() => navigate(`/signup?ref=${refCode}`)}>Sign up as a Wholesaler</Button> to place an order.</span>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-8 lg:grid-cols-2">
         {/* Image */}
@@ -104,7 +140,7 @@ export default function ProductDetail() {
             </CardContent>
           </Card>
 
-          {/* Add to cart */}
+          {/* Add to cart for wholesalers */}
           {user?.role === 'wholesaler' ? (
             <div className="mt-6 flex items-end gap-3">
               <div className="flex-1">
@@ -119,10 +155,29 @@ export default function ProductDetail() {
             <div className="mt-6 rounded-lg border bg-muted/50 p-4 text-center text-sm text-muted-foreground">
               {user ? 'Only wholesalers can place orders.' : (
                 <>
-                  <Button variant="link" onClick={() => navigate('/signup?role=wholesaler')}>Sign up as a Wholesaler</Button> to place orders.
+                  <Button variant="link" onClick={() => navigate(`/signup?role=wholesaler${refCode ? `&ref=${refCode}` : ''}`)}>Sign up as a Wholesaler</Button> to place orders.
                 </>
               )}
             </div>
+          )}
+
+          {/* Referral share link for referrers */}
+          {isReferrerOrCanRefer && productRefLink && (
+            <Card className="mt-4 border-secondary/30 bg-secondary/5">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Share2 className="h-4 w-4 text-secondary" />
+                  <span className="text-sm font-medium">Share & Earn</span>
+                </div>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Share this product link. When someone signs up and buys through your link, you earn a commission!
+                </p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 rounded-md border bg-muted px-3 py-2 text-xs truncate">{productRefLink}</code>
+                  <Button onClick={copyProductRefLink} size="sm" variant="outline"><Copy className="mr-1 h-3 w-3" /> Copy</Button>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
