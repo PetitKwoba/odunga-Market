@@ -1,118 +1,216 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { User, UserRole, defaultProfile } from './types';
-import { mockUsers } from './mock-data';
+import { supabase } from '@/integrations/supabase/client';
+import { Session, User as SupabaseUser } from '@supabase/supabase-js';
+
+export type UserRole = 'producer' | 'wholesaler' | 'referrer' | 'admin';
+
+export interface AppUser {
+  id: string;
+  role: UserRole;
+  name: string;
+  business_name: string | null;
+  email: string;
+  country: string;
+  referral_code: string;
+  referred_by_user_id: string | null;
+  referral_credits: number;
+  is_verified: boolean;
+  is_approved: boolean;
+  avatar_url: string | null;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  bio: string | null;
+  website: string | null;
+  tax_id: string | null;
+  registration_number: string | null;
+  industry: string | null;
+  bank_name: string | null;
+  bank_account_number: string | null;
+  bank_routing_number: string | null;
+  payout_method: string | null;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: AppUser | null;
+  session: Session | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  signup: (data: { name: string; email: string; password: string; role: UserRole; business_name?: string; country: string; ref?: string; documents?: { name: string; file_name: string }[] }) => Promise<boolean>;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<{ error?: string }>;
+  signup: (data: {
+    name: string;
+    email: string;
+    password: string;
+    role: UserRole;
+    business_name?: string;
+    country: string;
+    ref?: string;
+  }) => Promise<{ error?: string; needsConfirmation?: boolean }>;
+  signInWithOAuth: (provider: 'google' | 'apple') => Promise<{ error?: string }>;
+  logout: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-function getAllUsers(): User[] {
-  const stored = localStorage.getItem('waholo_all_users');
-  if (stored) {
-    try {
-      const parsed: User[] = JSON.parse(stored);
-      return parsed.map(u => ({
-        ...u,
-        documents: u.documents || [],
-        document_requests: u.document_requests || [],
-        profile: u.profile ? { ...defaultProfile, ...u.profile } : { ...defaultProfile },
-        store_team: u.store_team || [],
-      }));
-    } catch { /* ignore */ }
-  }
-  localStorage.setItem('waholo_all_users', JSON.stringify(mockUsers));
-  return [...mockUsers];
-}
+async function fetchProfile(userId: string): Promise<AppUser | null> {
+  // Fetch profile
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
 
-function saveAllUsers(users: User[]) {
-  localStorage.setItem('waholo_all_users', JSON.stringify(users));
+  if (profileError || !profile) return null;
+
+  // Fetch role
+  const { data: roleData } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', userId)
+    .single();
+
+  return {
+    id: profile.user_id,
+    role: (roleData?.role as UserRole) || 'wholesaler',
+    name: profile.name,
+    business_name: profile.business_name,
+    email: profile.email,
+    country: profile.country,
+    referral_code: profile.referral_code,
+    referred_by_user_id: profile.referred_by_user_id,
+    referral_credits: profile.referral_credits,
+    is_verified: profile.is_verified,
+    is_approved: profile.is_approved,
+    avatar_url: profile.avatar_url,
+    phone: profile.phone,
+    address: profile.address,
+    city: profile.city,
+    bio: profile.bio,
+    website: profile.website,
+    tax_id: profile.tax_id,
+    registration_number: profile.registration_number,
+    industry: profile.industry,
+    bank_name: profile.bank_name,
+    bank_account_number: profile.bank_account_number,
+    bank_routing_number: profile.bank_routing_number,
+    payout_method: profile.payout_method,
+  };
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Set up auth listener BEFORE getSession
   useEffect(() => {
-    const stored = localStorage.getItem('waholo_user');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        // Re-read from all_users to get latest approval status
-        const allUsers = getAllUsers();
-        const latest = allUsers.find(u => u.id === parsed.id);
-        setUser(latest || parsed);
-        if (latest) localStorage.setItem('waholo_user', JSON.stringify(latest));
-      } catch { /* ignore */ }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      setSession(newSession);
+      if (newSession?.user) {
+        // Use setTimeout to avoid Supabase deadlock
+        setTimeout(async () => {
+          const profile = await fetchProfile(newSession.user.id);
+          setUser(profile);
+          setIsLoading(false);
+        }, 0);
+      } else {
+        setUser(null);
+        setIsLoading(false);
+      }
+    });
+
+    // Then check existing session
+    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
+      setSession(existingSession);
+      if (existingSession?.user) {
+        fetchProfile(existingSession.user.id).then(profile => {
+          setUser(profile);
+          setIsLoading(false);
+        });
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const login = useCallback(async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error: error.message };
+    return {};
+  }, []);
+
+  const signup = useCallback(async (data: {
+    name: string;
+    email: string;
+    password: string;
+    role: UserRole;
+    business_name?: string;
+    country: string;
+    ref?: string;
+  }) => {
+    // Look up referrer by code
+    let referredByUserId: string | undefined;
+    if (data.ref) {
+      const { data: refProfile } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('referral_code', data.ref)
+        .single();
+      referredByUserId = refProfile?.user_id;
     }
-    setIsLoading(false);
-  }, []);
 
-  const login = useCallback(async (email: string, _password: string) => {
-    const allUsers = getAllUsers();
-    const found = allUsers.find(u => u.email === email);
-    if (!found) return false;
-    setUser(found);
-    localStorage.setItem('waholo_user', JSON.stringify(found));
-    return true;
-  }, []);
-
-  const signup = useCallback(async (data: { name: string; email: string; password: string; role: UserRole; business_name?: string; country: string; ref?: string; documents?: { name: string; file_name: string }[] }) => {
-    const allUsers = getAllUsers();
-
-    // Find referrer from all users
-    const referrer = data.ref ? allUsers.find(u => u.referral_code === data.ref) : null;
-
-    const newUser: User = {
-      id: 'u' + Date.now(),
-      role: data.role,
-      name: data.name,
-      business_name: data.business_name || null,
+    const { error, data: signupData } = await supabase.auth.signUp({
       email: data.email,
-      country: data.country,
-      referral_code: data.name.replace(/\s/g, '').slice(0, 6).toUpperCase() + Math.floor(Math.random() * 100),
-      referred_by_user_id: referrer?.id || null,
-      referral_credits: 0,
-      is_verified: true,
-      is_approved: data.role === 'referrer' || data.role === 'admin',
-      documents: (data.documents || []).map((d, i) => ({
-        id: 'doc' + Date.now() + i,
-        name: d.name,
-        file_name: d.file_name,
-        uploaded_at: new Date().toISOString(),
-        status: 'pending' as const,
-      })),
-      document_requests: [],
-      profile: { ...defaultProfile },
-      store_team: [],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+      password: data.password,
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: {
+          name: data.name,
+          role: data.role,
+          business_name: data.business_name || null,
+          country: data.country,
+          referred_by_user_id: referredByUserId || null,
+        },
+      },
+    });
 
-    // Add to shared users list
-    allUsers.push(newUser);
-    saveAllUsers(allUsers);
+    if (error) return { error: error.message };
 
-    // Only auto-login if approved (referrers), otherwise just save
-    if (newUser.is_approved) {
-      setUser(newUser);
-      localStorage.setItem('waholo_user', JSON.stringify(newUser));
+    // Check if email confirmation is required
+    const needsConfirmation = signupData.user && !signupData.session;
+    return { needsConfirmation: !!needsConfirmation };
+  }, []);
+
+  const signInWithOAuth = useCallback(async (provider: 'google' | 'apple') => {
+    try {
+      const { lovable } = await import('@/integrations/lovable/index');
+      const result = await lovable.auth.signInWithOAuth(provider, {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) return { error: result.error.message || 'OAuth sign-in failed' };
+      return {};
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : 'OAuth sign-in failed' };
     }
-    return true;
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('waholo_user');
+    setSession(null);
   }, []);
+
+  const refreshProfile = useCallback(async () => {
+    if (session?.user) {
+      const profile = await fetchProfile(session.user.id);
+      setUser(profile);
+    }
+  }, [session]);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, session, isLoading, login, signup, signInWithOAuth, logout, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
