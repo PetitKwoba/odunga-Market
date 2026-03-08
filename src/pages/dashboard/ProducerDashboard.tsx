@@ -9,10 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Settings, Wallet, Truck, CalendarCheck, Info, Users, Pencil, Clock, CheckCircle2, DollarSign, TrendingUp } from 'lucide-react';
+import { Plus, Settings, Wallet, Truck, CalendarCheck, Info, Users, Pencil, Clock, CheckCircle2, DollarSign, TrendingUp, MessageCircle, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 import StoreTeamTab from '@/components/StoreTeamTab';
 import ProductEditDialog from '@/components/ProductEditDialog';
+import OrderChat from '@/components/OrderChat';
+import POSDashboard from '@/components/POSDashboard';
 import { Separator } from '@/components/ui/separator';
 
 const PLATFORM_FEE_PERCENT = 5;
