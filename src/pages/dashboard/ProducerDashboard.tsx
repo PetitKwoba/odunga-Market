@@ -9,11 +9,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Plus, Settings, Wallet, Truck, CalendarCheck, Info, Users } from 'lucide-react';
+import { Plus, Settings, Wallet, Truck, CalendarCheck, Info, Users, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import StoreTeamTab from '@/components/StoreTeamTab';
+import ProductEditDialog from '@/components/ProductEditDialog';
 
 const PLATFORM_FEE_PERCENT = 5;
 
@@ -22,7 +21,8 @@ export default function ProducerDashboard() {
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [addOpen, setAddOpen] = useState(false);
-  const [newProduct, setNewProduct] = useState({ name: '', description: '', category: '', base_price: '', moq: '', lead_time_days: '', stock_quantity: '' });
+  const [editProduct, setEditProduct] = useState<any>(null);
+  const [editOpen, setEditOpen] = useState(false);
   const [rewardType, setRewardType] = useState<'fixed' | 'percentage'>('fixed');
   const [rewardValue, setRewardValue] = useState('0');
 
@@ -56,23 +56,7 @@ export default function ProducerDashboard() {
 
   if (!user) return null;
 
-  const handleAddProduct = async () => {
-    if (!newProduct.name.trim()) { toast.error('Product name is required'); return; }
-    const { error } = await supabase.from('products').insert({
-      producer_id: user.id,
-      name: newProduct.name.trim(),
-      description: newProduct.description.trim(),
-      category: newProduct.category.trim(),
-      base_price: parseFloat(newProduct.base_price) || 0,
-      moq: parseInt(newProduct.moq) || 1,
-      lead_time_days: parseInt(newProduct.lead_time_days) || 7,
-      stock_quantity: parseInt(newProduct.stock_quantity) || 0,
-    });
-    if (error) { toast.error('Failed to create product: ' + error.message); return; }
-    toast.success('Product created!');
-    setAddOpen(false);
-    setNewProduct({ name: '', description: '', category: '', base_price: '', moq: '', lead_time_days: '', stock_quantity: '' });
-    // Refresh
+  const refreshProducts = async () => {
     const { data } = await supabase.from('products').select('*').eq('producer_id', user.id).order('created_at', { ascending: false });
     if (data) setProducts(data);
   };
@@ -135,8 +119,15 @@ export default function ProducerDashboard() {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {products.map(p => (
-                <Card key={p.id}>
+                <Card key={p.id} className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => { setEditProduct(p); setEditOpen(true); }}>
                   <CardContent className="p-4">
+                    {p.images && p.images.length > 0 && p.images[0] ? (
+                      <div className="mb-3 h-32 w-full rounded-md overflow-hidden bg-muted">
+                        <img src={p.images[0]} alt={p.name} className="h-full w-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="mb-3 flex h-32 w-full items-center justify-center rounded-md bg-muted text-muted-foreground/40 text-xs">No image</div>
+                    )}
                     <div className="flex items-start justify-between">
                       <div><h3 className="font-display font-semibold">{p.name}</h3><p className="text-xs text-muted-foreground">{p.category}</p></div>
                       <Badge variant={p.is_active ? 'default' : 'outline'}>{p.is_active ? 'Active' : 'Inactive'}</Badge>
@@ -149,31 +140,17 @@ export default function ProducerDashboard() {
                     <p className="mt-2 text-xs text-muted-foreground flex items-center gap-1">
                       <Truck className="h-3 w-3" /> Lead time: {p.lead_time_days} days
                     </p>
+                    <Button variant="outline" size="sm" className="mt-3 w-full" onClick={e => { e.stopPropagation(); setEditProduct(p); setEditOpen(true); }}>
+                      <Pencil className="mr-1 h-3 w-3" /> Edit Product
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
             </div>
           )}
 
-          <Dialog open={addOpen} onOpenChange={setAddOpen}>
-            <DialogContent className="max-w-lg">
-              <DialogHeader><DialogTitle className="font-display">Add New Product</DialogTitle></DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2"><Label>Product Name</Label><Input value={newProduct.name} onChange={e => setNewProduct(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Organic Cotton Fabric" /></div>
-                <div className="space-y-2"><Label>Description</Label><Textarea value={newProduct.description} onChange={e => setNewProduct(p => ({ ...p, description: e.target.value }))} placeholder="Describe your product..." /></div>
-                <div className="grid gap-4 grid-cols-2">
-                  <div className="space-y-2"><Label>Category</Label><Input value={newProduct.category} onChange={e => setNewProduct(p => ({ ...p, category: e.target.value }))} placeholder="e.g. Textiles" /></div>
-                  <div className="space-y-2"><Label>Base Price ($)</Label><Input type="number" value={newProduct.base_price} onChange={e => setNewProduct(p => ({ ...p, base_price: e.target.value }))} placeholder="0.00" /></div>
-                </div>
-                <div className="grid gap-4 grid-cols-3">
-                  <div className="space-y-2"><Label>MOQ</Label><Input type="number" value={newProduct.moq} onChange={e => setNewProduct(p => ({ ...p, moq: e.target.value }))} placeholder="50" /></div>
-                  <div className="space-y-2"><Label>Lead Time (days)</Label><Input type="number" value={newProduct.lead_time_days} onChange={e => setNewProduct(p => ({ ...p, lead_time_days: e.target.value }))} placeholder="7" /></div>
-                  <div className="space-y-2"><Label>Stock Qty</Label><Input type="number" value={newProduct.stock_quantity} onChange={e => setNewProduct(p => ({ ...p, stock_quantity: e.target.value }))} placeholder="1000" /></div>
-                </div>
-                <Button className="w-full" onClick={handleAddProduct}>Create Product</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <ProductEditDialog product={null} open={addOpen} onOpenChange={setAddOpen} onSaved={refreshProducts} isNew producerId={user.id} />
+          <ProductEditDialog product={editProduct} open={editOpen} onOpenChange={setEditOpen} onSaved={refreshProducts} />
         </TabsContent>
 
         <TabsContent value="orders" className="mt-4 space-y-4">
