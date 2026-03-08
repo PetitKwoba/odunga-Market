@@ -1,5 +1,22 @@
 export type UserRole = 'producer' | 'wholesaler' | 'referrer' | 'admin';
 
+export interface UserDocument {
+  id: string;
+  name: string;
+  file_name: string;
+  uploaded_at: string;
+  status: 'pending' | 'approved' | 'rejected';
+  note?: string;
+}
+
+export interface DocumentRequest {
+  id: string;
+  document_name: string;
+  description: string;
+  requested_at: string;
+  fulfilled: boolean;
+}
+
 export interface User {
   id: string;
   role: UserRole;
@@ -12,6 +29,8 @@ export interface User {
   referral_credits: number;
   is_verified: boolean;
   is_approved: boolean;
+  documents: UserDocument[];
+  document_requests: DocumentRequest[];
   created_at: string;
   updated_at: string;
 }
