@@ -16,7 +16,7 @@ export const mockUsers: User[] = [
   {
     id: 'u3', role: 'wholesaler', name: 'BulkBuy Co', business_name: 'BulkBuy Trading',
     email: 'bulkbuy@example.com', country: 'Kenya', referral_code: 'BULK01',
-    referred_by_user_id: 'u5', referral_credits: 0, is_verified: true,
+    referred_by_user_id: 'u5', referral_credits: 0, is_verified: true, is_approved: true,
     created_at: '2025-03-01T10:00:00Z', updated_at: '2025-03-01T10:00:00Z',
   },
   {
