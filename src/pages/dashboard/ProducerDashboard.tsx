@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Package, Settings, Wallet, Truck, CalendarCheck, Info } from 'lucide-react';
+import { Plus, Package, Settings, Wallet, Truck, CalendarCheck, Info, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import StoreTeamTab from '@/components/StoreTeamTab';
 
 const PLATFORM_FEE_PERCENT = 5;
 
