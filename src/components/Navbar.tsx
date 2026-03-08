@@ -91,6 +91,7 @@ export default function Navbar() {
               {user ? (
                 <>
                   <Link to={dashboardPath} onClick={() => setOpen(false)} className="text-sm font-medium">Dashboard</Link>
+                  <Link to="/profile" onClick={() => setOpen(false)} className="text-sm font-medium">Profile</Link>
                   <button onClick={() => { logout(); navigate('/'); setOpen(false); }} className="text-left text-sm font-medium text-destructive">Logout</button>
                 </>
               ) : (
