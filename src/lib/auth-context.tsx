@@ -47,6 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       referred_by_user_id: data.ref ? (mockUsers.find(u => u.referral_code === data.ref)?.id || null) : null,
       referral_credits: 0,
       is_verified: true,
+      is_approved: data.role === 'referrer' || data.role === 'admin',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
