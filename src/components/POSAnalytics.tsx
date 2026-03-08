@@ -76,6 +76,34 @@ export default function POSAnalytics({ transactions, formatCurrency }: POSAnalyt
   }, [transactions, startDate, endDate]);
 
   const clearDates = () => { setStartDate(undefined); setEndDate(undefined); };
+
+  // --- CSV Export ---
+  const exportCSV = useCallback(() => {
+    const headers = ['Date', 'Transaction ID', 'Customer', 'Payment Method', 'Items', 'Total', 'Notes'];
+    const rows = filteredTransactions.map(t => {
+      const items = Array.isArray(t.items) ? t.items : [];
+      const itemsSummary = items.map((i: any) => `${i.name || 'Item'} x${i.quantity || 1}`).join('; ');
+      return [
+        new Date(t.created_at).toLocaleDateString(),
+        t.id,
+        t.customer_name || 'Walk-in',
+        t.payment_method,
+        `"${itemsSummary}"`,
+        Number(t.total).toFixed(2),
+        `"${(t.notes || '').replace(/"/g, '""')}"`,
+      ];
+    });
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const dateLabel = startDate && endDate ? `${format(startDate, 'yyyyMMdd')}-${format(endDate, 'yyyyMMdd')}` : format(new Date(), 'yyyyMMdd');
+    a.download = `sales-report-${dateLabel}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [filteredTransactions, startDate, endDate]);
+
   const revenueTrend = useMemo(() => {
     const grouped: Record<string, { date: Date; revenue: number; orders: number }> = {};
 
