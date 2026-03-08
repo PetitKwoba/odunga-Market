@@ -23,7 +23,8 @@ export default function ProducerDashboard() {
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [addOpen, setAddOpen] = useState(false);
-  const [newProduct, setNewProduct] = useState({ name: '', description: '', category: '', base_price: '', moq: '', lead_time_days: '', stock_quantity: '' });
+  const [editProduct, setEditProduct] = useState<any>(null);
+  const [editOpen, setEditOpen] = useState(false);
   const [rewardType, setRewardType] = useState<'fixed' | 'percentage'>('fixed');
   const [rewardValue, setRewardValue] = useState('0');
 
