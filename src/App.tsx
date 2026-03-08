@@ -39,6 +39,7 @@ const App = () => (
               <Route path="/products" element={<Products />} />
               <Route path="/products/:id" element={<ProductDetail />} />
               <Route path="/checkout" element={<ProtectedRoute allowedRoles={['wholesaler']}><Checkout /></ProtectedRoute>} />
+              <Route path="/payment/callback" element={<PaymentCallback />} />
               <Route path="/dashboard/referrer" element={<ProtectedRoute allowedRoles={['referrer']}><ReferrerDashboard /></ProtectedRoute>} />
               <Route path="/dashboard/wholesaler" element={<ProtectedRoute allowedRoles={['wholesaler']}><WholesalerDashboard /></ProtectedRoute>} />
               <Route path="/dashboard/producer" element={<ProtectedRoute allowedRoles={['producer']}><ProducerDashboard /></ProtectedRoute>} />
