@@ -1,19 +1,62 @@
+import { useState } from 'react';
 import { mockUsers, mockProducts, mockOrders, mockReferrals } from '@/lib/mock-data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Package, ShoppingCart, Link2 } from 'lucide-react';
+import { Users, Package, ShoppingCart, Link2, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { toast } from 'sonner';
+import { User } from '@/lib/types';
 
 export default function AdminPanel() {
+  const [users, setUsers] = useState<User[]>(() => {
+    const stored = localStorage.getItem('waholo_all_users');
+    return stored ? JSON.parse(stored) : mockUsers;
+  });
+
+  const pendingUsers = users.filter(u => !u.is_approved && (u.role === 'producer' || u.role === 'wholesaler'));
+
+  const handleApprove = (userId: string) => {
+    const updated = users.map(u => u.id === userId ? { ...u, is_approved: true } : u);
+    setUsers(updated);
+    localStorage.setItem('waholo_all_users', JSON.stringify(updated));
+    // Also update the user's own session if they're logged in
+    const sessionUser = localStorage.getItem('waholo_user');
+    if (sessionUser) {
+      const parsed = JSON.parse(sessionUser);
+      if (parsed.id === userId) {
+        localStorage.setItem('waholo_user', JSON.stringify({ ...parsed, is_approved: true }));
+      }
+    }
+    toast.success('User approved successfully');
+  };
+
+  const handleReject = (userId: string) => {
+    const updated = users.filter(u => u.id !== userId);
+    setUsers(updated);
+    localStorage.setItem('waholo_all_users', JSON.stringify(updated));
+    toast.success('User rejected and removed');
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="font-display text-3xl font-bold">Admin Panel</h1>
       <p className="mt-1 text-muted-foreground">Platform management</p>
 
+      {/* Pending approvals banner */}
+      {pendingUsers.length > 0 && (
+        <Card className="mt-4 border-warning/50 bg-warning/5">
+          <CardContent className="flex items-center gap-3 p-4">
+            <Clock className="h-5 w-5 text-warning" />
+            <p className="font-medium">{pendingUsers.length} user(s) pending approval</p>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="mt-6 grid gap-4 sm:grid-cols-4">
         {[
-          { icon: <Users className="h-5 w-5" />, label: 'Users', value: mockUsers.length },
+          { icon: <Users className="h-5 w-5" />, label: 'Users', value: users.length },
           { icon: <Package className="h-5 w-5" />, label: 'Products', value: mockProducts.length },
           { icon: <ShoppingCart className="h-5 w-5" />, label: 'Orders', value: mockOrders.length },
           { icon: <Link2 className="h-5 w-5" />, label: 'Referrals', value: mockReferrals.length },
@@ -27,25 +70,70 @@ export default function AdminPanel() {
         ))}
       </div>
 
-      <Tabs defaultValue="users" className="mt-6">
+      <Tabs defaultValue="pending" className="mt-6">
         <TabsList>
+          <TabsTrigger value="pending">
+            Pending Approval {pendingUsers.length > 0 && <Badge className="ml-1.5 bg-warning text-warning-foreground">{pendingUsers.length}</Badge>}
+          </TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
           <TabsTrigger value="referrals">Referrals</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="pending" className="mt-4">
+          <Card><CardContent className="p-0">
+            {pendingUsers.length === 0 ? (
+              <div className="flex flex-col items-center gap-2 py-12 text-muted-foreground">
+                <CheckCircle className="h-8 w-8" />
+                <p>No pending approvals</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Role</TableHead><TableHead>Business</TableHead><TableHead>Country</TableHead><TableHead>Signed Up</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {pendingUsers.map(u => (
+                    <TableRow key={u.id}>
+                      <TableCell className="font-medium">{u.name}</TableCell>
+                      <TableCell>{u.email}</TableCell>
+                      <TableCell><Badge variant="outline">{u.role}</Badge></TableCell>
+                      <TableCell>{u.business_name || '—'}</TableCell>
+                      <TableCell>{u.country}</TableCell>
+                      <TableCell>{new Date(u.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button size="sm" onClick={() => handleApprove(u.id)}>
+                            <CheckCircle className="mr-1 h-4 w-4" /> Approve
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleReject(u.id)}>
+                            <XCircle className="mr-1 h-4 w-4" /> Reject
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent></Card>
+        </TabsContent>
+
         <TabsContent value="users" className="mt-4">
           <Card><CardContent className="p-0">
             <Table>
-              <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Role</TableHead><TableHead>Country</TableHead><TableHead>Credits</TableHead><TableHead>Joined</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Role</TableHead><TableHead>Country</TableHead><TableHead>Status</TableHead><TableHead>Credits</TableHead><TableHead>Joined</TableHead></TableRow></TableHeader>
               <TableBody>
-                {mockUsers.map(u => (
+                {users.map(u => (
                   <TableRow key={u.id}>
                     <TableCell className="font-medium">{u.name}</TableCell>
                     <TableCell>{u.email}</TableCell>
                     <TableCell><Badge variant="outline">{u.role}</Badge></TableCell>
                     <TableCell>{u.country}</TableCell>
+                    <TableCell>
+                      {u.is_approved
+                        ? <Badge className="bg-success text-success-foreground">Approved</Badge>
+                        : <Badge className="bg-warning text-warning-foreground">Pending</Badge>}
+                    </TableCell>
                     <TableCell>${u.referral_credits.toFixed(2)}</TableCell>
                     <TableCell>{new Date(u.created_at).toLocaleDateString()}</TableCell>
                   </TableRow>

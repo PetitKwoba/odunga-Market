@@ -11,6 +11,7 @@ export interface User {
   referred_by_user_id: string | null;
   referral_credits: number;
   is_verified: boolean;
+  is_approved: boolean;
   created_at: string;
   updated_at: string;
 }
