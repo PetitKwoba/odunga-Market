@@ -6,14 +6,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, ShoppingCart, Link2, DollarSign, Users } from 'lucide-react';
+import { Copy, ShoppingCart, Link2, DollarSign, Users, MessageCircle, CreditCard } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import OrderChat from '@/components/OrderChat';
+import POSDashboard from '@/components/POSDashboard';
 
 export default function WholesalerDashboard() {
   const { user } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [referrals, setReferrals] = useState<any[]>([]);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [selectedOrderStatus, setSelectedOrderStatus] = useState<string>('');
 
   useEffect(() => {
     if (!user) return;
@@ -37,6 +41,7 @@ export default function WholesalerDashboard() {
       <Tabs defaultValue="orders" className="mt-6">
         <TabsList>
           <TabsTrigger value="orders">My Orders</TabsTrigger>
+          <TabsTrigger value="pos"><CreditCard className="mr-1 h-4 w-4" /> POS</TabsTrigger>
           <TabsTrigger value="referrals">Referrals</TabsTrigger>
         </TabsList>
 
@@ -45,33 +50,77 @@ export default function WholesalerDashboard() {
             <h2 className="font-display text-xl font-semibold">Orders</h2>
             <Button asChild><Link to="/products"><ShoppingCart className="mr-1 h-4 w-4" /> Browse Products</Link></Button>
           </div>
-          {orders.length === 0 ? (
-            <Card><CardContent className="py-12 text-center text-muted-foreground">No orders yet. Start buying!</CardContent></Card>
-          ) : (
-            <Card><CardContent className="p-0">
-              <Table>
-                <TableHeader><TableRow><TableHead>Order ID</TableHead><TableHead>Date</TableHead><TableHead>Total</TableHead><TableHead>Status</TableHead><TableHead>Payment</TableHead></TableRow></TableHeader>
-                <TableBody>
-                  {orders.map(o => (
-                    <TableRow key={o.id}>
-                      <TableCell className="font-mono text-xs">{o.id.slice(0, 8)}...</TableCell>
-                      <TableCell>{new Date(o.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell className="font-semibold">${Number(o.total_amount).toFixed(2)}</TableCell>
-                      <TableCell><Badge variant={o.status === 'Completed' ? 'default' : 'outline'}>{o.status}</Badge></TableCell>
-                      <TableCell><Badge variant={o.payment_status === 'paid' ? 'default' : 'outline'}>{o.payment_status}</Badge></TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent></Card>
-          )}
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div>
+              {orders.length === 0 ? (
+                <Card><CardContent className="py-12 text-center text-muted-foreground">No orders yet. Start buying!</CardContent></Card>
+              ) : (
+                <Card><CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Chat</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orders.map(o => (
+                        <TableRow key={o.id} className={selectedOrderId === o.id ? 'bg-primary/5' : ''}>
+                          <TableCell>
+                            <p className="font-mono text-xs">{o.id.slice(0, 8)}...</p>
+                            <p className="text-xs text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</p>
+                          </TableCell>
+                          <TableCell className="font-semibold">${Number(o.total_amount).toFixed(2)}</TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <Badge variant={o.status === 'Completed' ? 'default' : 'outline'} className="text-xs">{o.status}</Badge>
+                              <Badge variant={o.payment_status === 'paid' ? 'default' : 'outline'} className="text-xs block w-fit">{o.payment_status}</Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant={selectedOrderId === o.id ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => { setSelectedOrderId(o.id); setSelectedOrderStatus(o.status); }}
+                            >
+                              <MessageCircle className="h-3 w-3" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent></Card>
+              )}
+            </div>
+
+            <div>
+              {selectedOrderId ? (
+                <OrderChat orderId={selectedOrderId} orderStatus={selectedOrderStatus} />
+              ) : (
+                <Card className="h-[400px] flex items-center justify-center">
+                  <CardContent className="text-center text-muted-foreground">
+                    <MessageCircle className="mx-auto mb-2 h-8 w-8 text-muted-foreground/40" />
+                    <p className="text-sm">Select an order to chat with the producer</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="pos" className="mt-4">
+          <POSDashboard />
         </TabsContent>
 
         <TabsContent value="referrals" className="mt-4 space-y-4">
           <div className="grid gap-4 sm:grid-cols-3">
             <Card><CardContent className="flex items-center gap-3 p-4"><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary/20 text-secondary"><DollarSign className="h-5 w-5" /></div><div><p className="text-sm text-muted-foreground">Credits</p><p className="font-display text-2xl font-bold">${user.referral_credits.toFixed(2)}</p></div></CardContent></Card>
             <Card><CardContent className="flex items-center gap-3 p-4"><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary"><Users className="h-5 w-5" /></div><div><p className="text-sm text-muted-foreground">Referred</p><p className="font-display text-2xl font-bold">{referrals.length}</p></div></CardContent></Card>
-            <Card><CardContent className="flex items-center gap-3 p-4"><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/20 text-success"><Link2 className="h-5 w-5" /></div><div><p className="text-sm text-muted-foreground">Code</p><p className="font-display text-lg font-bold">{user.referral_code}</p></div></CardContent></Card>
+            <Card><CardContent className="flex items-center gap-3 p-4"><div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary"><Link2 className="h-5 w-5" /></div><div><p className="text-sm text-muted-foreground">Code</p><p className="font-display text-lg font-bold">{user.referral_code}</p></div></CardContent></Card>
           </div>
           <Card>
             <CardHeader><CardTitle className="font-display text-lg">Your Referral Link</CardTitle><CardDescription>Share and earn when referrals complete their first order.</CardDescription></CardHeader>
