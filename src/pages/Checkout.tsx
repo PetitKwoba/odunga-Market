@@ -213,9 +213,7 @@ export default function Checkout() {
           user_id: user!.id,
           discount_amount: appliedDiscount.amount,
         });
-        await supabase.from('discount_codes').update({
-          used_count: appliedDiscount ? 1 : 0, // Will be incremented by RPC ideally
-        }).eq('id', appliedDiscount.id);
+        await supabase.rpc('increment_discount_usage', { discount_id: appliedDiscount.id });
       }
 
       // Send notification

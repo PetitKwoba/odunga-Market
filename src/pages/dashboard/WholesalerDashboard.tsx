@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, ShoppingCart, Link2, DollarSign, Users, MessageCircle, CreditCard, PackagePlus, Truck, FileText, RotateCcw } from 'lucide-react';
+import { Copy, ShoppingCart, Link2, DollarSign, Users, MessageCircle, CreditCard, PackagePlus, Truck, FileText, RotateCcw, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import OrderChat from '@/components/OrderChat';
@@ -15,6 +15,7 @@ import AddToPOSDialog from '@/components/AddToPOSDialog';
 import ShipmentTracking from '@/components/ShipmentTracking';
 import RFQSystem from '@/components/RFQSystem';
 import ReturnsManagement from '@/components/ReturnsManagement';
+import DirectMessaging from '@/components/DirectMessaging';
 
 export default function WholesalerDashboard() {
   const { user } = useAuth();
@@ -45,6 +46,7 @@ export default function WholesalerDashboard() {
       <Tabs defaultValue="orders" className="mt-6">
         <TabsList className="flex-wrap">
           <TabsTrigger value="orders">My Orders</TabsTrigger>
+          <TabsTrigger value="messages"><Mail className="mr-1 h-4 w-4" /> Messages</TabsTrigger>
           <TabsTrigger value="shipments"><Truck className="mr-1 h-4 w-4" /> Shipments</TabsTrigger>
           <TabsTrigger value="rfq"><FileText className="mr-1 h-4 w-4" /> RFQ</TabsTrigger>
           <TabsTrigger value="returns"><RotateCcw className="mr-1 h-4 w-4" /> Returns</TabsTrigger>
@@ -130,6 +132,11 @@ export default function WholesalerDashboard() {
               )}
             </div>
           </div>
+        </TabsContent>
+
+        {/* ─── MESSAGES TAB ─── */}
+        <TabsContent value="messages" className="mt-4">
+          <DirectMessaging />
         </TabsContent>
 
         <TabsContent value="shipments" className="mt-4">

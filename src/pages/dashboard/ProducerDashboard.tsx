@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { useCurrency } from '@/lib/currency-context';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -9,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Settings, Wallet, Truck, CalendarCheck, Info, Users, Pencil, Clock, CheckCircle2, DollarSign, TrendingUp, MessageCircle, CreditCard, Package, FileText, RotateCcw, Sparkles, Percent } from 'lucide-react';
+import { Plus, Settings, Wallet, Truck, CalendarCheck, Info, Users, Pencil, Clock, CheckCircle2, DollarSign, TrendingUp, MessageCircle, CreditCard, Package, FileText, RotateCcw, Sparkles, Percent, BarChart3, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import StoreTeamTab from '@/components/StoreTeamTab';
 import ProductEditDialog from '@/components/ProductEditDialog';
@@ -22,6 +23,8 @@ import ReturnsManagement from '@/components/ReturnsManagement';
 import B2BInvoicing from '@/components/B2BInvoicing';
 import DemandForecast from '@/components/DemandForecast';
 import DiscountManager from '@/components/DiscountManager';
+import DirectMessaging from '@/components/DirectMessaging';
+import ProducerAnalytics from '@/components/ProducerAnalytics';
 import { Separator } from '@/components/ui/separator';
 
 const PLATFORM_FEE_PERCENT = 5;
@@ -36,9 +39,7 @@ function getNextMonday(): Date {
   return next;
 }
 
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(amount);
-}
+// Currency formatting now uses CurrencyProvider via useCurrency()
 
 function daysUntilMonday(): number {
   const now = new Date();
@@ -60,6 +61,7 @@ interface Payout {
 
 export default function ProducerDashboard() {
   const { user } = useAuth();
+  const { format: formatCurrency } = useCurrency();
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [payouts, setPayouts] = useState<Payout[]>([]);
@@ -162,6 +164,8 @@ export default function ProducerDashboard() {
         <TabsList className="flex-wrap">
           <TabsTrigger value="products">My Products</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="analytics"><BarChart3 className="mr-1 h-4 w-4" /> Analytics</TabsTrigger>
+          <TabsTrigger value="messages"><Mail className="mr-1 h-4 w-4" /> Messages</TabsTrigger>
           <TabsTrigger value="inventory"><Package className="mr-1 h-4 w-4" /> Inventory</TabsTrigger>
           <TabsTrigger value="shipments"><Truck className="mr-1 h-4 w-4" /> Shipments</TabsTrigger>
           <TabsTrigger value="rfq"><FileText className="mr-1 h-4 w-4" /> RFQ</TabsTrigger>
@@ -278,6 +282,16 @@ export default function ProducerDashboard() {
               )}
             </div>
           </div>
+        </TabsContent>
+
+        {/* ─── ANALYTICS TAB ─── */}
+        <TabsContent value="analytics" className="mt-4">
+          <ProducerAnalytics />
+        </TabsContent>
+
+        {/* ─── MESSAGES TAB ─── */}
+        <TabsContent value="messages" className="mt-4">
+          <DirectMessaging />
         </TabsContent>
 
         {/* ─── INVENTORY TAB ─── */}

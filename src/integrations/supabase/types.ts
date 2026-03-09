@@ -127,6 +127,30 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string | null
+          participant_1: string
+          participant_2: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          participant_1: string
+          participant_2: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          participant_1?: string
+          participant_2?: string
+        }
+        Relationships: []
+      }
       currencies: {
         Row: {
           code: string
@@ -153,6 +177,44 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      direct_messages: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          read_at: string | null
+          sender_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          read_at?: string | null
+          sender_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          read_at?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direct_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       discount_codes: {
         Row: {
@@ -456,6 +518,54 @@ export type Database = {
           title?: string
           updated_at?: string
           view_count?: number
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          email_orders: boolean
+          email_payments: boolean
+          email_promotions: boolean
+          email_rfq: boolean
+          email_shipments: boolean
+          id: string
+          in_app_orders: boolean
+          in_app_payments: boolean
+          in_app_promotions: boolean
+          in_app_rfq: boolean
+          in_app_shipments: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          email_orders?: boolean
+          email_payments?: boolean
+          email_promotions?: boolean
+          email_rfq?: boolean
+          email_shipments?: boolean
+          id?: string
+          in_app_orders?: boolean
+          in_app_payments?: boolean
+          in_app_promotions?: boolean
+          in_app_rfq?: boolean
+          in_app_shipments?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          email_orders?: boolean
+          email_payments?: boolean
+          email_promotions?: boolean
+          email_rfq?: boolean
+          email_shipments?: boolean
+          id?: string
+          in_app_orders?: boolean
+          in_app_payments?: boolean
+          in_app_promotions?: boolean
+          in_app_rfq?: boolean
+          in_app_shipments?: boolean
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1069,11 +1179,13 @@ export type Database = {
           payout_method: string | null
           phone: string | null
           preferred_currency: string | null
+          privacy_accepted_at: string | null
           referral_code: string
           referral_credits: number
           referred_by_user_id: string | null
           registration_number: string | null
           tax_id: string | null
+          terms_accepted_at: string | null
           updated_at: string
           user_id: string
           website: string | null
@@ -1099,11 +1211,13 @@ export type Database = {
           payout_method?: string | null
           phone?: string | null
           preferred_currency?: string | null
+          privacy_accepted_at?: string | null
           referral_code: string
           referral_credits?: number
           referred_by_user_id?: string | null
           registration_number?: string | null
           tax_id?: string | null
+          terms_accepted_at?: string | null
           updated_at?: string
           user_id: string
           website?: string | null
@@ -1129,11 +1243,13 @@ export type Database = {
           payout_method?: string | null
           phone?: string | null
           preferred_currency?: string | null
+          privacy_accepted_at?: string | null
           referral_code?: string
           referral_credits?: number
           referred_by_user_id?: string | null
           registration_number?: string | null
           tax_id?: string | null
+          terms_accepted_at?: string | null
           updated_at?: string
           user_id?: string
           website?: string | null
@@ -1727,6 +1843,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_discount_usage: {
+        Args: { discount_id: string }
+        Returns: undefined
       }
       validate_stock_availability: { Args: { p_items: Json }; Returns: Json }
     }
