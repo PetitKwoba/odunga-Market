@@ -413,7 +413,10 @@ export default function Support() {
             <Card
               key={ticket.id}
               className="cursor-pointer transition-colors hover:bg-accent/5"
-              onClick={() => user ? navigate(`/support/${ticket.id}`) : null}
+              onClick={() => {
+                if (user) navigate(`/support/${ticket.id}`);
+                else toast.info('Sign in to view ticket details and chat with support');
+              }}
             >
               <CardHeader>
                 <div className="flex items-start justify-between">
