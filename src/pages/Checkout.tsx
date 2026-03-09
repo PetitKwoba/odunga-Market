@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart, getUnitPrice } from '@/lib/cart-context';
 import { useAuth } from '@/lib/auth-context';
@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trash2, ArrowLeft, ShoppingCart, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { ShippingAddress } from '@/lib/types';
 
 const PLATFORM_FEE_PERCENT = 5;
 
@@ -19,6 +20,58 @@ export default function Checkout() {
   const navigate = useNavigate();
   const [shipping, setShipping] = useState({ name: '', address: '', city: '', country: '', phone: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch user profile and last order to pre-fill shipping details
+  useEffect(() => {
+    const fetchShippingDetails = async () => {
+      if (!user) return;
+
+      try {
+        // Fetch user profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name, phone, address, city, country')
+          .eq('user_id', user.id)
+          .single();
+
+        // Fetch most recent order to get last used shipping address
+        const { data: lastOrder } = await supabase
+          .from('orders')
+          .select('shipping_address')
+          .eq('wholesaler_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        // Prioritize last order's shipping address, fallback to profile
+        if (lastOrder?.shipping_address) {
+          const addr = lastOrder.shipping_address as unknown as ShippingAddress;
+          setShipping({
+            name: addr.name || '',
+            address: addr.address || '',
+            city: addr.city || '',
+            country: addr.country || '',
+            phone: addr.phone || '',
+          });
+        } else if (profile) {
+          setShipping({
+            name: profile.name || '',
+            address: profile.address || '',
+            city: profile.city || '',
+            country: profile.country || '',
+            phone: profile.phone || '',
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching shipping details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchShippingDetails();
+  }, [user]);
 
   if (!user || user.role !== 'wholesaler') {
     return (
@@ -76,6 +129,18 @@ export default function Checkout() {
         toast.error('Failed to save order items: ' + itemsError.message);
         return;
       }
+
+      // Save shipping details to profile for future use
+      await supabase
+        .from('profiles')
+        .update({
+          name: shipping.name,
+          phone: shipping.phone,
+          address: shipping.address,
+          city: shipping.city,
+          country: shipping.country,
+        })
+        .eq('user_id', user.id);
 
       // Initialize Paystack payment
       const callbackUrl = `${window.location.origin}/payment/callback`;
@@ -154,11 +219,51 @@ export default function Checkout() {
               <p className="text-sm text-muted-foreground">The producer will arrange logistics to this address.</p>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2"><Label>Full Name</Label><Input value={shipping.name} onChange={e => setShipping(s => ({ ...s, name: e.target.value }))} /></div>
-              <div className="space-y-2"><Label>Phone</Label><Input value={shipping.phone} onChange={e => setShipping(s => ({ ...s, phone: e.target.value }))} /></div>
-              <div className="space-y-2 sm:col-span-2"><Label>Address</Label><Input value={shipping.address} onChange={e => setShipping(s => ({ ...s, address: e.target.value }))} /></div>
-              <div className="space-y-2"><Label>City</Label><Input value={shipping.city} onChange={e => setShipping(s => ({ ...s, city: e.target.value }))} /></div>
-              <div className="space-y-2"><Label>Country</Label><Input value={shipping.country} onChange={e => setShipping(s => ({ ...s, country: e.target.value }))} /></div>
+              <div className="space-y-2">
+                <Label>Full Name</Label>
+                <Input 
+                  value={shipping.name} 
+                  onChange={e => setShipping(s => ({ ...s, name: e.target.value }))} 
+                  disabled={loading}
+                  placeholder="John Doe"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Phone</Label>
+                <Input 
+                  value={shipping.phone} 
+                  onChange={e => setShipping(s => ({ ...s, phone: e.target.value }))} 
+                  disabled={loading}
+                  placeholder="+1234567890"
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Address</Label>
+                <Input 
+                  value={shipping.address} 
+                  onChange={e => setShipping(s => ({ ...s, address: e.target.value }))} 
+                  disabled={loading}
+                  placeholder="123 Main Street"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>City</Label>
+                <Input 
+                  value={shipping.city} 
+                  onChange={e => setShipping(s => ({ ...s, city: e.target.value }))} 
+                  disabled={loading}
+                  placeholder="Lagos"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Country</Label>
+                <Input 
+                  value={shipping.country} 
+                  onChange={e => setShipping(s => ({ ...s, country: e.target.value }))} 
+                  disabled={loading}
+                  placeholder="Nigeria"
+                />
+              </div>
             </CardContent>
           </Card>
         </div>
