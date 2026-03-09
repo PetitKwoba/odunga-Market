@@ -321,7 +321,7 @@ export default function Products() {
                   </div>
                   <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{p.description}</p>
                   <div className="mt-3 flex items-baseline gap-2">
-                    <span className="font-display text-lg font-bold">${p.base_price.toFixed(2)}</span>
+                    <span className="font-display text-lg font-bold">{format(p.base_price)}</span>
                     <span className="text-xs text-muted-foreground">/ unit · MOQ {p.moq}</span>
                   </div>
                   <div className="mt-2 flex items-center justify-between">
