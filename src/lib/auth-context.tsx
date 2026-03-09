@@ -95,6 +95,7 @@ async function fetchProfile(userId: string): Promise<AppUser | null> {
     bank_account_number: profile.bank_account_number,
     bank_routing_number: profile.bank_routing_number,
     payout_method: profile.payout_method,
+    preferred_currency: profile.preferred_currency || 'USD',
   };
 }
 
