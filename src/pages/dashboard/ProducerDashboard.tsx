@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { useCurrency } from '@/lib/currency-context';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -9,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Settings, Wallet, Truck, CalendarCheck, Info, Users, Pencil, Clock, CheckCircle2, DollarSign, TrendingUp, MessageCircle, CreditCard, Package, FileText, RotateCcw, Sparkles, Percent } from 'lucide-react';
+import { Plus, Settings, Wallet, Truck, CalendarCheck, Info, Users, Pencil, Clock, CheckCircle2, DollarSign, TrendingUp, MessageCircle, CreditCard, Package, FileText, RotateCcw, Sparkles, Percent, BarChart3, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import StoreTeamTab from '@/components/StoreTeamTab';
 import ProductEditDialog from '@/components/ProductEditDialog';
@@ -22,6 +23,8 @@ import ReturnsManagement from '@/components/ReturnsManagement';
 import B2BInvoicing from '@/components/B2BInvoicing';
 import DemandForecast from '@/components/DemandForecast';
 import DiscountManager from '@/components/DiscountManager';
+import DirectMessaging from '@/components/DirectMessaging';
+import ProducerAnalytics from '@/components/ProducerAnalytics';
 import { Separator } from '@/components/ui/separator';
 
 const PLATFORM_FEE_PERCENT = 5;
