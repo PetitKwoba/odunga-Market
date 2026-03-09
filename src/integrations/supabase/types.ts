@@ -118,6 +118,48 @@ export type Database = {
         }
         Relationships: []
       }
+      knowledge_base_articles: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          created_by: string | null
+          helpful_count: number
+          id: string
+          is_published: boolean
+          tags: string[] | null
+          title: string
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          helpful_count?: number
+          id?: string
+          is_published?: boolean
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          helpful_count?: number
+          id?: string
+          is_published?: boolean
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           id: string
@@ -715,6 +757,36 @@ export type Database = {
           },
         ]
       }
+      sla_configurations: {
+        Row: {
+          created_at: string
+          escalation_enabled: boolean
+          first_response_hours: number
+          id: string
+          priority: string
+          resolution_hours: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          escalation_enabled?: boolean
+          first_response_hours?: number
+          id?: string
+          priority: string
+          resolution_hours?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          escalation_enabled?: boolean
+          first_response_hours?: number
+          id?: string
+          priority?: string
+          resolution_hours?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       store_team_members: {
         Row: {
           added_at: string
@@ -828,11 +900,15 @@ export type Database = {
           category: string
           created_at: string
           description: string
+          escalated: boolean | null
+          escalated_at: string | null
+          first_response_at: string | null
           id: string
           priority: string
           rated_at: string | null
           rating: number | null
           rating_comment: string | null
+          sla_breached: boolean | null
           status: string
           subject: string
           updated_at: string
@@ -843,11 +919,15 @@ export type Database = {
           category?: string
           created_at?: string
           description: string
+          escalated?: boolean | null
+          escalated_at?: string | null
+          first_response_at?: string | null
           id?: string
           priority?: string
           rated_at?: string | null
           rating?: number | null
           rating_comment?: string | null
+          sla_breached?: boolean | null
           status?: string
           subject: string
           updated_at?: string
@@ -858,11 +938,15 @@ export type Database = {
           category?: string
           created_at?: string
           description?: string
+          escalated?: boolean | null
+          escalated_at?: string | null
+          first_response_at?: string | null
           id?: string
           priority?: string
           rated_at?: string | null
           rating?: number | null
           rating_comment?: string | null
+          sla_breached?: boolean | null
           status?: string
           subject?: string
           updated_at?: string
