@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Trash2, ArrowLeft, ShoppingCart, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { ShippingAddress } from '@/lib/types';
@@ -21,6 +22,7 @@ export default function Checkout() {
   const [shipping, setShipping] = useState({ name: '', address: '', city: '', country: '', phone: '' });
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [saveAsDefault, setSaveAsDefault] = useState(true);
 
   // Fetch user profile and last order to pre-fill shipping details
   useEffect(() => {
@@ -130,17 +132,19 @@ export default function Checkout() {
         return;
       }
 
-      // Save shipping details to profile for future use
-      await supabase
-        .from('profiles')
-        .update({
-          name: shipping.name,
-          phone: shipping.phone,
-          address: shipping.address,
-          city: shipping.city,
-          country: shipping.country,
-        })
-        .eq('user_id', user.id);
+      // Save shipping details to profile for future use (if user opted in)
+      if (saveAsDefault) {
+        await supabase
+          .from('profiles')
+          .update({
+            name: shipping.name,
+            phone: shipping.phone,
+            address: shipping.address,
+            city: shipping.city,
+            country: shipping.country,
+          })
+          .eq('user_id', user.id);
+      }
 
       // Initialize Paystack payment
       const callbackUrl = `${window.location.origin}/payment/callback`;
@@ -263,6 +267,21 @@ export default function Checkout() {
                   disabled={loading}
                   placeholder="Nigeria"
                 />
+              </div>
+              <div className="space-y-3 sm:col-span-2 pt-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="saveDefault" 
+                    checked={saveAsDefault} 
+                    onCheckedChange={(checked) => setSaveAsDefault(checked as boolean)}
+                  />
+                  <Label 
+                    htmlFor="saveDefault" 
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    Save as my default shipping address for future orders
+                  </Label>
+                </div>
               </div>
             </CardContent>
           </Card>
