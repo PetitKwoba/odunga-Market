@@ -56,9 +56,12 @@ export default function WholesalerDashboard() {
         </TabsList>
 
         <TabsContent value="orders" className="mt-4 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <h2 className="font-display text-xl font-semibold">Orders</h2>
-            <Button asChild><Link to="/products"><ShoppingCart className="mr-1 h-4 w-4" /> Browse Products</Link></Button>
+            <div className="flex gap-2">
+              <ExportCSVButton data={orders.map(o => ({ id: o.id, total: o.total_amount, status: o.status, payment: o.payment_status, date: o.created_at }))} filename="my-orders" />
+              <Button asChild><Link to="/products"><ShoppingCart className="mr-1 h-4 w-4" /> Browse Products</Link></Button>
+            </div>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
