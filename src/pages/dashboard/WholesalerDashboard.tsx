@@ -42,8 +42,10 @@ export default function WholesalerDashboard() {
       <p className="mt-1 text-muted-foreground">Welcome back, {user.name}</p>
 
       <Tabs defaultValue="orders" className="mt-6">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="orders">My Orders</TabsTrigger>
+          <TabsTrigger value="shipments"><Truck className="mr-1 h-4 w-4" /> Shipments</TabsTrigger>
+          <TabsTrigger value="rfq"><FileText className="mr-1 h-4 w-4" /> RFQ</TabsTrigger>
           <TabsTrigger value="pos"><CreditCard className="mr-1 h-4 w-4" /> POS</TabsTrigger>
           <TabsTrigger value="referrals">Referrals</TabsTrigger>
         </TabsList>
