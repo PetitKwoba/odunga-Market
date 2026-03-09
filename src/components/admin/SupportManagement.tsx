@@ -92,19 +92,25 @@ export default function SupportManagement() {
   const fetchMessages = async (ticketId: string) => {
     const { data, error } = await supabase
       .from('support_messages')
-      .select(`
-        *,
-        profiles!support_messages_sender_id_fkey(name, business_name)
-      `)
+      .select('*')
       .eq('ticket_id', ticketId)
       .order('created_at', { ascending: true });
 
     if (error) {
       console.error('Error fetching messages:', error);
     } else {
+      const senderIds = [...new Set(data?.map((m: any) => m.sender_id) || [])];
+      let profiles: any[] = [];
+      if (senderIds.length > 0) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('user_id, name, business_name')
+          .in('user_id', senderIds);
+        profiles = profileData || [];
+      }
       const messagesWithNames = data?.map((m: any) => ({
         ...m,
-        sender_name: m.profiles?.business_name || m.profiles?.name || 'Unknown',
+        sender_name: profiles.find((p: any) => p.user_id === m.sender_id)?.business_name || profiles.find((p: any) => p.user_id === m.sender_id)?.name || 'Unknown',
       })) || [];
       setMessages(messagesWithNames);
     }
