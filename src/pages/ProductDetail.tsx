@@ -11,6 +11,7 @@ import { Package, ArrowLeft, ShoppingCart, Shield, Clock, Boxes, Copy, Share2 } 
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { Product, BulkTier } from '@/lib/types';
+import ProductReviews from '@/components/ProductReviews';
 
 export default function ProductDetail() {
   const { id } = useParams();
