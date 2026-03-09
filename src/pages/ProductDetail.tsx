@@ -25,6 +25,7 @@ export default function ProductDetail() {
   const { addItem } = useCart();
   const { data: products, isLoading } = useProducts();
   const [qty, setQty] = useState('');
+  const { isInWishlist, toggle: toggleWishlist } = useWishlist();
 
   const refCode = searchParams.get('ref') || '';
   useEffect(() => {
