@@ -135,6 +135,7 @@ export default function ProductDetail() {
                 <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
               </Button>
             )}
+          </div>
           <h1 className="mt-3 font-display text-3xl font-bold">{product.name}</h1>
           <p className="mt-1 text-muted-foreground">{product.producer_name} · {product.producer_country}</p>
 
