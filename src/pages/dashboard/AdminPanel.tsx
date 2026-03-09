@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Users, Package, ShoppingCart, Link2, CheckCircle, Clock, FileText, Send, Eye, BarChart3, Settings as SettingsIcon, ScrollText, AlertTriangle, CheckCircle2, Power, UserCog, Ban, MessageCircle, Percent } from 'lucide-react';
+import { Users, Package, ShoppingCart, Link2, CheckCircle, Clock, FileText, Send, Eye, BarChart3, Settings as SettingsIcon, ScrollText, AlertTriangle, CheckCircle2, Power, UserCog, Ban, MessageCircle, Percent, Activity } from 'lucide-react';
 import { toast } from 'sonner';
 import AdminAnalytics from '@/components/AdminAnalytics';
 import SearchableTable from '@/components/admin/SearchableTable';
@@ -24,6 +24,7 @@ import AdminCreateUser from '@/components/admin/AdminCreateUser';
 import AdminStartConversation from '@/components/admin/AdminStartConversation';
 import AdminSupportAssignment from '@/components/admin/AdminSupportAssignment';
 import AdminCustomRoles from '@/components/admin/AdminCustomRoles';
+import ActiveUsersAccessLog from '@/components/admin/ActiveUsersAccessLog';
 
 interface Profile {
   user_id: string;
@@ -241,6 +242,7 @@ export default function AdminPanel() {
           <TabsTrigger value="messages">Messages</TabsTrigger>
           <TabsTrigger value="discounts"><Percent className="mr-1.5 h-4 w-4" /> Discounts</TabsTrigger>
           <TabsTrigger value="audit"><ScrollText className="mr-1.5 h-4 w-4" /> Audit</TabsTrigger>
+          <TabsTrigger value="active-users"><Activity className="mr-1.5 h-4 w-4" /> Active Users</TabsTrigger>
           <TabsTrigger value="user-management">User Management</TabsTrigger>
           <TabsTrigger value="settings"><SettingsIcon className="mr-1.5 h-4 w-4" /> Settings</TabsTrigger>
         </TabsList>
@@ -479,6 +481,10 @@ export default function AdminPanel() {
               <AdminCustomRoles />
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="active-users" className="mt-4">
+          <ActiveUsersAccessLog profiles={profiles as any} roles={roles} />
         </TabsContent>
 
         <TabsContent value="audit" className="mt-4">
