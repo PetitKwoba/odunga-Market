@@ -293,6 +293,21 @@ export default function ProducerDashboard() {
           <RFQSystem mode="producer" />
         </TabsContent>
 
+        {/* ─── RETURNS TAB ─── */}
+        <TabsContent value="returns" className="mt-4">
+          <ReturnsManagement mode="producer" />
+        </TabsContent>
+
+        {/* ─── INVOICES TAB ─── */}
+        <TabsContent value="invoices" className="mt-4">
+          <B2BInvoicing />
+        </TabsContent>
+
+        {/* ─── AI FORECAST TAB ─── */}
+        <TabsContent value="forecast" className="mt-4">
+          <DemandForecast />
+        </TabsContent>
+
         {/* ─── POS TAB ─── */}
         <TabsContent value="pos" className="mt-4">
           <POSDashboard />

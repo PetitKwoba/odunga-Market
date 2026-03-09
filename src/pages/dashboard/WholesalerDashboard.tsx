@@ -140,6 +140,10 @@ export default function WholesalerDashboard() {
           <RFQSystem mode="wholesaler" />
         </TabsContent>
 
+        <TabsContent value="returns" className="mt-4">
+          <ReturnsManagement mode="wholesaler" />
+        </TabsContent>
+
         <TabsContent value="pos" className="mt-4">
           <POSDashboard />
         </TabsContent>
