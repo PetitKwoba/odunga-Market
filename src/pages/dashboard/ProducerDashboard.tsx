@@ -310,6 +310,11 @@ export default function ProducerDashboard() {
           <DemandForecast />
         </TabsContent>
 
+        {/* ─── DISCOUNTS TAB ─── */}
+        <TabsContent value="discounts" className="mt-4">
+          <DiscountManager mode="producer" />
+        </TabsContent>
+
         {/* ─── POS TAB ─── */}
         <TabsContent value="pos" className="mt-4">
           <POSDashboard />
