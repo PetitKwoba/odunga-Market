@@ -237,6 +237,7 @@ export default function AdminPanel() {
           <TabsTrigger value="messages">Messages</TabsTrigger>
           <TabsTrigger value="discounts"><Percent className="mr-1.5 h-4 w-4" /> Discounts</TabsTrigger>
           <TabsTrigger value="audit"><ScrollText className="mr-1.5 h-4 w-4" /> Audit</TabsTrigger>
+          <TabsTrigger value="user-management">User Management</TabsTrigger>
           <TabsTrigger value="settings"><SettingsIcon className="mr-1.5 h-4 w-4" /> Settings</TabsTrigger>
         </TabsList>
 
