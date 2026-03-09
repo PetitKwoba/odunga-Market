@@ -1584,6 +1584,62 @@ export type Database = {
           },
         ]
       }
+      store_reviews: {
+        Row: {
+          created_at: string
+          helpful_count: number | null
+          id: string
+          is_verified_purchase: boolean | null
+          order_id: string | null
+          producer_response: string | null
+          producer_response_at: string | null
+          rating: number
+          review: string | null
+          reviewer_id: string
+          store_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          helpful_count?: number | null
+          id?: string
+          is_verified_purchase?: boolean | null
+          order_id?: string | null
+          producer_response?: string | null
+          producer_response_at?: string | null
+          rating: number
+          review?: string | null
+          reviewer_id: string
+          store_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          helpful_count?: number | null
+          id?: string
+          is_verified_purchase?: boolean | null
+          order_id?: string | null
+          producer_response?: string | null
+          producer_response_at?: string | null
+          rating?: number
+          review?: string | null
+          reviewer_id?: string
+          store_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_team_members: {
         Row: {
           added_at: string
@@ -1700,6 +1756,8 @@ export type Database = {
           escalated: boolean | null
           escalated_at: string | null
           first_response_at: string | null
+          guest_email: string | null
+          guest_name: string | null
           id: string
           priority: string
           rated_at: string | null
@@ -1719,6 +1777,8 @@ export type Database = {
           escalated?: boolean | null
           escalated_at?: string | null
           first_response_at?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
           id?: string
           priority?: string
           rated_at?: string | null
@@ -1738,6 +1798,8 @@ export type Database = {
           escalated?: boolean | null
           escalated_at?: string | null
           first_response_at?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
           id?: string
           priority?: string
           rated_at?: string | null
