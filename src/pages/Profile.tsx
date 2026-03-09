@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { User as UserIcon, Building2, CreditCard, FileText, Upload, AlertCircle, CheckCircle, Clock, X, Image as ImageIcon, Bell } from 'lucide-react';
 import NotificationPreferences from '@/components/NotificationPreferences';
+import GDPRExport from '@/components/GDPRExport';
 import { toast } from 'sonner';
 
 interface ProfileForm {
@@ -229,6 +230,7 @@ export default function ProfilePage() {
             {pendingRequests.length > 0 && <Badge className="ml-1 bg-secondary text-secondary-foreground text-[10px] px-1.5 py-0">{pendingRequests.length}</Badge>}
           </TabsTrigger>
           <TabsTrigger value="notifications" className="gap-1"><Bell className="h-4 w-4" /> Notifications</TabsTrigger>
+          <TabsTrigger value="privacy" className="gap-1">Privacy & Data</TabsTrigger>
         </TabsList>
 
         <TabsContent value="personal" className="mt-4">
@@ -442,6 +444,10 @@ export default function ProfilePage() {
 
         <TabsContent value="notifications" className="mt-4">
           <NotificationPreferences />
+        </TabsContent>
+
+        <TabsContent value="privacy" className="mt-4">
+          <GDPRExport />
         </TabsContent>
       </Tabs>
 

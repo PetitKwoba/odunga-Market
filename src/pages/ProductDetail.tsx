@@ -8,12 +8,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, ArrowLeft, ShoppingCart, Shield, Clock, Boxes, Copy, Share2 } from 'lucide-react';
+import { Package, ArrowLeft, ShoppingCart, Shield, Clock, Boxes, Copy, Share2, Heart } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { Product, BulkTier } from '@/lib/types';
 import ProductReviews from '@/components/ProductReviews';
 import StoreReviews from '@/components/StoreReviews';
+import ProductImageGallery from '@/components/ProductImageGallery';
+import { useWishlist } from '@/hooks/use-wishlist';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -23,6 +25,7 @@ export default function ProductDetail() {
   const { addItem } = useCart();
   const { data: products, isLoading } = useProducts();
   const [qty, setQty] = useState('');
+  const { isInWishlist, toggle: toggleWishlist } = useWishlist();
 
   const refCode = searchParams.get('ref') || '';
   useEffect(() => {
@@ -108,18 +111,30 @@ export default function ProductDetail() {
       )}
 
       <div className="grid gap-8 lg:grid-cols-2">
-        <div className="aspect-square rounded-xl bg-muted flex items-center justify-center overflow-hidden">
-          {product.images && product.images.length > 0 && product.images[0] !== '/placeholder.svg' ? (
-            <img src={product.images[0]} alt={product.name} className="h-full w-full object-cover" loading="lazy" />
-          ) : (
+        {product.images && product.images.length > 0 && product.images[0] !== '/placeholder.svg' ? (
+          <ProductImageGallery images={product.images} productName={product.name} />
+        ) : (
+          <div className="aspect-square rounded-xl bg-muted flex items-center justify-center">
             <Package className="h-20 w-20 text-muted-foreground/30" />
-          )}
-        </div>
+          </div>
+        )}
 
         <div>
-          <div className="flex items-start gap-2">
-            <Badge variant="secondary">{product.category}</Badge>
-            {product.stock_quantity > 0 && <Badge className="bg-success text-success-foreground">In Stock</Badge>}
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-2">
+              <Badge variant="secondary">{product.category}</Badge>
+              {product.stock_quantity > 0 && <Badge className="bg-success text-success-foreground">In Stock</Badge>}
+            </div>
+            {user && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => toggleWishlist(product.id)}
+                title={isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+              >
+                <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
+              </Button>
+            )}
           </div>
           <h1 className="mt-3 font-display text-3xl font-bold">{product.name}</h1>
           <p className="mt-1 text-muted-foreground">{product.producer_name} · {product.producer_country}</p>

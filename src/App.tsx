@@ -6,11 +6,15 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/lib/auth-context";
 import { CartProvider } from "@/lib/cart-context";
 import { CurrencyProvider } from "@/lib/currency-context";
+import { ThemeProvider } from "next-themes";
 import Navbar from "@/components/Navbar";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import OnboardingWizard from "@/components/OnboardingWizard";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
@@ -29,37 +33,42 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <CurrencyProvider>
-          <CartProvider>
-            <Toaster />
-            <Sonner />
-          <BrowserRouter>
-            <Navbar />
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/products/:id" element={<ProductDetail />} />
-              <Route path="/checkout" element={<ProtectedRoute allowedRoles={['wholesaler']}><Checkout /></ProtectedRoute>} />
-              <Route path="/payment/callback" element={<PaymentCallback />} />
-              <Route path="/support" element={<Support />} />
-              <Route path="/support/:id" element={<ProtectedRoute><SupportTicket /></ProtectedRoute>} />
-              <Route path="/help" element={<HelpCenter />} />
-              <Route path="/dashboard/referrer" element={<ProtectedRoute allowedRoles={['referrer']}><ReferrerDashboard /></ProtectedRoute>} />
-              <Route path="/dashboard/wholesaler" element={<ProtectedRoute allowedRoles={['wholesaler']}><WholesalerDashboard /></ProtectedRoute>} />
-              <Route path="/dashboard/producer" element={<ProtectedRoute allowedRoles={['producer']}><ProducerDashboard /></ProtectedRoute>} />
-              <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminPanel /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-          </CartProvider>
-        </CurrencyProvider>
-      </AuthProvider>
-    </TooltipProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <TooltipProvider>
+        <AuthProvider>
+          <CurrencyProvider>
+            <CartProvider>
+              <Toaster />
+              <Sonner />
+            <BrowserRouter>
+              <Navbar />
+              <OnboardingWizard />
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/products/:id" element={<ProductDetail />} />
+                <Route path="/checkout" element={<ProtectedRoute allowedRoles={['wholesaler']}><Checkout /></ProtectedRoute>} />
+                <Route path="/payment/callback" element={<PaymentCallback />} />
+                <Route path="/support" element={<Support />} />
+                <Route path="/support/:id" element={<ProtectedRoute><SupportTicket /></ProtectedRoute>} />
+                <Route path="/help" element={<HelpCenter />} />
+                <Route path="/dashboard/referrer" element={<ProtectedRoute allowedRoles={['referrer']}><ReferrerDashboard /></ProtectedRoute>} />
+                <Route path="/dashboard/wholesaler" element={<ProtectedRoute allowedRoles={['wholesaler']}><WholesalerDashboard /></ProtectedRoute>} />
+                <Route path="/dashboard/producer" element={<ProtectedRoute allowedRoles={['producer']}><ProducerDashboard /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminPanel /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+            </CartProvider>
+          </CurrencyProvider>
+        </AuthProvider>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

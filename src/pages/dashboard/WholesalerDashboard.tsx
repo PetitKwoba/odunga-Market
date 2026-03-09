@@ -6,8 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, ShoppingCart, Link2, DollarSign, Users, MessageCircle, CreditCard, PackagePlus, Truck, FileText, RotateCcw, Mail } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Copy, ShoppingCart, Link2, DollarSign, Users, MessageCircle, CreditCard, PackagePlus, Truck, FileText, RotateCcw, Mail, RefreshCw } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import OrderChat from '@/components/OrderChat';
 import POSDashboard from '@/components/POSDashboard';
@@ -16,9 +16,11 @@ import ShipmentTracking from '@/components/ShipmentTracking';
 import RFQSystem from '@/components/RFQSystem';
 import ReturnsManagement from '@/components/ReturnsManagement';
 import DirectMessaging from '@/components/DirectMessaging';
+import ExportCSVButton from '@/components/ExportCSVButton';
 
 export default function WholesalerDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<any[]>([]);
   const [referrals, setReferrals] = useState<any[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
@@ -55,9 +57,12 @@ export default function WholesalerDashboard() {
         </TabsList>
 
         <TabsContent value="orders" className="mt-4 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <h2 className="font-display text-xl font-semibold">Orders</h2>
-            <Button asChild><Link to="/products"><ShoppingCart className="mr-1 h-4 w-4" /> Browse Products</Link></Button>
+            <div className="flex gap-2">
+              <ExportCSVButton data={orders.map(o => ({ id: o.id, total: o.total_amount, status: o.status, payment: o.payment_status, date: o.created_at }))} filename="my-orders" />
+              <Button asChild><Link to="/products"><ShoppingCart className="mr-1 h-4 w-4" /> Browse Products</Link></Button>
+            </div>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
@@ -99,15 +104,25 @@ export default function WholesalerDashboard() {
                               <MessageCircle className="h-3 w-3" />
                             </Button>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="space-x-1">
                             {(o.payment_status === 'paid' || o.status === 'Completed') && (
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setPosDialogOrderId(o.id)}
-                                className="text-primary hover:text-primary"
+                                title="Add to POS"
                               >
                                 <PackagePlus className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {o.status === 'Completed' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => navigate(`/products`)}
+                                title="Reorder"
+                              >
+                                <RefreshCw className="h-4 w-4" />
                               </Button>
                             )}
                           </TableCell>
