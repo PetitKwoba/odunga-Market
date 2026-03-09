@@ -19,7 +19,7 @@ export default function WholesalerDashboard() {
   const [referrals, setReferrals] = useState<any[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [selectedOrderStatus, setSelectedOrderStatus] = useState<string>('');
-
+  const [posDialogOrderId, setPosDialogOrderId] = useState<string | null>(null);
   useEffect(() => {
     if (!user) return;
     supabase.from('orders').select('*').eq('wholesaler_id', user.id).order('created_at', { ascending: false }).then(({ data }) => {
