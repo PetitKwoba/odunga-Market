@@ -190,11 +190,16 @@ export default function Support() {
     } else {
       toast.success('Support ticket created successfully!');
 
-      // Save guest ticket ID for later lookup
+      // Save guest ticket ID and rate limit entry
       if (isGuest && data) {
         const updated = [...guestTicketIds, data.id];
         setGuestTicketIds(updated);
         localStorage.setItem('guest_ticket_ids', JSON.stringify(updated));
+        // Record rate limit
+        await supabase.from('guest_rate_limits').insert({
+          ip_hash: 'browser-' + navigator.userAgent.substring(0, 50),
+          email: guestEmail.trim().toLowerCase(),
+        });
       }
 
       setOpen(false);
