@@ -76,9 +76,10 @@ export default function Login() {
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            Don't have an account? <Link to="/signup" className="font-medium text-primary hover:underline">Sign up</Link>
-          </p>
+          <div className="mt-4 space-y-2 text-center text-sm text-muted-foreground">
+            <p>Don't have an account? <Link to="/signup" className="font-medium text-primary hover:underline">Sign up</Link></p>
+            <p><Link to="/forgot-password" className="font-medium text-primary hover:underline">Forgot your password?</Link></p>
+          </div>
         </CardContent>
       </Card>
     </div>

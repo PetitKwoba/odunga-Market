@@ -51,7 +51,16 @@ export default function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
+          <Button variant="ghost" size="icon" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} title="Toggle theme">
+            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          </Button>
           <CurrencySelector />
+          {user && (
+            <Button variant="ghost" size="icon" onClick={() => navigate('/products?tab=wishlist')} title="Wishlist">
+              <Heart className="h-5 w-5" />
+            </Button>
+          )}
           {user && user.role === 'wholesaler' && (
             <Button variant="ghost" size="icon" className="relative" onClick={() => navigate('/checkout')}>
               <ShoppingCart className="h-5 w-5" />

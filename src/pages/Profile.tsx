@@ -443,6 +443,10 @@ export default function ProfilePage() {
         <TabsContent value="notifications" className="mt-4">
           <NotificationPreferences />
         </TabsContent>
+
+        <TabsContent value="privacy" className="mt-4">
+          <GDPRExport />
+        </TabsContent>
       </Tabs>
 
       <div className="mt-6 flex justify-end">
