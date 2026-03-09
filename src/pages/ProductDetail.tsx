@@ -188,6 +188,15 @@ export default function ProductDetail() {
           )}
         </div>
       </div>
+
+      {/* Reviews Section */}
+      <div className="mt-12">
+        <ProductReviews 
+          productId={product.id} 
+          producerId={product.producer_id}
+          showWriteReview={user?.role === 'wholesaler'}
+        />
+      </div>
     </div>
   );
 }
