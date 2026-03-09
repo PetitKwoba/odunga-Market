@@ -167,7 +167,7 @@ export default function Support() {
           guest_email: guestEmail.trim(),
         };
 
-    const { data, error } = await supabase.from('support_tickets').insert(insertObj).select('id').single();
+    const { data, error } = await supabase.from('support_tickets').insert(insertObj as any).select('id').single();
 
     if (error) {
       console.error('Error creating ticket:', error);
