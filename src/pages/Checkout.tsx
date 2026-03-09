@@ -374,6 +374,8 @@ export default function Checkout() {
               </div>
             </CardContent>
           </Card>
+
+          <ShippingCalculator totalWeight={items.reduce((sum, item) => sum + item.quantity * 0.5, 0)} />
         </div>
 
         <div>

@@ -146,6 +146,21 @@ export default function Support() {
       return;
     }
 
+    // Rate limiting for guest tickets: max 3 per hour per email
+    if (isGuest) {
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const { data: recentTickets } = await supabase
+        .from('guest_rate_limits')
+        .select('id')
+        .eq('email', guestEmail.trim().toLowerCase())
+        .gte('created_at', oneHourAgo);
+
+      if (recentTickets && recentTickets.length >= 3) {
+        toast.error('Too many tickets submitted. Please wait before creating another ticket.');
+        return;
+      }
+    }
+
     setCreating(true);
 
     const insertObj = user

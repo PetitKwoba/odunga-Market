@@ -182,10 +182,11 @@ export default function ProducerDashboard() {
 
         {/* ─── PRODUCTS TAB ─── */}
         <TabsContent value="products" className="mt-4 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <h2 className="font-display text-xl font-semibold">Products ({products.length})</h2>
             <Button onClick={() => setAddOpen(true)}><Plus className="mr-1 h-4 w-4" /> Add Product</Button>
           </div>
+          <BulkCSVUpload onComplete={refreshProducts} />
           {products.length === 0 ? (
             <Card><CardContent className="py-12 text-center text-muted-foreground">No products yet. Add your first product!</CardContent></Card>
           ) : (

@@ -168,6 +168,10 @@ export default function WholesalerDashboard() {
           <ReturnsManagement mode="wholesaler" />
         </TabsContent>
 
+        <TabsContent value="templates" className="mt-4">
+          <SavedCarts />
+        </TabsContent>
+
         <TabsContent value="pos" className="mt-4">
           <POSDashboard />
         </TabsContent>
