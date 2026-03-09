@@ -15,6 +15,7 @@ export default function Navbar() {
   const { itemCount } = useCart();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   const dashboardPath = user ? (
     user.role === 'admin' ? '/admin' :
