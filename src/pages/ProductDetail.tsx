@@ -8,12 +8,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, ArrowLeft, ShoppingCart, Shield, Clock, Boxes, Copy, Share2 } from 'lucide-react';
+import { Package, ArrowLeft, ShoppingCart, Shield, Clock, Boxes, Copy, Share2, Heart } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { Product, BulkTier } from '@/lib/types';
 import ProductReviews from '@/components/ProductReviews';
 import StoreReviews from '@/components/StoreReviews';
+import ProductImageGallery from '@/components/ProductImageGallery';
+import { useWishlist } from '@/hooks/use-wishlist';
 
 export default function ProductDetail() {
   const { id } = useParams();
