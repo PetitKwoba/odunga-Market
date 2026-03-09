@@ -69,10 +69,20 @@ export default function SupportManagement() {
       console.error('Error fetching tickets:', error);
       toast.error('Failed to load tickets');
     } else {
+      // Fetch user profiles for all tickets
+      const userIds = [...new Set(data?.map((t: any) => t.user_id) || [])];
+      let profiles: any[] = [];
+      if (userIds.length > 0) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('user_id, name, email')
+          .in('user_id', userIds);
+        profiles = profileData || [];
+      }
       const ticketsWithUser = data?.map((t: any) => ({
         ...t,
-        user_name: t.profiles?.name,
-        user_email: t.profiles?.email,
+        user_name: profiles.find((p: any) => p.user_id === t.user_id)?.name,
+        user_email: profiles.find((p: any) => p.user_id === t.user_id)?.email,
       })) || [];
       setTickets(ticketsWithUser);
     }
