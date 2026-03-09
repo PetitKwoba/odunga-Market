@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_logs: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          ip_address: string | null
+          path: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          path?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          path?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -1225,6 +1255,7 @@ export type Database = {
           industry: string | null
           is_approved: boolean
           is_verified: boolean
+          last_seen_at: string | null
           logo_url: string | null
           name: string
           payout_method: string | null
@@ -1257,6 +1288,7 @@ export type Database = {
           industry?: string | null
           is_approved?: boolean
           is_verified?: boolean
+          last_seen_at?: string | null
           logo_url?: string | null
           name: string
           payout_method?: string | null
@@ -1289,6 +1321,7 @@ export type Database = {
           industry?: string | null
           is_approved?: boolean
           is_verified?: boolean
+          last_seen_at?: string | null
           logo_url?: string | null
           name?: string
           payout_method?: string | null
