@@ -178,6 +178,36 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_roles: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          permissions: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          permissions?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          permissions?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       direct_messages: {
         Row: {
           conversation_id: string
@@ -1727,6 +1757,33 @@ export type Database = {
         }
         Relationships: []
       }
+      support_assignments: {
+        Row: {
+          assigned_user_id: string
+          created_at: string
+          created_by: string
+          id: string
+          notes: string | null
+          support_agent_id: string
+        }
+        Insert: {
+          assigned_user_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          notes?: string | null
+          support_agent_id: string
+        }
+        Update: {
+          assigned_user_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          notes?: string | null
+          support_agent_id?: string
+        }
+        Relationships: []
+      }
       support_canned_responses: {
         Row: {
           category: string
@@ -1990,7 +2047,7 @@ export type Database = {
       validate_stock_availability: { Args: { p_items: Json }; Returns: Json }
     }
     Enums: {
-      app_role: "producer" | "wholesaler" | "referrer" | "admin"
+      app_role: "producer" | "wholesaler" | "referrer" | "admin" | "support"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2118,7 +2175,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["producer", "wholesaler", "referrer", "admin"],
+      app_role: ["producer", "wholesaler", "referrer", "admin", "support"],
     },
   },
 } as const
