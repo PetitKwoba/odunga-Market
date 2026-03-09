@@ -30,7 +30,11 @@ interface DiscountCode {
   created_at: string;
 }
 
-export default function DiscountManager() {
+interface DiscountManagerProps {
+  mode?: 'admin' | 'producer';
+}
+
+export default function DiscountManager({ mode = 'admin' }: DiscountManagerProps) {
   const { user } = useAuth();
   const [discounts, setDiscounts] = useState<DiscountCode[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
@@ -53,10 +57,16 @@ export default function DiscountManager() {
   }, []);
 
   const fetchDiscounts = async () => {
-    const { data } = await supabase
+    let query = supabase
       .from('discount_codes')
       .select('*')
       .order('created_at', { ascending: false });
+    
+    if (mode === 'producer' && user) {
+      query = query.eq('created_by', user.id);
+    }
+    
+    const { data } = await query;
     if (data) setDiscounts(data as DiscountCode[]);
   };
 

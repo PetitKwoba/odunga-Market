@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Settings, Wallet, Truck, CalendarCheck, Info, Users, Pencil, Clock, CheckCircle2, DollarSign, TrendingUp, MessageCircle, CreditCard, Package, FileText, RotateCcw, Sparkles } from 'lucide-react';
+import { Plus, Settings, Wallet, Truck, CalendarCheck, Info, Users, Pencil, Clock, CheckCircle2, DollarSign, TrendingUp, MessageCircle, CreditCard, Package, FileText, RotateCcw, Sparkles, Percent } from 'lucide-react';
 import { toast } from 'sonner';
 import StoreTeamTab from '@/components/StoreTeamTab';
 import ProductEditDialog from '@/components/ProductEditDialog';
@@ -21,6 +21,7 @@ import RFQSystem from '@/components/RFQSystem';
 import ReturnsManagement from '@/components/ReturnsManagement';
 import B2BInvoicing from '@/components/B2BInvoicing';
 import DemandForecast from '@/components/DemandForecast';
+import DiscountManager from '@/components/DiscountManager';
 import { Separator } from '@/components/ui/separator';
 
 const PLATFORM_FEE_PERCENT = 5;
@@ -167,6 +168,7 @@ export default function ProducerDashboard() {
           <TabsTrigger value="returns"><RotateCcw className="mr-1 h-4 w-4" /> Returns</TabsTrigger>
           <TabsTrigger value="invoices"><DollarSign className="mr-1 h-4 w-4" /> Invoices</TabsTrigger>
           <TabsTrigger value="forecast"><Sparkles className="mr-1 h-4 w-4" /> AI Forecast</TabsTrigger>
+          <TabsTrigger value="discounts"><Percent className="mr-1 h-4 w-4" /> Discounts</TabsTrigger>
           <TabsTrigger value="pos"><CreditCard className="mr-1 h-4 w-4" /> POS</TabsTrigger>
           <TabsTrigger value="team"><Users className="mr-1 h-4 w-4" /> Team</TabsTrigger>
           <TabsTrigger value="payouts"><Wallet className="mr-1 h-4 w-4" /> Payouts</TabsTrigger>
@@ -306,6 +308,11 @@ export default function ProducerDashboard() {
         {/* ─── AI FORECAST TAB ─── */}
         <TabsContent value="forecast" className="mt-4">
           <DemandForecast />
+        </TabsContent>
+
+        {/* ─── DISCOUNTS TAB ─── */}
+        <TabsContent value="discounts" className="mt-4">
+          <DiscountManager mode="producer" />
         </TabsContent>
 
         {/* ─── POS TAB ─── */}
