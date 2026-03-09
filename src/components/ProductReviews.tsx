@@ -168,16 +168,12 @@ export default function ProductReviews({ productId, producerId, showWriteReview 
   };
 
   const handleMarkHelpful = async (reviewId: string) => {
-    const { error } = await supabase.rpc('increment', { 
-      row_id: reviewId,
-      table_name: 'product_reviews',
-      column_name: 'helpful_count'
-    }).single();
-
-    // Fallback: direct update
+    const review = reviews.find(r => r.id === reviewId);
+    if (!review) return;
+    
     await supabase
       .from('product_reviews')
-      .update({ helpful_count: reviews.find(r => r.id === reviewId)!.helpful_count + 1 })
+      .update({ helpful_count: review.helpful_count + 1 })
       .eq('id', reviewId);
     
     fetchReviews();
