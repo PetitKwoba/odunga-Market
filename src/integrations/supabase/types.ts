@@ -44,6 +44,215 @@ export type Database = {
         }
         Relationships: []
       }
+      b2b_invoices: {
+        Row: {
+          created_at: string
+          currency: string
+          discount_amount: number
+          due_date: string | null
+          id: string
+          invoice_number: string
+          items: Json
+          notes: string | null
+          order_id: string | null
+          paid_at: string | null
+          payment_terms: string | null
+          producer_id: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          total: number
+          updated_at: string
+          wholesaler_address: Json | null
+          wholesaler_email: string | null
+          wholesaler_id: string
+          wholesaler_name: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          discount_amount?: number
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          items?: Json
+          notes?: string | null
+          order_id?: string | null
+          paid_at?: string | null
+          payment_terms?: string | null
+          producer_id: string
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          total?: number
+          updated_at?: string
+          wholesaler_address?: Json | null
+          wholesaler_email?: string | null
+          wholesaler_id: string
+          wholesaler_name: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          discount_amount?: number
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          items?: Json
+          notes?: string | null
+          order_id?: string | null
+          paid_at?: string | null
+          payment_terms?: string | null
+          producer_id?: string
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number
+          total?: number
+          updated_at?: string
+          wholesaler_address?: Json | null
+          wholesaler_email?: string | null
+          wholesaler_id?: string
+          wholesaler_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "b2b_invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      currencies: {
+        Row: {
+          code: string
+          exchange_rate: number
+          is_active: boolean
+          name: string
+          symbol: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          exchange_rate?: number
+          is_active?: boolean
+          name: string
+          symbol: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          exchange_rate?: number
+          is_active?: boolean
+          name?: string
+          symbol?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      discount_codes: {
+        Row: {
+          applicable_items: Json | null
+          applicable_to: string
+          code: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          min_order_amount: number | null
+          updated_at: string
+          used_count: number
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          applicable_items?: Json | null
+          applicable_to?: string
+          code: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type: string
+          discount_value: number
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_order_amount?: number | null
+          updated_at?: string
+          used_count?: number
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          applicable_items?: Json | null
+          applicable_to?: string
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_order_amount?: number | null
+          updated_at?: string
+          used_count?: number
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
+      discount_usage: {
+        Row: {
+          created_at: string
+          discount_amount: number
+          discount_code_id: string
+          id: string
+          order_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discount_amount: number
+          discount_code_id: string
+          id?: string
+          order_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discount_amount?: number
+          discount_code_id?: string
+          id?: string
+          order_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_usage_discount_code_id_fkey"
+            columns: ["discount_code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_usage_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       disputes: {
         Row: {
           created_at: string
@@ -115,6 +324,42 @@ export type Database = {
           id?: string
           requested_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      email_logs: {
+        Row: {
+          created_at: string
+          email_to: string
+          email_type: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          status: string
+          subject: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_to: string
+          email_type: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          subject: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_to?: string
+          email_type?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          subject?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -336,6 +581,9 @@ export type Database = {
       orders: {
         Row: {
           created_at: string
+          currency: string | null
+          discount_amount: number | null
+          discount_code_id: string | null
           id: string
           payment_reference: string | null
           payment_status: string
@@ -347,6 +595,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          currency?: string | null
+          discount_amount?: number | null
+          discount_code_id?: string | null
           id?: string
           payment_reference?: string | null
           payment_status?: string
@@ -358,6 +609,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          currency?: string | null
+          discount_amount?: number | null
+          discount_code_id?: string | null
           id?: string
           payment_reference?: string | null
           payment_status?: string
@@ -367,7 +621,15 @@ export type Database = {
           updated_at?: string
           wholesaler_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_discount_code_id_fkey"
+            columns: ["discount_code_id"]
+            isOneToOne: false
+            referencedRelation: "discount_codes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payouts: {
         Row: {
@@ -806,6 +1068,7 @@ export type Database = {
           name: string
           payout_method: string | null
           phone: string | null
+          preferred_currency: string | null
           referral_code: string
           referral_credits: number
           referred_by_user_id: string | null
@@ -835,6 +1098,7 @@ export type Database = {
           name: string
           payout_method?: string | null
           phone?: string | null
+          preferred_currency?: string | null
           referral_code: string
           referral_credits?: number
           referred_by_user_id?: string | null
@@ -864,6 +1128,7 @@ export type Database = {
           name?: string
           payout_method?: string | null
           phone?: string | null
+          preferred_currency?: string | null
           referral_code?: string
           referral_credits?: number
           referred_by_user_id?: string | null
@@ -907,6 +1172,77 @@ export type Database = {
           {
             foreignKeyName: "referrals_first_order_id_fkey"
             columns: ["first_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      returns: {
+        Row: {
+          admin_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          id: string
+          items: Json
+          order_id: string
+          producer_notes: string | null
+          reason: string
+          received_at: string | null
+          refund_amount: number
+          refunded_at: string | null
+          restocking_fee: number
+          return_type: string
+          rma_number: string
+          status: string
+          updated_at: string
+          wholesaler_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          items?: Json
+          order_id: string
+          producer_notes?: string | null
+          reason: string
+          received_at?: string | null
+          refund_amount?: number
+          refunded_at?: string | null
+          restocking_fee?: number
+          return_type: string
+          rma_number: string
+          status?: string
+          updated_at?: string
+          wholesaler_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          items?: Json
+          order_id?: string
+          producer_notes?: string | null
+          reason?: string
+          received_at?: string | null
+          refund_amount?: number
+          refunded_at?: string | null
+          restocking_fee?: number
+          return_type?: string
+          rma_number?: string
+          status?: string
+          updated_at?: string
+          wholesaler_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "returns_order_id_fkey"
+            columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
             referencedColumns: ["id"]
@@ -1392,6 +1728,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      validate_stock_availability: { Args: { p_items: Json }; Returns: Json }
     }
     Enums: {
       app_role: "producer" | "wholesaler" | "referrer" | "admin"
