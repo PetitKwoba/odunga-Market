@@ -29,6 +29,7 @@ export interface AppUser {
   bank_account_number: string | null;
   bank_routing_number: string | null;
   payout_method: string | null;
+  preferred_currency: string | null;
 }
 
 interface AuthContextType {
