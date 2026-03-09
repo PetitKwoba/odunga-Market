@@ -204,6 +204,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setSession(null);
   }, []);
 
+  // Track user activity: update last_seen_at and log access
+  useEffect(() => {
+    if (!session?.user) return;
+    const uid = session.user.id;
+
+    // Update last_seen_at
+    supabase.from('profiles').update({ last_seen_at: new Date().toISOString() } as any).eq('user_id', uid).then(() => {});
+
+    // Insert access log
+    supabase.from('access_logs' as any).insert({
+      user_id: uid,
+      event_type: 'session_start',
+      user_agent: navigator.userAgent,
+      path: window.location.pathname,
+    }).then(() => {});
+  }, [session?.user?.id]);
+
   const refreshProfile = useCallback(async () => {
     if (session?.user) {
       const profile = await fetchProfile(session.user.id);
