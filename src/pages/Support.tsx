@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, MessageCircle, Clock, CheckCircle2, AlertCircle, BookOpen, Lightbulb } from 'lucide-react';
+import { Plus, MessageCircle, Clock, CheckCircle2, AlertCircle, BookOpen, Lightbulb, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -47,17 +47,27 @@ export default function Support() {
   const [category, setCategory] = useState('general');
   const [priority, setPriority] = useState('medium');
 
+  // Guest fields
+  const [guestName, setGuestName] = useState('');
+  const [guestEmail, setGuestEmail] = useState('');
+
   // Knowledge base suggestions
   const [suggestedArticles, setSuggestedArticles] = useState<Article[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  // Track guest ticket IDs for lookup
+  const [guestTicketIds, setGuestTicketIds] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('guest_ticket_ids') || '[]');
+    } catch { return []; }
+  });
+
+  const isGuest = !user;
+
   useEffect(() => {
-    if (user) {
-      fetchTickets();
-    }
+    fetchTickets();
   }, [user]);
 
-  // Fetch articles when description changes
   useEffect(() => {
     if (description.length > 20) {
       fetchSuggestedArticles();
@@ -68,23 +78,35 @@ export default function Support() {
   }, [description, category]);
 
   const fetchTickets = async () => {
-    const { data, error } = await supabase
-      .from('support_tickets')
-      .select('*')
-      .eq('user_id', user?.id)
-      .order('created_at', { ascending: false });
+    if (user) {
+      const { data, error } = await supabase
+        .from('support_tickets')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching tickets:', error);
-      toast.error('Failed to load tickets');
+      if (error) {
+        console.error('Error fetching tickets:', error);
+        toast.error('Failed to load tickets');
+      } else {
+        setTickets(data || []);
+      }
+    } else if (guestTicketIds.length > 0) {
+      const { data, error } = await supabase
+        .from('support_tickets')
+        .select('*')
+        .in('id', guestTicketIds)
+        .is('user_id', null)
+        .order('created_at', { ascending: false });
+
+      if (!error) setTickets(data || []);
     } else {
-      setTickets(data || []);
+      setTickets([]);
     }
     setLoading(false);
   };
 
   const fetchSuggestedArticles = async () => {
-    // Simple keyword matching for article suggestions
     const keywords = description.toLowerCase().split(' ').filter(w => w.length > 3);
     
     const { data } = await supabase
@@ -95,14 +117,12 @@ export default function Support() {
       .limit(3);
 
     if (data && data.length > 0) {
-      // Filter articles that contain any of the keywords
       const relevant = data.filter((article) => 
         keywords.some(kw => 
           article.title.toLowerCase().includes(kw) || 
           article.content.toLowerCase().includes(kw)
         )
       );
-      
       if (relevant.length > 0) {
         setSuggestedArticles(relevant);
         setShowSuggestions(true);
@@ -116,26 +136,55 @@ export default function Support() {
       return;
     }
 
+    if (isGuest && (!guestName.trim() || !guestEmail.trim())) {
+      toast.error('Please provide your name and email');
+      return;
+    }
+
+    if (isGuest && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmail)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
     setCreating(true);
-    const { error } = await supabase.from('support_tickets').insert({
-      user_id: user?.id,
+
+    const ticketData: Record<string, any> = {
       subject: subject.trim(),
       description: description.trim(),
       category,
       priority,
       status: 'open',
-    });
+    };
+
+    if (user) {
+      ticketData.user_id = user.id;
+    } else {
+      ticketData.guest_name = guestName.trim();
+      ticketData.guest_email = guestEmail.trim();
+    }
+
+    const { data, error } = await supabase.from('support_tickets').insert(ticketData).select('id').single();
 
     if (error) {
       console.error('Error creating ticket:', error);
       toast.error('Failed to create ticket');
     } else {
-      toast.success('Support ticket created successfully');
+      toast.success('Support ticket created successfully!');
+
+      // Save guest ticket ID for later lookup
+      if (isGuest && data) {
+        const updated = [...guestTicketIds, data.id];
+        setGuestTicketIds(updated);
+        localStorage.setItem('guest_ticket_ids', JSON.stringify(updated));
+      }
+
       setOpen(false);
       setSubject('');
       setDescription('');
       setCategory('general');
       setPriority('medium');
+      setGuestName('');
+      setGuestEmail('');
       setSuggestedArticles([]);
       setShowSuggestions(false);
       fetchTickets();
@@ -145,45 +194,31 @@ export default function Support() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'open':
-        return <Clock className="h-4 w-4" />;
-      case 'in_progress':
-        return <AlertCircle className="h-4 w-4" />;
+      case 'open': return <Clock className="h-4 w-4" />;
+      case 'in_progress': return <AlertCircle className="h-4 w-4" />;
       case 'resolved':
-      case 'closed':
-        return <CheckCircle2 className="h-4 w-4" />;
-      default:
-        return <MessageCircle className="h-4 w-4" />;
+      case 'closed': return <CheckCircle2 className="h-4 w-4" />;
+      default: return <MessageCircle className="h-4 w-4" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open':
-        return 'bg-blue-500/10 text-blue-700 dark:text-blue-300';
-      case 'in_progress':
-        return 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-300';
-      case 'resolved':
-        return 'bg-green-500/10 text-green-700 dark:text-green-300';
-      case 'closed':
-        return 'bg-gray-500/10 text-gray-700 dark:text-gray-300';
-      default:
-        return 'bg-gray-500/10 text-gray-700 dark:text-gray-300';
+      case 'open': return 'bg-blue-500/10 text-blue-700 dark:text-blue-300';
+      case 'in_progress': return 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-300';
+      case 'resolved': return 'bg-green-500/10 text-green-700 dark:text-green-300';
+      case 'closed': return 'bg-muted text-muted-foreground';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'urgent':
-        return 'bg-red-500/10 text-red-700 dark:text-red-300';
-      case 'high':
-        return 'bg-orange-500/10 text-orange-700 dark:text-orange-300';
-      case 'medium':
-        return 'bg-blue-500/10 text-blue-700 dark:text-blue-300';
-      case 'low':
-        return 'bg-gray-500/10 text-gray-700 dark:text-gray-300';
-      default:
-        return 'bg-gray-500/10 text-gray-700 dark:text-gray-300';
+      case 'urgent': return 'bg-red-500/10 text-red-700 dark:text-red-300';
+      case 'high': return 'bg-orange-500/10 text-orange-700 dark:text-orange-300';
+      case 'medium': return 'bg-blue-500/10 text-blue-700 dark:text-blue-300';
+      case 'low': return 'bg-muted text-muted-foreground';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -197,12 +232,18 @@ export default function Support() {
 
   return (
     <div className="container py-8">
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight">Customer Support</h1>
           <p className="mt-2 text-muted-foreground">Get help with your orders, products, and account</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
+          {isGuest && (
+            <Button variant="outline" onClick={() => navigate('/login')} className="gap-2">
+              <LogIn className="h-4 w-4" />
+              Sign In
+            </Button>
+          )}
           <Button variant="outline" onClick={() => navigate('/help')} className="gap-2">
             <BookOpen className="h-4 w-4" />
             Help Center
@@ -220,6 +261,33 @@ export default function Support() {
               </DialogHeader>
               <ScrollArea className="flex-1">
                 <div className="space-y-4 py-4 pr-4">
+                  {/* Guest fields */}
+                  {isGuest && (
+                    <div className="grid gap-4 sm:grid-cols-2 rounded-lg border border-dashed p-4 bg-muted/30">
+                      <div className="space-y-2">
+                        <Label htmlFor="guestName">Your Name *</Label>
+                        <Input
+                          id="guestName"
+                          placeholder="Jane Doe"
+                          value={guestName}
+                          onChange={(e) => setGuestName(e.target.value)}
+                          maxLength={100}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="guestEmail">Your Email *</Label>
+                        <Input
+                          id="guestEmail"
+                          type="email"
+                          placeholder="jane@example.com"
+                          value={guestEmail}
+                          onChange={(e) => setGuestEmail(e.target.value)}
+                          maxLength={255}
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-2">
                     <Label htmlFor="subject">Subject *</Label>
                     <Input
@@ -234,9 +302,7 @@ export default function Support() {
                     <div className="space-y-2">
                       <Label htmlFor="category">Category</Label>
                       <Select value={category} onValueChange={setCategory}>
-                        <SelectTrigger id="category">
-                          <SelectValue />
-                        </SelectTrigger>
+                        <SelectTrigger id="category"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="general">General Inquiry</SelectItem>
                           <SelectItem value="billing">Billing & Payment</SelectItem>
@@ -251,9 +317,7 @@ export default function Support() {
                     <div className="space-y-2">
                       <Label htmlFor="priority">Priority</Label>
                       <Select value={priority} onValueChange={setPriority}>
-                        <SelectTrigger id="priority">
-                          <SelectValue />
-                        </SelectTrigger>
+                        <SelectTrigger id="priority"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="low">Low</SelectItem>
                           <SelectItem value="medium">Medium</SelectItem>
@@ -276,7 +340,6 @@ export default function Support() {
                     <p className="text-xs text-muted-foreground">{description.length}/2000 characters</p>
                   </div>
 
-                  {/* Knowledge base suggestions */}
                   {showSuggestions && suggestedArticles.length > 0 && (
                     <Card className="border-primary/20 bg-primary/5">
                       <CardHeader className="pb-3">
@@ -303,9 +366,7 @@ export default function Support() {
                 </div>
               </ScrollArea>
               <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button variant="outline" onClick={() => setOpen(false)}>
-                  Cancel
-                </Button>
+                <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
                 <Button onClick={handleCreateTicket} disabled={creating}>
                   {creating ? 'Creating...' : 'Create Ticket'}
                 </Button>
@@ -314,6 +375,19 @@ export default function Support() {
           </Dialog>
         </div>
       </div>
+
+      {/* Guest info banner */}
+      {isGuest && (
+        <Card className="mb-6 border-primary/20 bg-primary/5">
+          <CardContent className="flex items-center gap-3 py-4">
+            <MessageCircle className="h-5 w-5 text-primary shrink-0" />
+            <div className="text-sm">
+              <p className="font-medium">You're browsing as a guest</p>
+              <p className="text-muted-foreground">You can create tickets without an account. <button onClick={() => navigate('/login')} className="text-primary underline">Sign in</button> for full access including ticket messaging and order support.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {tickets.length === 0 ? (
         <Card>
@@ -335,12 +409,12 @@ export default function Support() {
             <Card
               key={ticket.id}
               className="cursor-pointer transition-colors hover:bg-accent/5"
-              onClick={() => navigate(`/support/${ticket.id}`)}
+              onClick={() => user ? navigate(`/support/${ticket.id}`) : null}
             >
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="mb-2 flex items-center gap-2">
+                    <div className="mb-2 flex items-center gap-2 flex-wrap">
                       <Badge className={getStatusColor(ticket.status)} variant="secondary">
                         {getStatusIcon(ticket.status)}
                         <span className="ml-1 capitalize">{ticket.status.replace('_', ' ')}</span>
