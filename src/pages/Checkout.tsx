@@ -46,7 +46,7 @@ export default function Checkout() {
 
         // Prioritize last order's shipping address, fallback to profile
         if (lastOrder?.shipping_address) {
-          const addr = lastOrder.shipping_address as ShippingAddress;
+          const addr = lastOrder.shipping_address as unknown as ShippingAddress;
           setShipping({
             name: addr.name || '',
             address: addr.address || '',
