@@ -4,6 +4,7 @@ import { useProducts, useCategories, ProductWithProducer } from '@/hooks/use-pro
 import { mockProducts } from '@/lib/mock-data';
 import { useAuth } from '@/lib/auth-context';
 import { useWishlist } from '@/hooks/use-wishlist';
+import { useCurrency } from '@/lib/currency-context';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +20,7 @@ type SortOption = 'newest' | 'price_low' | 'price_high' | 'name_az' | 'moq_low';
 export default function Products() {
   const { user } = useAuth();
   const { isInWishlist, toggle: toggleWishlist } = useWishlist();
+  const { format } = useCurrency();
   const { data: dbProducts, isLoading, error } = useProducts();
   const { data: dbCategories } = useCategories();
 
@@ -319,7 +321,7 @@ export default function Products() {
                   </div>
                   <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{p.description}</p>
                   <div className="mt-3 flex items-baseline gap-2">
-                    <span className="font-display text-lg font-bold">${p.base_price.toFixed(2)}</span>
+                    <span className="font-display text-lg font-bold">{format(p.base_price)}</span>
                     <span className="text-xs text-muted-foreground">/ unit · MOQ {p.moq}</span>
                   </div>
                   <div className="mt-2 flex items-center justify-between">

@@ -2,6 +2,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useProducts, ProductWithProducer } from '@/hooks/use-products';
 import { useAuth } from '@/lib/auth-context';
 import { useCart } from '@/lib/cart-context';
+import { useCurrency } from '@/lib/currency-context';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,6 +24,7 @@ export default function ProductDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addItem } = useCart();
+  const { format } = useCurrency();
   const { data: products, isLoading } = useProducts();
   const [qty, setQty] = useState('');
   const { isInWishlist, toggle: toggleWishlist } = useWishlist();
@@ -147,7 +149,7 @@ export default function ProductDetail() {
           <p className="mt-4 text-foreground/80">{product.description}</p>
 
           <div className="mt-6 flex items-baseline gap-2">
-            <span className="font-display text-3xl font-bold">${basePrice.toFixed(2)}</span>
+            <span className="font-display text-3xl font-bold">{format(basePrice)}</span>
             <span className="text-muted-foreground">/ unit</span>
           </div>
 
@@ -167,7 +169,7 @@ export default function ProductDetail() {
                     {bulkPricing.map((tier, i) => (
                       <TableRow key={i}>
                         <TableCell>{tier.min_qty}{tier.max_qty ? ` – ${tier.max_qty}` : '+'}</TableCell>
-                        <TableCell className="font-semibold">${tier.price.toFixed(2)}</TableCell>
+                        <TableCell className="font-semibold">{format(tier.price)}</TableCell>
                         <TableCell className="text-success">
                           {tier.price < basePrice ? `-${((1 - tier.price / basePrice) * 100).toFixed(0)}%` : '—'}
                         </TableCell>
