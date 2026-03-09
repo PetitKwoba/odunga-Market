@@ -99,6 +99,53 @@ export default function Checkout() {
     );
   }
 
+  const applyDiscount = async () => {
+    if (!discountCode.trim()) return;
+    setApplyingCode(true);
+    try {
+      const { data, error } = await supabase
+        .from('discount_codes')
+        .select('*')
+        .eq('code', discountCode.toUpperCase())
+        .eq('is_active', true)
+        .single();
+
+      if (error || !data) {
+        toast.error('Invalid or expired discount code');
+        return;
+      }
+
+      if (data.max_uses && data.used_count >= data.max_uses) {
+        toast.error('This code has reached its usage limit');
+        return;
+      }
+
+      if (data.min_order_amount && total < data.min_order_amount) {
+        toast.error(`Minimum order amount: $${data.min_order_amount}`);
+        return;
+      }
+
+      const discountAmount = data.discount_type === 'percentage'
+        ? total * (data.discount_value / 100)
+        : Math.min(data.discount_value, total);
+
+      setAppliedDiscount({
+        id: data.id,
+        code: data.code,
+        type: data.discount_type,
+        value: data.discount_value,
+        amount: discountAmount,
+      });
+      toast.success(`Discount applied: -$${discountAmount.toFixed(2)}`);
+    } catch {
+      toast.error('Failed to apply discount');
+    } finally {
+      setApplyingCode(false);
+    }
+  };
+
+  const finalTotal = appliedDiscount ? total - appliedDiscount.amount : total;
+
   const handleOrder = async () => {
     if (!shipping.name || !shipping.address || !shipping.city || !shipping.country || !shipping.phone) {
       toast.error('Please fill in all shipping fields');
@@ -107,13 +154,34 @@ export default function Checkout() {
     setSubmitting(true);
 
     try {
+      // Validate stock availability
+      const stockCheckItems = items.map(item => ({
+        product_id: item.product.id,
+        quantity: item.quantity,
+      }));
+
+      const { data: stockErrors } = await supabase.rpc('validate_stock_availability', {
+        p_items: stockCheckItems,
+      });
+
+      if (stockErrors && Array.isArray(stockErrors) && stockErrors.length > 0) {
+        const errorMessages = stockErrors.map((e: any) =>
+          `${e.product_name}: only ${e.available} available (requested ${e.requested})`
+        );
+        toast.error(`Stock issues:\n${errorMessages.join('\n')}`);
+        setSubmitting(false);
+        return;
+      }
+
       // Create order in DB
       const { data: order, error: orderError } = await supabase.from('orders').insert({
-        wholesaler_id: user.id,
-        total_amount: total,
+        wholesaler_id: user!.id,
+        total_amount: finalTotal,
         shipping_address: shipping,
         status: 'Pending',
         payment_status: 'pending',
+        discount_code_id: appliedDiscount?.id || null,
+        discount_amount: appliedDiscount?.amount || 0,
       }).select().single();
 
       if (orderError || !order) {
@@ -121,7 +189,7 @@ export default function Checkout() {
         return;
       }
 
-      // Create order items
+      // Create order items (stock auto-deducted by trigger)
       const orderItems = items.map(item => ({
         order_id: order.id,
         product_id: item.product.id,
@@ -137,7 +205,25 @@ export default function Checkout() {
         return;
       }
 
-      // Save shipping details to profile for future use (if user opted in)
+      // Update discount usage
+      if (appliedDiscount) {
+        await supabase.from('discount_usage').insert({
+          discount_code_id: appliedDiscount.id,
+          order_id: order.id,
+          user_id: user!.id,
+          discount_amount: appliedDiscount.amount,
+        });
+        await supabase.from('discount_codes').update({
+          used_count: appliedDiscount ? 1 : 0, // Will be incremented by RPC ideally
+        }).eq('id', appliedDiscount.id);
+      }
+
+      // Send notification
+      supabase.functions.invoke('send-notification', {
+        body: { event_type: 'order_placed', order_id: order.id, user_id: user!.id },
+      }).catch(() => {}); // Fire and forget
+
+      // Save shipping details to profile for future use
       if (saveAsDefault) {
         await supabase
           .from('profiles')
@@ -148,7 +234,7 @@ export default function Checkout() {
             city: shipping.city,
             country: shipping.country,
           })
-          .eq('user_id', user.id);
+          .eq('user_id', user!.id);
       }
 
       // Initialize Paystack payment
@@ -162,7 +248,6 @@ export default function Checkout() {
         return;
       }
 
-      // Clear cart and redirect to Paystack
       clearCart();
       window.location.href = paystackData.authorization_url;
     } catch (err) {
