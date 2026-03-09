@@ -20,6 +20,7 @@ type SortOption = 'newest' | 'price_low' | 'price_high' | 'name_az' | 'moq_low';
 export default function Products() {
   const { user } = useAuth();
   const { isInWishlist, toggle: toggleWishlist } = useWishlist();
+  const { format } = useCurrency();
   const { data: dbProducts, isLoading, error } = useProducts();
   const { data: dbCategories } = useCategories();
 
