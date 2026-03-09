@@ -168,6 +168,7 @@ export default function ProducerDashboard() {
           <TabsTrigger value="returns"><RotateCcw className="mr-1 h-4 w-4" /> Returns</TabsTrigger>
           <TabsTrigger value="invoices"><DollarSign className="mr-1 h-4 w-4" /> Invoices</TabsTrigger>
           <TabsTrigger value="forecast"><Sparkles className="mr-1 h-4 w-4" /> AI Forecast</TabsTrigger>
+          <TabsTrigger value="discounts"><Percent className="mr-1 h-4 w-4" /> Discounts</TabsTrigger>
           <TabsTrigger value="pos"><CreditCard className="mr-1 h-4 w-4" /> POS</TabsTrigger>
           <TabsTrigger value="team"><Users className="mr-1 h-4 w-4" /> Team</TabsTrigger>
           <TabsTrigger value="payouts"><Wallet className="mr-1 h-4 w-4" /> Payouts</TabsTrigger>
