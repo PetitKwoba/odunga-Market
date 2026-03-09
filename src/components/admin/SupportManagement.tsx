@@ -53,10 +53,7 @@ export default function SupportManagement() {
   const fetchTickets = async () => {
     let query = supabase
       .from('support_tickets')
-      .select(`
-        *,
-        profiles!support_tickets_user_id_fkey(name, email)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (statusFilter !== 'all') {
