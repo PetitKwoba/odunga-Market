@@ -22,6 +22,57 @@ export default function Checkout() {
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Fetch user profile and last order to pre-fill shipping details
+  useEffect(() => {
+    const fetchShippingDetails = async () => {
+      if (!user) return;
+
+      try {
+        // Fetch user profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name, phone, address, city, country')
+          .eq('user_id', user.id)
+          .single();
+
+        // Fetch most recent order to get last used shipping address
+        const { data: lastOrder } = await supabase
+          .from('orders')
+          .select('shipping_address')
+          .eq('wholesaler_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        // Prioritize last order's shipping address, fallback to profile
+        if (lastOrder?.shipping_address) {
+          const addr = lastOrder.shipping_address as ShippingAddress;
+          setShipping({
+            name: addr.name || '',
+            address: addr.address || '',
+            city: addr.city || '',
+            country: addr.country || '',
+            phone: addr.phone || '',
+          });
+        } else if (profile) {
+          setShipping({
+            name: profile.name || '',
+            address: profile.address || '',
+            city: profile.city || '',
+            country: profile.country || '',
+            phone: profile.phone || '',
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching shipping details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchShippingDetails();
+  }, [user]);
+
   if (!user || user.role !== 'wholesaler') {
     return (
       <div className="container mx-auto flex flex-col items-center px-4 py-20">
