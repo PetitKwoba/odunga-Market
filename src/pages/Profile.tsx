@@ -439,6 +439,10 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="notifications" className="mt-4">
+          <NotificationPreferences />
+        </TabsContent>
       </Tabs>
 
       <div className="mt-6 flex justify-end">
