@@ -7,11 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Package, ArrowLeft, ShoppingCart, Shield, Clock, Boxes, Copy, Share2 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { Product, BulkTier } from '@/lib/types';
 import ProductReviews from '@/components/ProductReviews';
+import StoreReviews from '@/components/StoreReviews';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -48,7 +50,6 @@ export default function ProductDetail() {
 
   const bulkPricing: BulkTier[] = Array.isArray(product.bulk_pricing) ? product.bulk_pricing as BulkTier[] : [];
 
-  // Convert to Product type for cart
   const cartProduct: Product = {
     id: product.id,
     producer_id: product.producer_id,
@@ -123,6 +124,11 @@ export default function ProductDetail() {
           <h1 className="mt-3 font-display text-3xl font-bold">{product.name}</h1>
           <p className="mt-1 text-muted-foreground">{product.producer_name} · {product.producer_country}</p>
 
+          {/* Compact store rating inline */}
+          <div className="mt-2">
+            <StoreReviews storeId={product.producer_id} compact />
+          </div>
+
           <p className="mt-4 text-foreground/80">{product.description}</p>
 
           <div className="mt-6 flex items-baseline gap-2">
@@ -189,13 +195,28 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      {/* Reviews Section */}
+      {/* Reviews Section - Tabbed for Product & Store */}
       <div className="mt-12">
-        <ProductReviews 
-          productId={product.id} 
-          producerId={product.producer_id}
-          showWriteReview={user?.role === 'wholesaler'}
-        />
+        <Tabs defaultValue="product-reviews">
+          <TabsList>
+            <TabsTrigger value="product-reviews">Product Reviews</TabsTrigger>
+            <TabsTrigger value="store-reviews">Store Reviews</TabsTrigger>
+          </TabsList>
+          <TabsContent value="product-reviews" className="mt-4">
+            <ProductReviews 
+              productId={product.id} 
+              producerId={product.producer_id}
+              showWriteReview={user?.role === 'wholesaler'}
+            />
+          </TabsContent>
+          <TabsContent value="store-reviews" className="mt-4">
+            <StoreReviews
+              storeId={product.producer_id}
+              storeName={product.producer_name}
+              showWriteReview={user?.role === 'wholesaler'}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
