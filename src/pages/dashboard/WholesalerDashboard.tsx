@@ -134,6 +134,11 @@ export default function WholesalerDashboard() {
           </div>
         </TabsContent>
 
+        {/* ─── MESSAGES TAB ─── */}
+        <TabsContent value="messages" className="mt-4">
+          <DirectMessaging />
+        </TabsContent>
+
         <TabsContent value="shipments" className="mt-4">
           <ShipmentTracking mode="wholesaler" />
         </TabsContent>
