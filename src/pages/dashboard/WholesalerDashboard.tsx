@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, ShoppingCart, Link2, DollarSign, Users, MessageCircle, CreditCard, PackagePlus, Truck, FileText, RotateCcw, Mail, RefreshCw } from 'lucide-react';
+import { Copy, ShoppingCart, Link2, DollarSign, Users, MessageCircle, CreditCard, PackagePlus, Truck, FileText, RotateCcw, Mail, RefreshCw, BookmarkPlus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import OrderChat from '@/components/OrderChat';
@@ -17,6 +17,7 @@ import RFQSystem from '@/components/RFQSystem';
 import ReturnsManagement from '@/components/ReturnsManagement';
 import DirectMessaging from '@/components/DirectMessaging';
 import ExportCSVButton from '@/components/ExportCSVButton';
+import SavedCarts from '@/components/SavedCarts';
 
 export default function WholesalerDashboard() {
   const { user } = useAuth();
@@ -52,6 +53,7 @@ export default function WholesalerDashboard() {
           <TabsTrigger value="shipments"><Truck className="mr-1 h-4 w-4" /> Shipments</TabsTrigger>
           <TabsTrigger value="rfq"><FileText className="mr-1 h-4 w-4" /> RFQ</TabsTrigger>
           <TabsTrigger value="returns"><RotateCcw className="mr-1 h-4 w-4" /> Returns</TabsTrigger>
+          <TabsTrigger value="templates"><BookmarkPlus className="mr-1 h-4 w-4" /> Templates</TabsTrigger>
           <TabsTrigger value="pos"><CreditCard className="mr-1 h-4 w-4" /> POS</TabsTrigger>
           <TabsTrigger value="referrals">Referrals</TabsTrigger>
         </TabsList>
@@ -164,6 +166,10 @@ export default function WholesalerDashboard() {
 
         <TabsContent value="returns" className="mt-4">
           <ReturnsManagement mode="wholesaler" />
+        </TabsContent>
+
+        <TabsContent value="templates" className="mt-4">
+          <SavedCarts />
         </TabsContent>
 
         <TabsContent value="pos" className="mt-4">

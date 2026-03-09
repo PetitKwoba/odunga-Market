@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Trash2, ArrowLeft, ShoppingCart, Info, Tag, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ShippingAddress } from '@/lib/types';
+import ShippingCalculator from '@/components/ShippingCalculator';
 
 const PLATFORM_FEE_PERCENT = 5;
 
@@ -373,6 +374,8 @@ export default function Checkout() {
               </div>
             </CardContent>
           </Card>
+
+          <ShippingCalculator totalWeight={items.reduce((sum, item) => sum + item.quantity * 0.5, 0)} />
         </div>
 
         <div>
