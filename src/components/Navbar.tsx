@@ -6,6 +6,7 @@ import { ShoppingCart, Menu, LogOut, LayoutDashboard, UserCircle } from 'lucide-
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
+import NotificationCenter from '@/components/NotificationCenter';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -59,6 +60,7 @@ export default function Navbar() {
           )}
           {user ? (
             <>
+              <NotificationCenter />
               <Button variant="outline" size="sm" onClick={() => navigate(dashboardPath)}>
                 <LayoutDashboard className="mr-1 h-4 w-4" /> Dashboard
               </Button>
