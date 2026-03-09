@@ -374,6 +374,10 @@ export default function AdminPanel() {
           <DisputeManagement profiles={profiles} />
         </TabsContent>
 
+        <TabsContent value="support" className="mt-4">
+          <SupportManagement />
+        </TabsContent>
+
         <TabsContent value="referrals" className="mt-4">
           <SearchableTable
             data={referrals}
