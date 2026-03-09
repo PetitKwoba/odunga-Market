@@ -12,10 +12,10 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
-  MessageCircle, Send, Search, Plus, Pencil, Trash2, ChevronDown, Star
+  MessageCircle, Send, Search, Plus, Pencil, Trash2, ChevronDown, Star, AlertTriangle, BarChart3, Clock, CheckCircle2, UserPlus
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, differenceInHours } from 'date-fns';
 
 interface Ticket {
   id: string;
@@ -28,6 +28,9 @@ interface Ticket {
   assigned_to: string | null;
   created_at: string;
   updated_at: string;
+  first_response_at: string | null;
+  sla_breached: boolean;
+  escalated: boolean;
   rating?: number | null;
   rating_comment?: string | null;
   user_name?: string;
@@ -48,6 +51,24 @@ interface CannedResponse {
   content: string;
   category: string;
   created_at: string;
+}
+
+interface SupportAgent {
+  user_id: string;
+  name: string;
+  email: string;
+  business_name?: string;
+}
+
+interface Analytics {
+  total_tickets: number;
+  open_tickets: number;
+  avg_rating: number;
+  avg_response_time_hours: number;
+  avg_resolution_time_hours: number;
+  resolution_rate: number;
+  by_category: { category: string; count: number }[];
+  by_priority: { priority: string; count: number }[];
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -100,7 +121,15 @@ export default function SupportManagement() {
   const [cannedForm, setCannedForm] = useState({ title: '', content: '', category: 'general' });
   const [cannedSearch, setCannedSearch] = useState('');
 
-  useEffect(() => { fetchTickets(); fetchCanned(); }, [statusFilter, priorityFilter]);
+  // Assignment
+  const [agents, setAgents] = useState<SupportAgent[]>([]);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [assigningTicket, setAssigningTicket] = useState<Ticket | null>(null);
+
+  // Analytics
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
+
+  useEffect(() => { fetchTickets(); fetchCanned(); fetchAgents(); fetchAnalytics(); }, [statusFilter, priorityFilter]);
 
   // auto-scroll messages
   useEffect(() => {
@@ -160,6 +189,67 @@ export default function SupportManagement() {
     );
   };
 
+  const fetchAgents = async () => {
+    // Fetch admins and producers for assignment
+    const { data: adminRoles } = await supabase.from('user_roles').select('user_id').or('role.eq.admin,role.eq.producer');
+    if (!adminRoles) return;
+
+    const userIds = adminRoles.map((r: any) => r.user_id);
+    const { data: profiles } = await supabase.from('profiles').select('user_id, name, email, business_name').in('user_id', userIds);
+    setAgents(profiles || []);
+  };
+
+  const fetchAnalytics = async () => {
+    const { data: allTickets } = await supabase.from('support_tickets').select('*');
+    if (!allTickets || allTickets.length === 0) { setAnalytics(null); return; }
+
+    const total = allTickets.length;
+    const open = allTickets.filter((t: any) => t.status === 'open').length;
+    const resolved = allTickets.filter((t: any) => ['resolved', 'closed'].includes(t.status)).length;
+    const rated = allTickets.filter((t: any) => t.rating !== null);
+    const avgRating = rated.length ? rated.reduce((sum, t: any) => sum + (t.rating || 0), 0) / rated.length : 0;
+
+    // Response time (first_response_at - created_at)
+    const responded = allTickets.filter((t: any) => t.first_response_at);
+    const avgResponseHours = responded.length
+      ? responded.reduce((sum, t: any) => sum + differenceInHours(new Date(t.first_response_at), new Date(t.created_at)), 0) / responded.length
+      : 0;
+
+    // Resolution time (updated_at - created_at for resolved tickets)
+    const resolvedTickets = allTickets.filter((t: any) => ['resolved', 'closed'].includes(t.status));
+    const avgResolutionHours = resolvedTickets.length
+      ? resolvedTickets.reduce((sum, t: any) => sum + differenceInHours(new Date(t.updated_at), new Date(t.created_at)), 0) / resolvedTickets.length
+      : 0;
+
+    const resolutionRate = (resolved / total) * 100;
+
+    // Group by category & priority
+    const byCategory = Object.entries(
+      allTickets.reduce((acc: any, t: any) => {
+        acc[t.category] = (acc[t.category] || 0) + 1;
+        return acc;
+      }, {})
+    ).map(([category, count]) => ({ category, count: count as number }));
+
+    const byPriority = Object.entries(
+      allTickets.reduce((acc: any, t: any) => {
+        acc[t.priority] = (acc[t.priority] || 0) + 1;
+        return acc;
+      }, {})
+    ).map(([priority, count]) => ({ priority, count: count as number }));
+
+    setAnalytics({
+      total_tickets: total,
+      open_tickets: open,
+      avg_rating: avgRating,
+      avg_response_time_hours: avgResponseHours,
+      avg_resolution_time_hours: avgResolutionHours,
+      resolution_rate: resolutionRate,
+      by_category: byCategory,
+      by_priority: byPriority,
+    });
+  };
+
   const handleTicketClick = async (ticket: Ticket) => {
     setSelectedTicket(ticket);
     setNewMessage('');
@@ -179,6 +269,12 @@ export default function SupportManagement() {
     if (!newMessage.trim() || !selectedTicket) return;
     setSending(true);
     const { data: { user } } = await supabase.auth.getUser();
+
+    // Update first_response_at if this is the first admin response
+    if (!selectedTicket.first_response_at) {
+      await supabase.from('support_tickets').update({ first_response_at: new Date().toISOString() }).eq('id', selectedTicket.id);
+    }
+
     const { error } = await supabase.from('support_messages').insert({
       ticket_id: selectedTicket.id,
       sender_id: user?.id,
@@ -189,8 +285,19 @@ export default function SupportManagement() {
       setNewMessage('');
       setShowCannedPicker(false);
       await fetchMessages(selectedTicket.id);
+      fetchTickets();
     }
     setSending(false);
+  };
+
+  const handleAssignTicket = async (agentId: string | null) => {
+    if (!assigningTicket) return;
+    const { error } = await supabase.from('support_tickets').update({ assigned_to: agentId }).eq('id', assigningTicket.id);
+    if (error) { toast.error('Failed to assign ticket'); return; }
+    toast.success(agentId ? 'Ticket assigned' : 'Assignment removed');
+    setAssignDialogOpen(false);
+    fetchTickets();
+    if (selectedTicket?.id === assigningTicket.id) setSelectedTicket({ ...selectedTicket, assigned_to: agentId });
   };
 
   // ── Canned responses ───────────────────────────────────────────────────────
@@ -262,6 +369,11 @@ export default function SupportManagement() {
       r.category.toLowerCase().includes(cannedSearch.toLowerCase())
   );
 
+  const openAssignDialog = (ticket: Ticket) => {
+    setAssigningTicket(ticket);
+    setAssignDialogOpen(true);
+  };
+
   // ── JSX ────────────────────────────────────────────────────────────────────
 
   return (
@@ -270,6 +382,9 @@ export default function SupportManagement() {
         <TabsList>
           <TabsTrigger value="tickets">
             <MessageCircle className="mr-1.5 h-4 w-4" /> Tickets
+          </TabsTrigger>
+          <TabsTrigger value="analytics">
+            <BarChart3 className="mr-1.5 h-4 w-4" /> Analytics
           </TabsTrigger>
           <TabsTrigger value="canned">
             Canned Responses
@@ -334,12 +449,15 @@ export default function SupportManagement() {
                                 {ticket.priority.toUpperCase()}
                               </Badge>
                               <Badge variant="outline">{ticket.category}</Badge>
+                              {ticket.sla_breached && <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> SLA Breach</Badge>}
+                              {ticket.escalated && <Badge className="bg-purple-500/10 text-purple-700"><AlertTriangle className="h-3 w-3 mr-1" /> Escalated</Badge>}
                               {ticket.rating && <StarRating value={ticket.rating} />}
                             </div>
                             <h4 className="truncate font-semibold">{ticket.subject}</h4>
                             <p className="line-clamp-1 text-sm text-muted-foreground">{ticket.description}</p>
                             <p className="mt-1 text-xs text-muted-foreground">
                               {ticket.user_name} ({ticket.user_email}) · {formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true })}
+                              {ticket.assigned_to && <span className="ml-2 text-primary">• Assigned</span>}
                             </p>
                           </div>
                         </div>
@@ -370,8 +488,13 @@ export default function SupportManagement() {
                         <SelectItem value="closed">Closed</SelectItem>
                       </SelectContent>
                     </Select>
+                    <Button variant="outline" size="sm" onClick={() => openAssignDialog(selectedTicket)} className="gap-1.5">
+                      <UserPlus className="h-4 w-4" />
+                      {selectedTicket.assigned_to ? 'Reassign' : 'Assign'}
+                    </Button>
                     <Badge className={priorityColor[selectedTicket.priority]}>{selectedTicket.priority.toUpperCase()}</Badge>
                     <Badge variant="outline">{selectedTicket.category}</Badge>
+                    {selectedTicket.sla_breached && <Badge variant="destructive" className="gap-1"><AlertTriangle className="h-3 w-3" /> SLA Breach</Badge>}
                     {selectedTicket.rating && (
                       <div className="flex items-center gap-1.5">
                         <StarRating value={selectedTicket.rating} />
@@ -480,6 +603,101 @@ export default function SupportManagement() {
           </Dialog>
         </TabsContent>
 
+        {/* ── Analytics tab ── */}
+        <TabsContent value="analytics" className="space-y-6">
+          {analytics ? (
+            <>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Total Tickets</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">{analytics.total_tickets}</div>
+                    <p className="text-xs text-muted-foreground mt-1">{analytics.open_tickets} currently open</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Avg. Rating</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2">
+                      <div className="text-3xl font-bold">{analytics.avg_rating.toFixed(1)}</div>
+                      <StarRating value={Math.round(analytics.avg_rating)} />
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Avg. Response Time</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-muted-foreground" />
+                      <div className="text-3xl font-bold">{analytics.avg_response_time_hours.toFixed(1)}h</div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Resolution Rate</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <div className="text-3xl font-bold">{analytics.resolution_rate.toFixed(1)}%</div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Avg. {analytics.avg_resolution_time_hours.toFixed(1)}h to resolve</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Tickets by Category</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {analytics.by_category.map((cat) => (
+                        <div key={cat.category} className="flex items-center justify-between">
+                          <Badge variant="outline" className="capitalize">{cat.category}</Badge>
+                          <span className="font-semibold">{cat.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Tickets by Priority</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {analytics.by_priority.map((pri) => (
+                        <div key={pri.priority} className="flex items-center justify-between">
+                          <Badge className={priorityColor[pri.priority]} variant="secondary">
+                            {pri.priority.toUpperCase()}
+                          </Badge>
+                          <span className="font-semibold">{pri.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          ) : (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <BarChart3 className="mb-4 h-12 w-12 text-muted-foreground/40" />
+                <p className="text-muted-foreground">No analytics data available yet</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
         {/* ── Canned responses tab ── */}
         <TabsContent value="canned" className="space-y-4">
           <Card>
@@ -577,6 +795,40 @@ export default function SupportManagement() {
           <div className="flex justify-end gap-3">
             <Button variant="outline" onClick={() => setCannedDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleSaveCanned}>{editingCanned ? 'Save Changes' : 'Create'}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assignment dialog */}
+      <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Assign Ticket</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            <p className="text-sm text-muted-foreground">Choose a support agent or producer to handle this ticket</p>
+            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => handleAssignTicket(null)}
+              >
+                Unassign
+              </Button>
+              {agents.map((agent) => (
+                <Button
+                  key={agent.user_id}
+                  variant={assigningTicket?.assigned_to === agent.user_id ? 'default' : 'outline'}
+                  className="w-full justify-start"
+                  onClick={() => handleAssignTicket(agent.user_id)}
+                >
+                  <div className="text-left">
+                    <p className="font-medium">{agent.business_name || agent.name}</p>
+                    <p className="text-xs text-muted-foreground">{agent.email}</p>
+                  </div>
+                </Button>
+              ))}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
