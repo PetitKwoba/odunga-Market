@@ -65,6 +65,7 @@ export default function WholesalerDashboard() {
                         <TableHead>Total</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Chat</TableHead>
+                        <TableHead></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
