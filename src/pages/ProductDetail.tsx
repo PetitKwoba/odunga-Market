@@ -24,6 +24,7 @@ export default function ProductDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addItem } = useCart();
+  const { format } = useCurrency();
   const { data: products, isLoading } = useProducts();
   const [qty, setQty] = useState('');
   const { isInWishlist, toggle: toggleWishlist } = useWishlist();
