@@ -20,6 +20,7 @@ import ExportCSVButton from '@/components/ExportCSVButton';
 
 export default function WholesalerDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [orders, setOrders] = useState<any[]>([]);
   const [referrals, setReferrals] = useState<any[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
