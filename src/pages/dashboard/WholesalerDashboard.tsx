@@ -91,6 +91,18 @@ export default function WholesalerDashboard() {
                               <MessageCircle className="h-3 w-3" />
                             </Button>
                           </TableCell>
+                          <TableCell>
+                            {(o.payment_status === 'paid' || o.status === 'Completed') && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setPosDialogOrderId(o.id)}
+                                className="text-primary hover:text-primary"
+                              >
+                                <PackagePlus className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
