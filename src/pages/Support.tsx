@@ -148,22 +148,26 @@ export default function Support() {
 
     setCreating(true);
 
-    const ticketData: Record<string, any> = {
-      subject: subject.trim(),
-      description: description.trim(),
-      category,
-      priority,
-      status: 'open',
-    };
+    const insertObj = user
+      ? {
+          user_id: user.id,
+          subject: subject.trim(),
+          description: description.trim(),
+          category,
+          priority,
+          status: 'open' as const,
+        }
+      : {
+          subject: subject.trim(),
+          description: description.trim(),
+          category,
+          priority,
+          status: 'open' as const,
+          guest_name: guestName.trim(),
+          guest_email: guestEmail.trim(),
+        };
 
-    if (user) {
-      ticketData.user_id = user.id;
-    } else {
-      ticketData.guest_name = guestName.trim();
-      ticketData.guest_email = guestEmail.trim();
-    }
-
-    const { data, error } = await supabase.from('support_tickets').insert(ticketData).select('id').single();
+    const { data, error } = await supabase.from('support_tickets').insert(insertObj).select('id').single();
 
     if (error) {
       console.error('Error creating ticket:', error);
