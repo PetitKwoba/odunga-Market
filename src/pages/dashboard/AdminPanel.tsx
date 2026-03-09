@@ -228,6 +228,7 @@ export default function AdminPanel() {
           <TabsTrigger value="orders">Orders</TabsTrigger>
           <TabsTrigger value="payouts">Payouts</TabsTrigger>
           <TabsTrigger value="disputes"><AlertTriangle className="mr-1.5 h-4 w-4" /> Disputes</TabsTrigger>
+          <TabsTrigger value="support"><MessageCircle className="mr-1.5 h-4 w-4" /> Support</TabsTrigger>
           <TabsTrigger value="referrals">Referrals</TabsTrigger>
           <TabsTrigger value="pos">POS</TabsTrigger>
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
