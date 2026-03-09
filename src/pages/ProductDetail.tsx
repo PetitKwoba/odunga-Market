@@ -149,7 +149,7 @@ export default function ProductDetail() {
           <p className="mt-4 text-foreground/80">{product.description}</p>
 
           <div className="mt-6 flex items-baseline gap-2">
-            <span className="font-display text-3xl font-bold">${basePrice.toFixed(2)}</span>
+            <span className="font-display text-3xl font-bold">{format(basePrice)}</span>
             <span className="text-muted-foreground">/ unit</span>
           </div>
 
