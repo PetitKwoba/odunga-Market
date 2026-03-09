@@ -294,11 +294,19 @@ export default function Products() {
           {filtered.map(p => (
             <Link key={p.id} to={`/products/${p.id}`}>
               <Card className="h-full overflow-hidden transition-all hover:shadow-md hover:-translate-y-0.5">
-                <div className="aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden">
+                <div className="aspect-[4/3] bg-muted flex items-center justify-center overflow-hidden relative">
                   {p.images && p.images.length > 0 && p.images[0] !== '/placeholder.svg' ? (
                     <img src={p.images[0]} alt={p.name} className="h-full w-full object-cover" loading="lazy" />
                   ) : (
                     <Package className="h-12 w-12 text-muted-foreground/40" />
+                  )}
+                  {user && (
+                    <button
+                      className="absolute top-2 right-2 rounded-full bg-background/80 backdrop-blur-sm p-1.5 transition-colors hover:bg-background"
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleWishlist(p.id); }}
+                    >
+                      <Heart className={`h-4 w-4 ${isInWishlist(p.id) ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+                    </button>
                   )}
                 </div>
                 <CardContent className="p-4">
