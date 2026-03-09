@@ -103,15 +103,25 @@ export default function WholesalerDashboard() {
                               <MessageCircle className="h-3 w-3" />
                             </Button>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="space-x-1">
                             {(o.payment_status === 'paid' || o.status === 'Completed') && (
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setPosDialogOrderId(o.id)}
-                                className="text-primary hover:text-primary"
+                                title="Add to POS"
                               >
                                 <PackagePlus className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {o.status === 'Completed' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => navigate(`/products`)}
+                                title="Reorder"
+                              >
+                                <RefreshCw className="h-4 w-4" />
                               </Button>
                             )}
                           </TableCell>
