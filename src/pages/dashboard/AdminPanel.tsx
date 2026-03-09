@@ -20,6 +20,10 @@ import DisputeManagement from '@/components/admin/DisputeManagement';
 import AdminRealtimeAlerts from '@/components/admin/AdminRealtimeAlerts';
 import SupportManagement from '@/components/admin/SupportManagement';
 import DiscountManager from '@/components/DiscountManager';
+import AdminCreateUser from '@/components/admin/AdminCreateUser';
+import AdminStartConversation from '@/components/admin/AdminStartConversation';
+import AdminSupportAssignment from '@/components/admin/AdminSupportAssignment';
+import AdminCustomRoles from '@/components/admin/AdminCustomRoles';
 
 interface Profile {
   user_id: string;

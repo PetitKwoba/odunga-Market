@@ -73,7 +73,9 @@ export default function AdminCustomRoles() {
     if (data) {
       setRoles(data.map(role => ({
         ...role,
-        permissions: Array.isArray(role.permissions) ? role.permissions : [],
+        permissions: Array.isArray(role.permissions) 
+          ? role.permissions.filter((p): p is string => typeof p === 'string')
+          : [],
       })));
     }
   };
