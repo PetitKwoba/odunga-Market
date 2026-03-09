@@ -130,6 +130,14 @@ export default function WholesalerDashboard() {
           </div>
         </TabsContent>
 
+        <TabsContent value="shipments" className="mt-4">
+          <ShipmentTracking mode="wholesaler" />
+        </TabsContent>
+
+        <TabsContent value="rfq" className="mt-4">
+          <RFQSystem mode="wholesaler" />
+        </TabsContent>
+
         <TabsContent value="pos" className="mt-4">
           <POSDashboard />
         </TabsContent>
