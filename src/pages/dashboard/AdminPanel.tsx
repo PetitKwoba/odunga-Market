@@ -224,28 +224,30 @@ export default function AdminPanel() {
       </div>
 
       <Tabs defaultValue="analytics" className="mt-6">
-        <TabsList className="flex flex-wrap">
-          <TabsTrigger value="analytics"><BarChart3 className="mr-1.5 h-4 w-4" /> Analytics</TabsTrigger>
-          <TabsTrigger value="pending">
-            Pending {pendingUsers.length > 0 && <Badge className="ml-1.5 bg-secondary text-secondary-foreground">{pendingUsers.length}</Badge>}
-          </TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="products">Products</TabsTrigger>
-          <TabsTrigger value="orders">Orders</TabsTrigger>
-          <TabsTrigger value="payouts">Payouts</TabsTrigger>
-          <TabsTrigger value="disputes"><AlertTriangle className="mr-1.5 h-4 w-4" /> Disputes</TabsTrigger>
-          <TabsTrigger value="support"><MessageCircle className="mr-1.5 h-4 w-4" /> Support</TabsTrigger>
-          <TabsTrigger value="referrals">Referrals</TabsTrigger>
-          <TabsTrigger value="pos">POS</TabsTrigger>
-          <TabsTrigger value="invoices">Invoices</TabsTrigger>
-          <TabsTrigger value="team">Team</TabsTrigger>
-          <TabsTrigger value="messages">Messages</TabsTrigger>
-          <TabsTrigger value="discounts"><Percent className="mr-1.5 h-4 w-4" /> Discounts</TabsTrigger>
-          <TabsTrigger value="audit"><ScrollText className="mr-1.5 h-4 w-4" /> Audit</TabsTrigger>
-          <TabsTrigger value="active-users"><Activity className="mr-1.5 h-4 w-4" /> Active Users</TabsTrigger>
-          <TabsTrigger value="user-management">User Management</TabsTrigger>
-          <TabsTrigger value="settings"><SettingsIcon className="mr-1.5 h-4 w-4" /> Settings</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-4 px-4">
+          <TabsList className="inline-flex w-max gap-1">
+            <TabsTrigger value="analytics"><BarChart3 className="mr-1.5 h-4 w-4" /> Analytics</TabsTrigger>
+            <TabsTrigger value="pending">
+              Pending {pendingUsers.length > 0 && <Badge className="ml-1.5 bg-secondary text-secondary-foreground">{pendingUsers.length}</Badge>}
+            </TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="orders">Orders</TabsTrigger>
+            <TabsTrigger value="payouts">Payouts</TabsTrigger>
+            <TabsTrigger value="disputes"><AlertTriangle className="mr-1.5 h-4 w-4" /> Disputes</TabsTrigger>
+            <TabsTrigger value="support"><MessageCircle className="mr-1.5 h-4 w-4" /> Support</TabsTrigger>
+            <TabsTrigger value="referrals">Referrals</TabsTrigger>
+            <TabsTrigger value="pos">POS</TabsTrigger>
+            <TabsTrigger value="invoices">Invoices</TabsTrigger>
+            <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="messages">Messages</TabsTrigger>
+            <TabsTrigger value="discounts"><Percent className="mr-1.5 h-4 w-4" /> Discounts</TabsTrigger>
+            <TabsTrigger value="audit"><ScrollText className="mr-1.5 h-4 w-4" /> Audit</TabsTrigger>
+            <TabsTrigger value="active-users"><Activity className="mr-1.5 h-4 w-4" /> Active Users</TabsTrigger>
+            <TabsTrigger value="user-management">User Management</TabsTrigger>
+            <TabsTrigger value="settings"><SettingsIcon className="mr-1.5 h-4 w-4" /> Settings</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="discounts" className="mt-4">
           <DiscountManager />
