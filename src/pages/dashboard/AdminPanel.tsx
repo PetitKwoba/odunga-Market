@@ -20,6 +20,10 @@ import DisputeManagement from '@/components/admin/DisputeManagement';
 import AdminRealtimeAlerts from '@/components/admin/AdminRealtimeAlerts';
 import SupportManagement from '@/components/admin/SupportManagement';
 import DiscountManager from '@/components/DiscountManager';
+import AdminCreateUser from '@/components/admin/AdminCreateUser';
+import AdminStartConversation from '@/components/admin/AdminStartConversation';
+import AdminSupportAssignment from '@/components/admin/AdminSupportAssignment';
+import AdminCustomRoles from '@/components/admin/AdminCustomRoles';
 
 interface Profile {
   user_id: string;
@@ -237,6 +241,7 @@ export default function AdminPanel() {
           <TabsTrigger value="messages">Messages</TabsTrigger>
           <TabsTrigger value="discounts"><Percent className="mr-1.5 h-4 w-4" /> Discounts</TabsTrigger>
           <TabsTrigger value="audit"><ScrollText className="mr-1.5 h-4 w-4" /> Audit</TabsTrigger>
+          <TabsTrigger value="user-management">User Management</TabsTrigger>
           <TabsTrigger value="settings"><SettingsIcon className="mr-1.5 h-4 w-4" /> Settings</TabsTrigger>
         </TabsList>
 
@@ -460,6 +465,20 @@ export default function AdminPanel() {
             keyExtractor={msg => msg.id}
             exportFileName="messages"
           />
+        </TabsContent>
+
+        <TabsContent value="user-management" className="mt-4">
+          <div className="space-y-8">
+            <div className="flex gap-4">
+              <AdminCreateUser onUserCreated={fetchData} />
+              <AdminStartConversation />
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2">
+              <AdminSupportAssignment />
+              <AdminCustomRoles />
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="audit" className="mt-4">
