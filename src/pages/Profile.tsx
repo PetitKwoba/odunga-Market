@@ -10,7 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { User as UserIcon, Building2, CreditCard, FileText, Upload, AlertCircle, CheckCircle, Clock, X, Image as ImageIcon } from 'lucide-react';
+import { User as UserIcon, Building2, CreditCard, FileText, Upload, AlertCircle, CheckCircle, Clock, X, Image as ImageIcon, Bell } from 'lucide-react';
+import NotificationPreferences from '@/components/NotificationPreferences';
 import { toast } from 'sonner';
 
 interface ProfileForm {
