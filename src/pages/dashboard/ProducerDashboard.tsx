@@ -158,6 +158,9 @@ export default function ProducerDashboard() {
         <TabsList className="flex-wrap">
           <TabsTrigger value="products">My Products</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="inventory"><Package className="mr-1 h-4 w-4" /> Inventory</TabsTrigger>
+          <TabsTrigger value="shipments"><Truck className="mr-1 h-4 w-4" /> Shipments</TabsTrigger>
+          <TabsTrigger value="rfq"><FileText className="mr-1 h-4 w-4" /> RFQ</TabsTrigger>
           <TabsTrigger value="pos"><CreditCard className="mr-1 h-4 w-4" /> POS</TabsTrigger>
           <TabsTrigger value="team"><Users className="mr-1 h-4 w-4" /> Team</TabsTrigger>
           <TabsTrigger value="payouts"><Wallet className="mr-1 h-4 w-4" /> Payouts</TabsTrigger>
