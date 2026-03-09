@@ -39,8 +39,8 @@ function getNextMonday(): Date {
   return next;
 }
 
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(amount);
+function formatCurrencyLocal(amount: number, format: (a: number) => string) {
+  return format(amount);
 }
 
 function daysUntilMonday(): number {
