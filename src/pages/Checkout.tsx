@@ -131,17 +131,19 @@ export default function Checkout() {
         return;
       }
 
-      // Save shipping details to profile for future use
-      await supabase
-        .from('profiles')
-        .update({
-          name: shipping.name,
-          phone: shipping.phone,
-          address: shipping.address,
-          city: shipping.city,
-          country: shipping.country,
-        })
-        .eq('user_id', user.id);
+      // Save shipping details to profile for future use (if user opted in)
+      if (saveAsDefault) {
+        await supabase
+          .from('profiles')
+          .update({
+            name: shipping.name,
+            phone: shipping.phone,
+            address: shipping.address,
+            city: shipping.city,
+            country: shipping.country,
+          })
+          .eq('user_id', user.id);
+      }
 
       // Initialize Paystack payment
       const callbackUrl = `${window.location.origin}/payment/callback`;
