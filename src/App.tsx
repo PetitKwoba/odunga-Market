@@ -43,6 +43,9 @@ const App = () => (
               <Route path="/products/:id" element={<ProductDetail />} />
               <Route path="/checkout" element={<ProtectedRoute allowedRoles={['wholesaler']}><Checkout /></ProtectedRoute>} />
               <Route path="/payment/callback" element={<PaymentCallback />} />
+              <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
+              <Route path="/support/:id" element={<ProtectedRoute><SupportTicket /></ProtectedRoute>} />
+              <Route path="/help" element={<HelpCenter />} />
               <Route path="/dashboard/referrer" element={<ProtectedRoute allowedRoles={['referrer']}><ReferrerDashboard /></ProtectedRoute>} />
               <Route path="/dashboard/wholesaler" element={<ProtectedRoute allowedRoles={['wholesaler']}><WholesalerDashboard /></ProtectedRoute>} />
               <Route path="/dashboard/producer" element={<ProtectedRoute allowedRoles={['producer']}><ProducerDashboard /></ProtectedRoute>} />
