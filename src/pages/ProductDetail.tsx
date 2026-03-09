@@ -169,7 +169,7 @@ export default function ProductDetail() {
                     {bulkPricing.map((tier, i) => (
                       <TableRow key={i}>
                         <TableCell>{tier.min_qty}{tier.max_qty ? ` – ${tier.max_qty}` : '+'}</TableCell>
-                        <TableCell className="font-semibold">${tier.price.toFixed(2)}</TableCell>
+                        <TableCell className="font-semibold">{format(tier.price)}</TableCell>
                         <TableCell className="text-success">
                           {tier.price < basePrice ? `-${((1 - tier.price / basePrice) * 100).toFixed(0)}%` : '—'}
                         </TableCell>
