@@ -19,11 +19,15 @@ const PLATFORM_FEE_PERCENT = 5;
 export default function Checkout() {
   const { items, updateQuantity, removeItem, clearCart, total } = useCart();
   const { user } = useAuth();
+  const { format } = useCurrency();
   const navigate = useNavigate();
   const [shipping, setShipping] = useState({ name: '', address: '', city: '', country: '', phone: '' });
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saveAsDefault, setSaveAsDefault] = useState(true);
+  const [discountCode, setDiscountCode] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState<{ id: string; code: string; type: string; value: number; amount: number } | null>(null);
+  const [applyingCode, setApplyingCode] = useState(false);
 
   // Fetch user profile and last order to pre-fill shipping details
   useEffect(() => {
