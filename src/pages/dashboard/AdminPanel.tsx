@@ -183,8 +183,13 @@ export default function AdminPanel() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="font-display text-3xl font-bold">Admin Panel</h1>
-      <p className="mt-1 text-muted-foreground">Platform management</p>
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <h1 className="font-display text-3xl font-bold">Admin Panel</h1>
+          <p className="mt-1 text-muted-foreground">Platform management</p>
+        </div>
+        <AdminRealtimeAlerts />
+      </div>
 
       {pendingUsers.length > 0 && (
         <Card className="mt-4 border-secondary/50 bg-secondary/5">
