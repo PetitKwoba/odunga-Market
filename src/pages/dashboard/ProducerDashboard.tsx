@@ -39,9 +39,7 @@ function getNextMonday(): Date {
   return next;
 }
 
-function formatCurrencyLocal(amount: number, format: (a: number) => string) {
-  return format(amount);
-}
+// Currency formatting now uses CurrencyProvider via useCurrency()
 
 function daysUntilMonday(): number {
   const now = new Date();
