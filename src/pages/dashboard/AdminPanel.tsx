@@ -483,6 +483,10 @@ export default function AdminPanel() {
           </div>
         </TabsContent>
 
+        <TabsContent value="active-users" className="mt-4">
+          <ActiveUsersAccessLog profiles={profiles as any} roles={roles} />
+        </TabsContent>
+
         <TabsContent value="audit" className="mt-4">
           <AuditLogs profiles={profiles} />
         </TabsContent>
