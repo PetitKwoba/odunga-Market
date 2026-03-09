@@ -754,6 +754,36 @@ export type Database = {
         }
         Relationships: []
       }
+      support_canned_responses: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       support_messages: {
         Row: {
           attachments: string[] | null
@@ -800,6 +830,9 @@ export type Database = {
           description: string
           id: string
           priority: string
+          rated_at: string | null
+          rating: number | null
+          rating_comment: string | null
           status: string
           subject: string
           updated_at: string
@@ -812,6 +845,9 @@ export type Database = {
           description: string
           id?: string
           priority?: string
+          rated_at?: string | null
+          rating?: number | null
+          rating_comment?: string | null
           status?: string
           subject: string
           updated_at?: string
@@ -824,6 +860,9 @@ export type Database = {
           description?: string
           id?: string
           priority?: string
+          rated_at?: string | null
+          rating?: number | null
+          rating_comment?: string | null
           status?: string
           subject?: string
           updated_at?: string
