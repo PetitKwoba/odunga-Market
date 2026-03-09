@@ -21,6 +21,7 @@ import RFQSystem from '@/components/RFQSystem';
 import ReturnsManagement from '@/components/ReturnsManagement';
 import B2BInvoicing from '@/components/B2BInvoicing';
 import DemandForecast from '@/components/DemandForecast';
+import DiscountManager from '@/components/DiscountManager';
 import { Separator } from '@/components/ui/separator';
 
 const PLATFORM_FEE_PERCENT = 5;

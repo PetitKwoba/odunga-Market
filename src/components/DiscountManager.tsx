@@ -57,10 +57,16 @@ export default function DiscountManager({ mode = 'admin' }: DiscountManagerProps
   }, []);
 
   const fetchDiscounts = async () => {
-    const { data } = await supabase
+    let query = supabase
       .from('discount_codes')
       .select('*')
       .order('created_at', { ascending: false });
+    
+    if (mode === 'producer' && user) {
+      query = query.eq('created_by', user.id);
+    }
+    
+    const { data } = await query;
     if (data) setDiscounts(data as DiscountCode[]);
   };
 
