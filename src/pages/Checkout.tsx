@@ -381,9 +381,41 @@ export default function Checkout() {
           <Card className="sticky top-20">
             <CardHeader><CardTitle className="font-display text-lg">Total</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Items ({items.length})</span><span>${total.toFixed(2)}</span></div>
+              {/* Discount Code */}
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Discount Code</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter code"
+                    value={discountCode}
+                    onChange={e => setDiscountCode(e.target.value.toUpperCase())}
+                    className="font-mono text-sm"
+                    disabled={!!appliedDiscount}
+                  />
+                  {appliedDiscount ? (
+                    <Button variant="outline" size="sm" onClick={() => { setAppliedDiscount(null); setDiscountCode(''); }}>
+                      Remove
+                    </Button>
+                  ) : (
+                    <Button variant="outline" size="sm" onClick={applyDiscount} disabled={applyingCode}>
+                      <Tag className="mr-1 h-3 w-3" /> Apply
+                    </Button>
+                  )}
+                </div>
+                {appliedDiscount && (
+                  <p className="text-xs text-green-600 flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" />
+                    {appliedDiscount.code}: -{appliedDiscount.type === 'percentage' ? `${appliedDiscount.value}%` : `$${appliedDiscount.value}`}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex justify-between text-sm"><span className="text-muted-foreground">Items ({items.length})</span><span>{format(total)}</span></div>
+              {appliedDiscount && (
+                <div className="flex justify-between text-sm text-green-600"><span>Discount</span><span>-{format(appliedDiscount.amount)}</span></div>
+              )}
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">Shipping</span><span className="text-muted-foreground">Arranged by producer</span></div>
-              <div className="border-t pt-3 flex justify-between font-display font-bold text-lg"><span>Total</span><span>${total.toFixed(2)}</span></div>
+              <div className="border-t pt-3 flex justify-between font-display font-bold text-lg"><span>Total</span><span>{format(finalTotal)}</span></div>
               <Button className="w-full mt-2" size="lg" onClick={handleOrder} disabled={submitting}>
                 {submitting ? 'Placing Order...' : 'Pay & Place Order'}
               </Button>
