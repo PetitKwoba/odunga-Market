@@ -230,6 +230,7 @@ export default function ProfilePage() {
             {pendingRequests.length > 0 && <Badge className="ml-1 bg-secondary text-secondary-foreground text-[10px] px-1.5 py-0">{pendingRequests.length}</Badge>}
           </TabsTrigger>
           <TabsTrigger value="notifications" className="gap-1"><Bell className="h-4 w-4" /> Notifications</TabsTrigger>
+          <TabsTrigger value="privacy" className="gap-1">Privacy & Data</TabsTrigger>
         </TabsList>
 
         <TabsContent value="personal" className="mt-4">
