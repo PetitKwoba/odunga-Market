@@ -17,6 +17,7 @@ import UserActionDialog from '@/components/admin/UserActionDialog';
 import PlatformSettings from '@/components/admin/PlatformSettings';
 import AuditLogs from '@/components/admin/AuditLogs';
 import DisputeManagement from '@/components/admin/DisputeManagement';
+import AdminRealtimeAlerts from '@/components/admin/AdminRealtimeAlerts';
 
 interface Profile {
   user_id: string;
