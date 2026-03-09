@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, ShoppingCart, Link2, DollarSign, Users, MessageCircle, CreditCard, PackagePlus, Truck, FileText, RotateCcw, Mail } from 'lucide-react';
+import { Copy, ShoppingCart, Link2, DollarSign, Users, MessageCircle, CreditCard, PackagePlus, Truck, FileText, RotateCcw, Mail, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import OrderChat from '@/components/OrderChat';
