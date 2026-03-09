@@ -272,6 +272,21 @@ export default function ProducerDashboard() {
           </div>
         </TabsContent>
 
+        {/* ─── INVENTORY TAB ─── */}
+        <TabsContent value="inventory" className="mt-4">
+          <InventoryManagement />
+        </TabsContent>
+
+        {/* ─── SHIPMENTS TAB ─── */}
+        <TabsContent value="shipments" className="mt-4">
+          <ShipmentTracking mode="producer" />
+        </TabsContent>
+
+        {/* ─── RFQ TAB ─── */}
+        <TabsContent value="rfq" className="mt-4">
+          <RFQSystem mode="producer" />
+        </TabsContent>
+
         {/* ─── POS TAB ─── */}
         <TabsContent value="pos" className="mt-4">
           <POSDashboard />
