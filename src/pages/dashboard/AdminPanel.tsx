@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Users, Package, ShoppingCart, Link2, CheckCircle, Clock, FileText, Send, Eye, BarChart3, Settings as SettingsIcon, ScrollText, AlertTriangle, CheckCircle2, Power, UserCog, Ban } from 'lucide-react';
+import { Users, Package, ShoppingCart, Link2, CheckCircle, Clock, FileText, Send, Eye, BarChart3, Settings as SettingsIcon, ScrollText, AlertTriangle, CheckCircle2, Power, UserCog, Ban, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import AdminAnalytics from '@/components/AdminAnalytics';
 import SearchableTable from '@/components/admin/SearchableTable';
@@ -18,6 +18,7 @@ import PlatformSettings from '@/components/admin/PlatformSettings';
 import AuditLogs from '@/components/admin/AuditLogs';
 import DisputeManagement from '@/components/admin/DisputeManagement';
 import AdminRealtimeAlerts from '@/components/admin/AdminRealtimeAlerts';
+import SupportManagement from '@/components/admin/SupportManagement';
 
 interface Profile {
   user_id: string;
@@ -227,6 +228,7 @@ export default function AdminPanel() {
           <TabsTrigger value="orders">Orders</TabsTrigger>
           <TabsTrigger value="payouts">Payouts</TabsTrigger>
           <TabsTrigger value="disputes"><AlertTriangle className="mr-1.5 h-4 w-4" /> Disputes</TabsTrigger>
+          <TabsTrigger value="support"><MessageCircle className="mr-1.5 h-4 w-4" /> Support</TabsTrigger>
           <TabsTrigger value="referrals">Referrals</TabsTrigger>
           <TabsTrigger value="pos">POS</TabsTrigger>
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
@@ -370,6 +372,10 @@ export default function AdminPanel() {
 
         <TabsContent value="disputes" className="mt-4">
           <DisputeManagement profiles={profiles} />
+        </TabsContent>
+
+        <TabsContent value="support" className="mt-4">
+          <SupportManagement />
         </TabsContent>
 
         <TabsContent value="referrals" className="mt-4">

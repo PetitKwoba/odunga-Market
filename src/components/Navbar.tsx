@@ -22,7 +22,7 @@ export default function Navbar() {
 
   const navLinks = [
     { label: 'Browse Products', href: '/products' },
-    { label: 'How it Works', href: '/#how-it-works' },
+    { label: 'Help Center', href: '/help' },
   ];
 
   const handleLogout = async () => {
