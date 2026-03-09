@@ -268,6 +268,21 @@ export default function Checkout() {
                   placeholder="Nigeria"
                 />
               </div>
+              <div className="space-y-3 sm:col-span-2 pt-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="saveDefault" 
+                    checked={saveAsDefault} 
+                    onCheckedChange={(checked) => setSaveAsDefault(checked as boolean)}
+                  />
+                  <Label 
+                    htmlFor="saveDefault" 
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    Save as my default shipping address for future orders
+                  </Label>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
