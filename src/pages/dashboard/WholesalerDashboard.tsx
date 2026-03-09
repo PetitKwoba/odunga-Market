@@ -16,6 +16,7 @@ import ShipmentTracking from '@/components/ShipmentTracking';
 import RFQSystem from '@/components/RFQSystem';
 import ReturnsManagement from '@/components/ReturnsManagement';
 import DirectMessaging from '@/components/DirectMessaging';
+import ExportCSVButton from '@/components/ExportCSVButton';
 
 export default function WholesalerDashboard() {
   const { user } = useAuth();
