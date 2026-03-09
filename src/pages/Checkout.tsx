@@ -21,6 +21,7 @@ export default function Checkout() {
   const [shipping, setShipping] = useState({ name: '', address: '', city: '', country: '', phone: '' });
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [saveAsDefault, setSaveAsDefault] = useState(true);
 
   // Fetch user profile and last order to pre-fill shipping details
   useEffect(() => {
