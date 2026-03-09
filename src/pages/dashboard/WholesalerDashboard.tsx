@@ -6,11 +6,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, ShoppingCart, Link2, DollarSign, Users, MessageCircle, CreditCard } from 'lucide-react';
+import { Copy, ShoppingCart, Link2, DollarSign, Users, MessageCircle, CreditCard, PackagePlus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import OrderChat from '@/components/OrderChat';
 import POSDashboard from '@/components/POSDashboard';
+import AddToPOSDialog from '@/components/AddToPOSDialog';
 
 export default function WholesalerDashboard() {
   const { user } = useAuth();
@@ -18,7 +19,7 @@ export default function WholesalerDashboard() {
   const [referrals, setReferrals] = useState<any[]>([]);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [selectedOrderStatus, setSelectedOrderStatus] = useState<string>('');
-
+  const [posDialogOrderId, setPosDialogOrderId] = useState<string | null>(null);
   useEffect(() => {
     if (!user) return;
     supabase.from('orders').select('*').eq('wholesaler_id', user.id).order('created_at', { ascending: false }).then(({ data }) => {
@@ -64,6 +65,7 @@ export default function WholesalerDashboard() {
                         <TableHead>Total</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Chat</TableHead>
+                        <TableHead></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -88,6 +90,18 @@ export default function WholesalerDashboard() {
                             >
                               <MessageCircle className="h-3 w-3" />
                             </Button>
+                          </TableCell>
+                          <TableCell>
+                            {(o.payment_status === 'paid' || o.status === 'Completed') && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setPosDialogOrderId(o.id)}
+                                className="text-primary hover:text-primary"
+                              >
+                                <PackagePlus className="h-4 w-4" />
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -133,6 +147,13 @@ export default function WholesalerDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AddToPOSDialog 
+        orderId={posDialogOrderId || ''}
+        ownerId={user.id}
+        open={!!posDialogOrderId}
+        onOpenChange={(open) => !open && setPosDialogOrderId(null)}
+      />
     </div>
   );
 }
