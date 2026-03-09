@@ -48,7 +48,8 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-2 md:flex">
+          <CurrencySelector />
           {user && user.role === 'wholesaler' && (
             <Button variant="ghost" size="icon" className="relative" onClick={() => navigate('/checkout')}>
               <ShoppingCart className="h-5 w-5" />
