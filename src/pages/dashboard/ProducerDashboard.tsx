@@ -63,6 +63,7 @@ interface Payout {
 
 export default function ProducerDashboard() {
   const { user } = useAuth();
+  const { format: formatCurrency } = useCurrency();
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [payouts, setPayouts] = useState<Payout[]>([]);
