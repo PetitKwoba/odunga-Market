@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Settings, Wallet, Truck, CalendarCheck, Info, Users, Pencil, Clock, CheckCircle2, DollarSign, TrendingUp, MessageCircle, CreditCard, Package, FileText } from 'lucide-react';
+import { Plus, Settings, Wallet, Truck, CalendarCheck, Info, Users, Pencil, Clock, CheckCircle2, DollarSign, TrendingUp, MessageCircle, CreditCard, Package, FileText, RotateCcw, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import StoreTeamTab from '@/components/StoreTeamTab';
 import ProductEditDialog from '@/components/ProductEditDialog';
@@ -18,6 +18,9 @@ import POSDashboard from '@/components/POSDashboard';
 import InventoryManagement from '@/components/InventoryManagement';
 import ShipmentTracking from '@/components/ShipmentTracking';
 import RFQSystem from '@/components/RFQSystem';
+import ReturnsManagement from '@/components/ReturnsManagement';
+import B2BInvoicing from '@/components/B2BInvoicing';
+import DemandForecast from '@/components/DemandForecast';
 import { Separator } from '@/components/ui/separator';
 
 const PLATFORM_FEE_PERCENT = 5;
@@ -161,6 +164,9 @@ export default function ProducerDashboard() {
           <TabsTrigger value="inventory"><Package className="mr-1 h-4 w-4" /> Inventory</TabsTrigger>
           <TabsTrigger value="shipments"><Truck className="mr-1 h-4 w-4" /> Shipments</TabsTrigger>
           <TabsTrigger value="rfq"><FileText className="mr-1 h-4 w-4" /> RFQ</TabsTrigger>
+          <TabsTrigger value="returns"><RotateCcw className="mr-1 h-4 w-4" /> Returns</TabsTrigger>
+          <TabsTrigger value="invoices"><DollarSign className="mr-1 h-4 w-4" /> Invoices</TabsTrigger>
+          <TabsTrigger value="forecast"><Sparkles className="mr-1 h-4 w-4" /> AI Forecast</TabsTrigger>
           <TabsTrigger value="pos"><CreditCard className="mr-1 h-4 w-4" /> POS</TabsTrigger>
           <TabsTrigger value="team"><Users className="mr-1 h-4 w-4" /> Team</TabsTrigger>
           <TabsTrigger value="payouts"><Wallet className="mr-1 h-4 w-4" /> Payouts</TabsTrigger>
@@ -285,6 +291,21 @@ export default function ProducerDashboard() {
         {/* ─── RFQ TAB ─── */}
         <TabsContent value="rfq" className="mt-4">
           <RFQSystem mode="producer" />
+        </TabsContent>
+
+        {/* ─── RETURNS TAB ─── */}
+        <TabsContent value="returns" className="mt-4">
+          <ReturnsManagement mode="producer" />
+        </TabsContent>
+
+        {/* ─── INVOICES TAB ─── */}
+        <TabsContent value="invoices" className="mt-4">
+          <B2BInvoicing />
+        </TabsContent>
+
+        {/* ─── AI FORECAST TAB ─── */}
+        <TabsContent value="forecast" className="mt-4">
+          <DemandForecast />
         </TabsContent>
 
         {/* ─── POS TAB ─── */}

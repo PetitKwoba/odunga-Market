@@ -29,6 +29,7 @@ export interface AppUser {
   bank_account_number: string | null;
   bank_routing_number: string | null;
   payout_method: string | null;
+  preferred_currency: string | null;
 }
 
 interface AuthContextType {
@@ -94,6 +95,7 @@ async function fetchProfile(userId: string): Promise<AppUser | null> {
     bank_account_number: profile.bank_account_number,
     bank_routing_number: profile.bank_routing_number,
     payout_method: profile.payout_method,
+    preferred_currency: profile.preferred_currency || 'USD',
   };
 }
 

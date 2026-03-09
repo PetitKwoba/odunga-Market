@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import NotificationCenter from '@/components/NotificationCenter';
+import CurrencySelector from '@/components/CurrencySelector';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -47,7 +48,8 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-2 md:flex">
+          <CurrencySelector />
           {user && user.role === 'wholesaler' && (
             <Button variant="ghost" size="icon" className="relative" onClick={() => navigate('/checkout')}>
               <ShoppingCart className="h-5 w-5" />

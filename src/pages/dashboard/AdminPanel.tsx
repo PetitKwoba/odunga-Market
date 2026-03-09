@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Users, Package, ShoppingCart, Link2, CheckCircle, Clock, FileText, Send, Eye, BarChart3, Settings as SettingsIcon, ScrollText, AlertTriangle, CheckCircle2, Power, UserCog, Ban, MessageCircle } from 'lucide-react';
+import { Users, Package, ShoppingCart, Link2, CheckCircle, Clock, FileText, Send, Eye, BarChart3, Settings as SettingsIcon, ScrollText, AlertTriangle, CheckCircle2, Power, UserCog, Ban, MessageCircle, Percent } from 'lucide-react';
 import { toast } from 'sonner';
 import AdminAnalytics from '@/components/AdminAnalytics';
 import SearchableTable from '@/components/admin/SearchableTable';
@@ -19,6 +19,7 @@ import AuditLogs from '@/components/admin/AuditLogs';
 import DisputeManagement from '@/components/admin/DisputeManagement';
 import AdminRealtimeAlerts from '@/components/admin/AdminRealtimeAlerts';
 import SupportManagement from '@/components/admin/SupportManagement';
+import DiscountManager from '@/components/DiscountManager';
 
 interface Profile {
   user_id: string;
@@ -234,9 +235,14 @@ export default function AdminPanel() {
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
           <TabsTrigger value="team">Team</TabsTrigger>
           <TabsTrigger value="messages">Messages</TabsTrigger>
+          <TabsTrigger value="discounts"><Percent className="mr-1.5 h-4 w-4" /> Discounts</TabsTrigger>
           <TabsTrigger value="audit"><ScrollText className="mr-1.5 h-4 w-4" /> Audit</TabsTrigger>
           <TabsTrigger value="settings"><SettingsIcon className="mr-1.5 h-4 w-4" /> Settings</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="discounts" className="mt-4">
+          <DiscountManager />
+        </TabsContent>
 
         <TabsContent value="analytics" className="mt-4">
           <AdminAnalytics orders={orders} products={products} profiles={profiles} posTransactions={posTransactions} payouts={payouts} />
