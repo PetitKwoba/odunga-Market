@@ -235,9 +235,14 @@ export default function AdminPanel() {
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
           <TabsTrigger value="team">Team</TabsTrigger>
           <TabsTrigger value="messages">Messages</TabsTrigger>
+          <TabsTrigger value="discounts"><Percent className="mr-1.5 h-4 w-4" /> Discounts</TabsTrigger>
           <TabsTrigger value="audit"><ScrollText className="mr-1.5 h-4 w-4" /> Audit</TabsTrigger>
           <TabsTrigger value="settings"><SettingsIcon className="mr-1.5 h-4 w-4" /> Settings</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="discounts" className="mt-4">
+          <DiscountManager />
+        </TabsContent>
 
         <TabsContent value="analytics" className="mt-4">
           <AdminAnalytics orders={orders} products={products} profiles={profiles} posTransactions={posTransactions} payouts={payouts} />
