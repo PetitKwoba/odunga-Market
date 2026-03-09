@@ -24,6 +24,7 @@ import AdminCreateUser from '@/components/admin/AdminCreateUser';
 import AdminStartConversation from '@/components/admin/AdminStartConversation';
 import AdminSupportAssignment from '@/components/admin/AdminSupportAssignment';
 import AdminCustomRoles from '@/components/admin/AdminCustomRoles';
+import ActiveUsersAccessLog from '@/components/admin/ActiveUsersAccessLog';
 
 interface Profile {
   user_id: string;
