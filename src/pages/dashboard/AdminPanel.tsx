@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Users, Package, ShoppingCart, Link2, CheckCircle, Clock, FileText, Send, Eye, BarChart3, Settings as SettingsIcon, ScrollText, AlertTriangle, CheckCircle2, Power, UserCog, Ban, MessageCircle } from 'lucide-react';
+import { Users, Package, ShoppingCart, Link2, CheckCircle, Clock, FileText, Send, Eye, BarChart3, Settings as SettingsIcon, ScrollText, AlertTriangle, CheckCircle2, Power, UserCog, Ban, MessageCircle, Percent } from 'lucide-react';
 import { toast } from 'sonner';
 import AdminAnalytics from '@/components/AdminAnalytics';
 import SearchableTable from '@/components/admin/SearchableTable';
@@ -19,6 +19,7 @@ import AuditLogs from '@/components/admin/AuditLogs';
 import DisputeManagement from '@/components/admin/DisputeManagement';
 import AdminRealtimeAlerts from '@/components/admin/AdminRealtimeAlerts';
 import SupportManagement from '@/components/admin/SupportManagement';
+import DiscountManager from '@/components/DiscountManager';
 
 interface Profile {
   user_id: string;
