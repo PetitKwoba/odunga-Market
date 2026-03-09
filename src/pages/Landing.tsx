@@ -18,7 +18,7 @@ export default function Landing() {
             <Button size="lg" className="bg-secondary text-secondary-foreground hover:bg-secondary/90" asChild>
               <Link to="/signup?role=producer">Sign up as Producer <ArrowRight className="ml-1 h-4 w-4" /></Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10" asChild>
+            <Button size="lg" className="bg-background text-foreground hover:bg-background/90 border border-primary-foreground/30" asChild>
               <Link to="/signup?role=wholesaler">Sign up as Wholesaler</Link>
             </Button>
             <Button size="lg" variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10" asChild>
