@@ -467,6 +467,20 @@ export default function AdminPanel() {
           />
         </TabsContent>
 
+        <TabsContent value="user-management" className="mt-4">
+          <div className="space-y-8">
+            <div className="flex gap-4">
+              <AdminCreateUser onUserCreated={fetchData} />
+              <AdminStartConversation />
+            </div>
+            
+            <div className="grid gap-6 md:grid-cols-2">
+              <AdminSupportAssignment />
+              <AdminCustomRoles />
+            </div>
+          </div>
+        </TabsContent>
+
         <TabsContent value="audit" className="mt-4">
           <AuditLogs profiles={profiles} />
         </TabsContent>
