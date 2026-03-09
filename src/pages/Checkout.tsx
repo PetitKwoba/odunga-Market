@@ -219,11 +219,51 @@ export default function Checkout() {
               <p className="text-sm text-muted-foreground">The producer will arrange logistics to this address.</p>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2"><Label>Full Name</Label><Input value={shipping.name} onChange={e => setShipping(s => ({ ...s, name: e.target.value }))} /></div>
-              <div className="space-y-2"><Label>Phone</Label><Input value={shipping.phone} onChange={e => setShipping(s => ({ ...s, phone: e.target.value }))} /></div>
-              <div className="space-y-2 sm:col-span-2"><Label>Address</Label><Input value={shipping.address} onChange={e => setShipping(s => ({ ...s, address: e.target.value }))} /></div>
-              <div className="space-y-2"><Label>City</Label><Input value={shipping.city} onChange={e => setShipping(s => ({ ...s, city: e.target.value }))} /></div>
-              <div className="space-y-2"><Label>Country</Label><Input value={shipping.country} onChange={e => setShipping(s => ({ ...s, country: e.target.value }))} /></div>
+              <div className="space-y-2">
+                <Label>Full Name</Label>
+                <Input 
+                  value={shipping.name} 
+                  onChange={e => setShipping(s => ({ ...s, name: e.target.value }))} 
+                  disabled={loading}
+                  placeholder="John Doe"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Phone</Label>
+                <Input 
+                  value={shipping.phone} 
+                  onChange={e => setShipping(s => ({ ...s, phone: e.target.value }))} 
+                  disabled={loading}
+                  placeholder="+1234567890"
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label>Address</Label>
+                <Input 
+                  value={shipping.address} 
+                  onChange={e => setShipping(s => ({ ...s, address: e.target.value }))} 
+                  disabled={loading}
+                  placeholder="123 Main Street"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>City</Label>
+                <Input 
+                  value={shipping.city} 
+                  onChange={e => setShipping(s => ({ ...s, city: e.target.value }))} 
+                  disabled={loading}
+                  placeholder="Lagos"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Country</Label>
+                <Input 
+                  value={shipping.country} 
+                  onChange={e => setShipping(s => ({ ...s, country: e.target.value }))} 
+                  disabled={loading}
+                  placeholder="Nigeria"
+                />
+              </div>
             </CardContent>
           </Card>
         </div>
