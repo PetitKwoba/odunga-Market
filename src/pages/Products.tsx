@@ -4,6 +4,7 @@ import { useProducts, useCategories, ProductWithProducer } from '@/hooks/use-pro
 import { mockProducts } from '@/lib/mock-data';
 import { useAuth } from '@/lib/auth-context';
 import { useWishlist } from '@/hooks/use-wishlist';
+import { useCurrency } from '@/lib/currency-context';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
