@@ -286,6 +286,16 @@ export default function ProducerDashboard() {
           </div>
         </TabsContent>
 
+        {/* ─── ANALYTICS TAB ─── */}
+        <TabsContent value="analytics" className="mt-4">
+          <ProducerAnalytics />
+        </TabsContent>
+
+        {/* ─── MESSAGES TAB ─── */}
+        <TabsContent value="messages" className="mt-4">
+          <DirectMessaging />
+        </TabsContent>
+
         {/* ─── INVENTORY TAB ─── */}
         <TabsContent value="inventory" className="mt-4">
           <InventoryManagement />
