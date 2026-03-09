@@ -147,6 +147,13 @@ export default function WholesalerDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AddToPOSDialog 
+        orderId={posDialogOrderId || ''}
+        ownerId={user.id}
+        open={!!posDialogOrderId}
+        onOpenChange={(open) => !open && setPosDialogOrderId(null)}
+      />
     </div>
   );
 }
