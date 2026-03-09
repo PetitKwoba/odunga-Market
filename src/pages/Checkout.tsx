@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart, getUnitPrice } from '@/lib/cart-context';
 import { useAuth } from '@/lib/auth-context';
@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trash2, ArrowLeft, ShoppingCart, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { ShippingAddress } from '@/lib/types';
 
 const PLATFORM_FEE_PERCENT = 5;
 
@@ -19,6 +20,7 @@ export default function Checkout() {
   const navigate = useNavigate();
   const [shipping, setShipping] = useState({ name: '', address: '', city: '', country: '', phone: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   if (!user || user.role !== 'wholesaler') {
     return (
