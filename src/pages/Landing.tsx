@@ -131,7 +131,7 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t bg-card px-4 py-8">
         <div className="container mx-auto flex flex-col items-center gap-4 text-center text-sm text-muted-foreground md:flex-row md:justify-between md:text-left">
-          <p className="font-display font-semibold text-foreground">Odunga</p>
+          <p className="font-display font-semibold text-foreground">Odunga<span className="text-secondary">Market</span></p>
           <p>© 2025 Odunga. All rights reserved.</p>
           <div className="flex gap-4">
             <Link to="#" className="hover:text-foreground">Terms</Link>

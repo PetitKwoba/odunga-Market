@@ -98,7 +98,7 @@ export default function Navbar() {
             <Button variant="ghost" size="icon"><Menu className="h-5 w-5" /></Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-72">
-            <SheetTitle className="font-display text-lg font-bold text-primary">Odunga</SheetTitle>
+            <SheetTitle className="font-display text-lg font-bold text-primary">Odunga<span className="text-secondary">Market</span></SheetTitle>
             <nav className="mt-6 flex flex-col gap-4">
               {navLinks.map(l => (
                 <Link key={l.href} to={l.href} onClick={() => setOpen(false)} className="text-sm font-medium hover:text-primary">{l.label}</Link>
