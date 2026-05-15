@@ -43,7 +43,7 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="font-display text-2xl">Welcome back</CardTitle>
-          <CardDescription>Sign in to your Odunga account</CardDescription>
+          <CardDescription>Sign in to your OdungaMarket account</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* OAuth buttons */}

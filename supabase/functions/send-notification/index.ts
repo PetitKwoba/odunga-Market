@@ -50,7 +50,7 @@ serve(async (req) => {
 
         emailTo = wholesaler?.email || "";
         subject = `Order Confirmed - ${order_id.slice(0, 8)}`;
-        body = `Hi ${wholesaler?.name},\n\nYour order #${order_id.slice(0, 8)} for $${order.total_amount} has been placed successfully.\n\nYou will receive updates as the producer processes your order.\n\nThank you for using Odunga!`;
+        body = `Hi ${wholesaler?.name},\n\nYour order #${order_id.slice(0, 8)} for $${order.total_amount} has been placed successfully.\n\nYou will receive updates as the producer processes your order.\n\nThank you for using OdungaMarket!`;
 
         // Also notify producers
         const producerIds = [...new Set(order.order_items.map((i: any) => {
@@ -63,7 +63,7 @@ serve(async (req) => {
 
       case "order_shipped": {
         subject = `Your Order Has Been Shipped - ${order_id?.slice(0, 8)}`;
-        body = `Hi,\n\nGreat news! Your order #${order_id?.slice(0, 8)} has been shipped.\n\nYou can track your shipment from your dashboard.\n\nThank you for using Odunga!`;
+        body = `Hi,\n\nGreat news! Your order #${order_id?.slice(0, 8)} has been shipped.\n\nYou can track your shipment from your dashboard.\n\nThank you for using OdungaMarket!`;
         break;
       }
 
@@ -86,7 +86,7 @@ serve(async (req) => {
       }
 
       default:
-        subject = `Notification from Odunga`;
+        subject = `Notification from OdungaMarket`;
         body = metadata?.message || "You have a new notification.";
     }
 

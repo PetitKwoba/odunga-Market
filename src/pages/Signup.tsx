@@ -41,12 +41,12 @@ const roles: { value: UserRole; label: string; icon: React.ReactNode; desc: stri
 const consentTexts: Record<string, string[]> = {
   producer: [
     'I agree to the Terms of Service and Privacy Policy.',
-    'I understand that payments from wholesalers are processed through Odunga and disbursed to me every Monday, minus the referral fee and a 5% platform maintenance fee.',
+    'I understand that payments from wholesalers are processed through OdungaMarket and disbursed to me every Monday, minus the referral fee and a 5% platform maintenance fee.',
     'I am responsible for arranging logistics and shipping for all orders I fulfill.',
   ],
   wholesaler: [
     'I agree to the Terms of Service and Privacy Policy.',
-    'I understand that all payments are made through the Odunga platform and held until the order is processed.',
+    'I understand that all payments are made through the OdungaMarket platform and held until the order is processed.',
     'I understand that the producer is responsible for logistics and shipping arrangements.',
   ],
   referrer: [
@@ -116,7 +116,7 @@ export default function Signup() {
       toast.success('Account created! Please check your email to verify your account before signing in.', { duration: 8000 });
       navigate('/login');
     } else {
-      toast.success('Account created! Welcome to Odunga.');
+      toast.success('Account created! Welcome to OdungaMarket.');
       navigate('/');
     }
   };
@@ -135,7 +135,7 @@ export default function Signup() {
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
           <CardTitle className="font-display text-2xl">Create your account</CardTitle>
-          <CardDescription>Join Odunga — the global B2B marketplace</CardDescription>
+          <CardDescription>Join OdungaMarket — the global B2B marketplace</CardDescription>
           {refCode && (
             <p className="mt-1 text-sm text-secondary font-medium">🎉 You were referred! Code: {refCode}</p>
           )}
