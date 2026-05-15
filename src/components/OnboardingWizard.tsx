@@ -70,7 +70,7 @@ export default function OnboardingWizard() {
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-xl">
-            Welcome to Waholo, {user.name}! 🎉
+            Welcome to Odunga, {user.name}! 🎉
           </DialogTitle>
           <DialogDescription>
             Here's how to get started as a <Badge variant="secondary" className="ml-1 capitalize">{user.role}</Badge>

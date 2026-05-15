@@ -20,8 +20,8 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "placeholder.svg"],
       manifest: {
-        name: "Waholo Market - B2B Marketplace",
-        short_name: "Waholo",
+        name: "Odunga - B2B Marketplace",
+        short_name: "Odunga",
         description: "Global B2B marketplace connecting producers with wholesalers",
         theme_color: "#1a3a5c",
         background_color: "#ffffff",

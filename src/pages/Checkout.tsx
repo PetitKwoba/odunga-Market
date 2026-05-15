@@ -269,7 +269,7 @@ export default function Checkout() {
             <CardContent className="flex items-start gap-3 p-4">
               <Info className="h-5 w-5 mt-0.5 text-primary shrink-0" />
               <div className="text-sm">
-                <p className="font-medium text-foreground">How payments work on Waholo Market</p>
+                <p className="font-medium text-foreground">How payments work on Odunga</p>
                 <ul className="mt-1 space-y-1 text-muted-foreground">
                   <li>• Your payment is held securely by the platform.</li>
                   <li>• Producers are paid every <strong>Monday</strong>, minus referral fees and a {PLATFORM_FEE_PERCENT}% platform maintenance fee.</li>
@@ -421,7 +421,7 @@ export default function Checkout() {
                 {submitting ? 'Placing Order...' : 'Pay & Place Order'}
               </Button>
               <p className="text-xs text-center text-muted-foreground">
-                Payment held by Waholo Market. Producers paid every Monday.
+                Payment held by Odunga. Producers paid every Monday.
               </p>
             </CardContent>
           </Card>
