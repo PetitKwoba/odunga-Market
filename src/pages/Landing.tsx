@@ -32,7 +32,7 @@ export default function Landing() {
       {/* How it works */}
       <section id="how-it-works" className="px-4 py-16 md:py-24">
         <div className="container mx-auto max-w-5xl">
-          <h2 className="text-center font-display text-3xl font-bold md:text-4xl">How Odunga Works</h2>
+          <h2 className="text-center font-display text-3xl font-bold md:text-4xl">How OdungaMarket Works</h2>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
             {[
               {
@@ -69,7 +69,7 @@ export default function Landing() {
         <div className="container mx-auto max-w-4xl">
           <h2 className="text-center font-display text-3xl font-bold md:text-4xl">Secure Payments & Clear Logistics</h2>
           <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
-            All payments flow through Odunga for safety and transparency.
+            All payments flow through OdungaMarket for safety and transparency.
           </p>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {[
@@ -121,7 +121,7 @@ export default function Landing() {
       <section className="px-4 py-16">
         <div className="container mx-auto max-w-2xl text-center">
           <h2 className="font-display text-3xl font-bold">Ready to grow your business?</h2>
-          <p className="mt-2 text-muted-foreground">Join thousands of producers and wholesalers on Odunga.</p>
+          <p className="mt-2 text-muted-foreground">Join thousands of producers and wholesalers on OdungaMarket.</p>
           <Button size="lg" className="mt-6" asChild>
             <Link to="/signup">Get Started Free <ArrowRight className="ml-1 h-4 w-4" /></Link>
           </Button>
@@ -132,7 +132,7 @@ export default function Landing() {
       <footer className="border-t bg-card px-4 py-8">
         <div className="container mx-auto flex flex-col items-center gap-4 text-center text-sm text-muted-foreground md:flex-row md:justify-between md:text-left">
           <p className="font-display font-semibold text-foreground">Odunga<span className="text-secondary">Market</span></p>
-          <p>© 2025 Odunga. All rights reserved.</p>
+          <p>© 2025 OdungaMarket. All rights reserved.</p>
           <div className="flex gap-4">
             <Link to="#" className="hover:text-foreground">Terms</Link>
             <Link to="#" className="hover:text-foreground">Privacy</Link>
