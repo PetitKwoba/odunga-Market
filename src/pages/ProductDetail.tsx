@@ -181,7 +181,7 @@ export default function ProductDetail() {
             </Card>
           )}
 
-          {user?.role === 'wholesaler' ? (
+          {user ? (
             <div className="mt-6 flex items-end gap-3">
               <div className="flex-1">
                 <label className="mb-1 block text-sm font-medium">Quantity (min {product.moq})</label>
@@ -191,9 +191,7 @@ export default function ProductDetail() {
             </div>
           ) : (
             <div className="mt-6 rounded-lg border bg-muted/50 p-4 text-center text-sm text-muted-foreground">
-              {user ? 'Only wholesalers can place orders.' : (
-                <><Button variant="link" onClick={() => navigate(`/signup?role=wholesaler${refCode ? `&ref=${refCode}` : ''}`)}>Sign up as a Wholesaler</Button> to place orders.</>
-              )}
+              <Button variant="link" onClick={() => navigate(`/signup${refCode ? `?ref=${refCode}` : ''}`)}>Sign up</Button> or <Button variant="link" onClick={() => navigate('/login')}>log in</Button> to place orders.
             </div>
           )}
 

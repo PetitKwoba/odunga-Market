@@ -61,7 +61,7 @@ export default function Navbar() {
               <Heart className="h-5 w-5" />
             </Button>
           )}
-          {user && user.role === 'wholesaler' && (
+          {user && (
             <Button variant="ghost" size="icon" className="relative" onClick={() => navigate('/checkout')}>
               <ShoppingCart className="h-5 w-5" />
               {itemCount > 0 && (
@@ -103,7 +103,7 @@ export default function Navbar() {
               {navLinks.map(l => (
                 <Link key={l.href} to={l.href} onClick={() => setOpen(false)} className="text-sm font-medium hover:text-primary">{l.label}</Link>
               ))}
-              {user && user.role === 'wholesaler' && (
+              {user && (
                 <Link to="/checkout" onClick={() => setOpen(false)} className="flex items-center gap-2 text-sm font-medium">
                   <ShoppingCart className="h-4 w-4" /> Cart ({itemCount})
                 </Link>
