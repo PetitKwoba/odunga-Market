@@ -81,10 +81,10 @@ export default function Checkout() {
     fetchShippingDetails();
   }, [user]);
 
-  if (!user || user.role !== 'wholesaler') {
+  if (!user) {
     return (
       <div className="container mx-auto flex flex-col items-center px-4 py-20">
-        <p className="text-muted-foreground">Only wholesalers can checkout.</p>
+        <p className="text-muted-foreground">Please log in to checkout.</p>
         <Button variant="link" onClick={() => navigate('/products')}>Browse products</Button>
       </div>
     );
