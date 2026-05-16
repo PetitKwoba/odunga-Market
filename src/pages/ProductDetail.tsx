@@ -94,7 +94,7 @@ export default function ProductDetail() {
     }
   };
 
-  const isReferrerOrCanRefer = user && (user.role === 'referrer' || user.role === 'wholesaler' || user.role === 'producer');
+  const isReferrer = user && user.role === 'referrer';
   const basePrice = Number(product.base_price);
 
   return (
@@ -195,7 +195,7 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {isReferrerOrCanRefer && productRefLink && (
+          {isReferrer && productRefLink && (
             <Card className="mt-4 border-secondary/30 bg-secondary/5">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2"><Share2 className="h-4 w-4 text-secondary" /><span className="text-sm font-medium">Share & Earn</span></div>
