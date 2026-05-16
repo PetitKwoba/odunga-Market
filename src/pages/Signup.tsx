@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams, Navigate } from 'react-router-dom';
 import { useAuth, UserRole } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,8 +70,12 @@ export default function Signup() {
   });
   const [consents, setConsents] = useState<boolean[]>([false, false, false]);
   const [loading, setLoading] = useState(false);
-  const { signup, signInWithOAuth } = useAuth();
+  const { signup, signInWithOAuth, user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+
+  if (!authLoading && user) {
+    return <Navigate to="/" replace />;
+  }
 
   const currentConsents = form.role ? consentTexts[form.role] || [] : [];
   const allConsented = currentConsents.length > 0 && consents.slice(0, currentConsents.length).every(Boolean);
