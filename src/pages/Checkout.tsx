@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Trash2, ArrowLeft, ShoppingCart, Info, Tag, CheckCircle2 } from 'lucide-react';
+import { Trash2, ArrowLeft, ShoppingCart, Info, Tag, CheckCircle2, Gift } from 'lucide-react';
 import { toast } from 'sonner';
 import { ShippingAddress } from '@/lib/types';
 import ShippingCalculator from '@/components/ShippingCalculator';
@@ -23,6 +23,8 @@ export default function Checkout() {
   const { format } = useCurrency();
   const navigate = useNavigate();
   const [shipping, setShipping] = useState({ name: '', address: '', city: '', country: '', phone: '' });
+  const [guestEmail, setGuestEmail] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saveAsDefault, setSaveAsDefault] = useState(true);
@@ -30,29 +32,35 @@ export default function Checkout() {
   const [appliedDiscount, setAppliedDiscount] = useState<{ id: string; code: string; type: string; value: number; amount: number } | null>(null);
   const [applyingCode, setApplyingCode] = useState(false);
 
+  // Pre-fill referral code from product page session storage
+  useEffect(() => {
+    try {
+      const refs = JSON.parse(sessionStorage.getItem('waholo_product_refs') || '{}');
+      const firstRef = items.map(i => refs[i.product.id]).find(Boolean);
+      if (firstRef) setReferralCode(firstRef);
+    } catch { /* ignore */ }
+  }, [items]);
+
   // Fetch user profile and last order to pre-fill shipping details
   useEffect(() => {
     const fetchShippingDetails = async () => {
-      if (!user) return;
+      if (!user) { setLoading(false); return; }
 
       try {
-        // Fetch user profile
         const { data: profile } = await supabase
           .from('profiles')
-          .select('name, phone, address, city, country')
+          .select('name, phone, address, city, country, email')
           .eq('user_id', user.id)
           .single();
 
-        // Fetch most recent order to get last used shipping address
         const { data: lastOrder } = await supabase
           .from('orders')
           .select('shipping_address')
           .eq('wholesaler_id', user.id)
           .order('created_at', { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
-        // Prioritize last order's shipping address, fallback to profile
         if (lastOrder?.shipping_address) {
           const addr = lastOrder.shipping_address as unknown as ShippingAddress;
           setShipping({
@@ -71,6 +79,7 @@ export default function Checkout() {
             phone: profile.phone || '',
           });
         }
+        if (profile?.email) setGuestEmail(profile.email);
       } catch (error) {
         console.error('Error fetching shipping details:', error);
       } finally {
@@ -80,15 +89,6 @@ export default function Checkout() {
 
     fetchShippingDetails();
   }, [user]);
-
-  if (!user) {
-    return (
-      <div className="container mx-auto flex flex-col items-center px-4 py-20">
-        <p className="text-muted-foreground">Please log in to checkout.</p>
-        <Button variant="link" onClick={() => navigate('/products')}>Browse products</Button>
-      </div>
-    );
-  }
 
   if (items.length === 0) {
     return (
@@ -102,6 +102,7 @@ export default function Checkout() {
 
   const applyDiscount = async () => {
     if (!discountCode.trim()) return;
+    if (!user) { toast.error('Sign in to use discount codes'); return; }
     setApplyingCode(true);
     try {
       const { data, error } = await supabase
@@ -152,6 +153,10 @@ export default function Checkout() {
       toast.error('Please fill in all shipping fields');
       return;
     }
+    if (!user && !guestEmail) {
+      toast.error('Please enter your email so we can send your order updates');
+      return;
+    }
     setSubmitting(true);
 
     try {
@@ -175,15 +180,24 @@ export default function Checkout() {
       }
 
       // Create order in DB
-      const { data: order, error: orderError } = await supabase.from('orders').insert({
-        wholesaler_id: user!.id,
+      const orderPayload: any = {
         total_amount: finalTotal,
         shipping_address: shipping,
         status: 'Pending',
         payment_status: 'pending',
-        discount_code_id: appliedDiscount?.id || null,
-        discount_amount: appliedDiscount?.amount || 0,
-      }).select().single();
+        referral_code: referralCode.trim().toUpperCase() || null,
+      };
+      if (user) {
+        orderPayload.wholesaler_id = user.id;
+        orderPayload.discount_code_id = appliedDiscount?.id || null;
+        orderPayload.discount_amount = appliedDiscount?.amount || 0;
+      } else {
+        orderPayload.guest_email = guestEmail.trim().toLowerCase();
+        orderPayload.guest_name = shipping.name;
+        orderPayload.guest_phone = shipping.phone;
+      }
+
+      const { data: order, error: orderError } = await supabase.from('orders').insert(orderPayload).select().single();
 
       if (orderError || !order) {
         toast.error('Failed to create order: ' + (orderError?.message || 'Unknown error'));
@@ -206,24 +220,26 @@ export default function Checkout() {
         return;
       }
 
-      // Update discount usage
-      if (appliedDiscount) {
+      // Update discount usage (registered users only)
+      if (user && appliedDiscount) {
         await supabase.from('discount_usage').insert({
           discount_code_id: appliedDiscount.id,
           order_id: order.id,
-          user_id: user!.id,
+          user_id: user.id,
           discount_amount: appliedDiscount.amount,
         });
         await supabase.rpc('increment_discount_usage', { discount_id: appliedDiscount.id });
       }
 
-      // Send notification
-      supabase.functions.invoke('send-notification', {
-        body: { event_type: 'order_placed', order_id: order.id, user_id: user!.id },
-      }).catch(() => {}); // Fire and forget
+      // Send notification (registered users only)
+      if (user) {
+        supabase.functions.invoke('send-notification', {
+          body: { event_type: 'order_placed', order_id: order.id, user_id: user.id },
+        }).catch(() => {});
+      }
 
       // Save shipping details to profile for future use
-      if (saveAsDefault) {
+      if (user && saveAsDefault) {
         await supabase
           .from('profiles')
           .update({
@@ -233,13 +249,13 @@ export default function Checkout() {
             city: shipping.city,
             country: shipping.country,
           })
-          .eq('user_id', user!.id);
+          .eq('user_id', user.id);
       }
 
       // Initialize Paystack payment
       const callbackUrl = `${window.location.origin}/payment/callback`;
       const { data: paystackData, error: paystackError } = await supabase.functions.invoke('paystack-initialize', {
-        body: { order_id: order.id, callback_url: callbackUrl },
+        body: { order_id: order.id, callback_url: callbackUrl, guest_email: user ? undefined : guestEmail },
       });
 
       if (paystackError || !paystackData?.authorization_url) {
@@ -279,6 +295,14 @@ export default function Checkout() {
             </CardContent>
           </Card>
 
+          {!user && (
+            <Card className="border-secondary/40 bg-secondary/5">
+              <CardContent className="p-4 text-sm">
+                You're checking out as a <strong>guest</strong>. <Button variant="link" className="h-auto p-0" onClick={() => navigate('/login')}>Log in</Button> or <Button variant="link" className="h-auto p-0" onClick={() => navigate('/signup')}>create an account</Button> to track future orders.
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader><CardTitle className="font-display text-lg">Order Summary</CardTitle></CardHeader>
             <CardContent>
@@ -308,70 +332,51 @@ export default function Checkout() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="font-display text-lg">Shipping Details</CardTitle>
+              <CardTitle className="font-display text-lg">{user ? 'Shipping Details' : 'Your Details'}</CardTitle>
               <p className="text-sm text-muted-foreground">The producer will arrange logistics to this address.</p>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
+              {!user && (
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>Email <span className="text-destructive">*</span></Label>
+                  <Input
+                    type="email"
+                    value={guestEmail}
+                    onChange={e => setGuestEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">We'll send your order confirmation and tracking updates here.</p>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>Full Name</Label>
-                <Input 
-                  value={shipping.name} 
-                  onChange={e => setShipping(s => ({ ...s, name: e.target.value }))} 
-                  disabled={loading}
-                  placeholder="John Doe"
-                />
+                <Input value={shipping.name} onChange={e => setShipping(s => ({ ...s, name: e.target.value }))} disabled={loading} placeholder="John Doe" />
               </div>
               <div className="space-y-2">
                 <Label>Phone</Label>
-                <Input 
-                  value={shipping.phone} 
-                  onChange={e => setShipping(s => ({ ...s, phone: e.target.value }))} 
-                  disabled={loading}
-                  placeholder="+1234567890"
-                />
+                <Input value={shipping.phone} onChange={e => setShipping(s => ({ ...s, phone: e.target.value }))} disabled={loading} placeholder="+1234567890" />
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>Address</Label>
-                <Input 
-                  value={shipping.address} 
-                  onChange={e => setShipping(s => ({ ...s, address: e.target.value }))} 
-                  disabled={loading}
-                  placeholder="123 Main Street"
-                />
+                <Input value={shipping.address} onChange={e => setShipping(s => ({ ...s, address: e.target.value }))} disabled={loading} placeholder="123 Main Street" />
               </div>
               <div className="space-y-2">
                 <Label>City</Label>
-                <Input 
-                  value={shipping.city} 
-                  onChange={e => setShipping(s => ({ ...s, city: e.target.value }))} 
-                  disabled={loading}
-                  placeholder="Lagos"
-                />
+                <Input value={shipping.city} onChange={e => setShipping(s => ({ ...s, city: e.target.value }))} disabled={loading} placeholder="Lagos" />
               </div>
               <div className="space-y-2">
                 <Label>Country</Label>
-                <Input 
-                  value={shipping.country} 
-                  onChange={e => setShipping(s => ({ ...s, country: e.target.value }))} 
-                  disabled={loading}
-                  placeholder="Nigeria"
-                />
+                <Input value={shipping.country} onChange={e => setShipping(s => ({ ...s, country: e.target.value }))} disabled={loading} placeholder="Nigeria" />
               </div>
-              <div className="space-y-3 sm:col-span-2 pt-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="saveDefault" 
-                    checked={saveAsDefault} 
-                    onCheckedChange={(checked) => setSaveAsDefault(checked as boolean)}
-                  />
-                  <Label 
-                    htmlFor="saveDefault" 
-                    className="text-sm font-normal cursor-pointer"
-                  >
-                    Save as my default shipping address for future orders
-                  </Label>
+              {user && (
+                <div className="space-y-3 sm:col-span-2 pt-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="saveDefault" checked={saveAsDefault} onCheckedChange={(checked) => setSaveAsDefault(checked as boolean)} />
+                    <Label htmlFor="saveDefault" className="text-sm font-normal cursor-pointer">Save as my default shipping address for future orders</Label>
+                  </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
@@ -382,34 +387,46 @@ export default function Checkout() {
           <Card className="sticky top-20">
             <CardHeader><CardTitle className="font-display text-lg">Total</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              {/* Discount Code */}
+              {/* Referral Code */}
               <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Discount Code</Label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Enter code"
-                    value={discountCode}
-                    onChange={e => setDiscountCode(e.target.value.toUpperCase())}
-                    className="font-mono text-sm"
-                    disabled={!!appliedDiscount}
-                  />
-                  {appliedDiscount ? (
-                    <Button variant="outline" size="sm" onClick={() => { setAppliedDiscount(null); setDiscountCode(''); }}>
-                      Remove
-                    </Button>
-                  ) : (
-                    <Button variant="outline" size="sm" onClick={applyDiscount} disabled={applyingCode}>
-                      <Tag className="mr-1 h-3 w-3" /> Apply
-                    </Button>
+                <Label className="text-xs text-muted-foreground flex items-center gap-1"><Gift className="h-3 w-3" /> Referral Code (optional)</Label>
+                <Input
+                  placeholder="Enter referral code"
+                  value={referralCode}
+                  onChange={e => setReferralCode(e.target.value.toUpperCase())}
+                  className="font-mono text-sm"
+                />
+                <p className="text-[11px] text-muted-foreground">If someone referred you, enter their code so they get credit.</p>
+              </div>
+
+              {/* Discount Code — registered users only */}
+              {user && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Discount Code</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Enter code"
+                      value={discountCode}
+                      onChange={e => setDiscountCode(e.target.value.toUpperCase())}
+                      className="font-mono text-sm"
+                      disabled={!!appliedDiscount}
+                    />
+                    {appliedDiscount ? (
+                      <Button variant="outline" size="sm" onClick={() => { setAppliedDiscount(null); setDiscountCode(''); }}>Remove</Button>
+                    ) : (
+                      <Button variant="outline" size="sm" onClick={applyDiscount} disabled={applyingCode}>
+                        <Tag className="mr-1 h-3 w-3" /> Apply
+                      </Button>
+                    )}
+                  </div>
+                  {appliedDiscount && (
+                    <p className="text-xs text-green-600 flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" />
+                      {appliedDiscount.code}: -{appliedDiscount.type === 'percentage' ? `${appliedDiscount.value}%` : `$${appliedDiscount.value}`}
+                    </p>
                   )}
                 </div>
-                {appliedDiscount && (
-                  <p className="text-xs text-green-600 flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" />
-                    {appliedDiscount.code}: -{appliedDiscount.type === 'percentage' ? `${appliedDiscount.value}%` : `$${appliedDiscount.value}`}
-                  </p>
-                )}
-              </div>
+              )}
 
               <div className="flex justify-between text-sm"><span className="text-muted-foreground">Items ({items.length})</span><span>{format(total)}</span></div>
               {appliedDiscount && (
