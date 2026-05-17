@@ -101,11 +101,9 @@ export default function Navbar() {
               {navLinks.map(l => (
                 <Link key={l.href} to={l.href} onClick={() => setOpen(false)} className="text-sm font-medium hover:text-primary">{l.label}</Link>
               ))}
-              {user && (
-                <Link to="/checkout" onClick={() => setOpen(false)} className="flex items-center gap-2 text-sm font-medium">
-                  <ShoppingCart className="h-4 w-4" /> Cart ({itemCount})
-                </Link>
-              )}
+              <Link to="/checkout" onClick={() => setOpen(false)} className="flex items-center gap-2 text-sm font-medium">
+                <ShoppingCart className="h-4 w-4" /> Cart ({itemCount})
+              </Link>
               {user ? (
                 <>
                   <Link to={dashboardPath} onClick={() => setOpen(false)} className="text-sm font-medium">Dashboard</Link>
