@@ -38,7 +38,7 @@ serve(async (req) => {
     }
 
     const { reference, metadata, amount, currency } = event.data;
-    const orderId = metadata?.order_id || reference?.replace("waholo_", "");
+    const orderId = metadata?.order_id || reference?.replace(/^(odunga_|waholo_)/, "");
 
     if (!orderId) throw new Error("No order_id in webhook payload");
 
