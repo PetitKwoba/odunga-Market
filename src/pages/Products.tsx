@@ -106,7 +106,7 @@ export default function Products() {
     return result;
   }, [products, search, category, sort, priceRange]);
 
-  const canRefer = user && (user.role === 'referrer' || user.role === 'wholesaler' || user.role === 'producer');
+  const canRefer = user && user.role === 'referrer';
 
   const copyRefLink = (productId: string, e: React.MouseEvent) => {
     e.preventDefault();
