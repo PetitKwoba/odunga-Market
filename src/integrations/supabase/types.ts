@@ -775,42 +775,54 @@ export type Database = {
           currency: string | null
           discount_amount: number | null
           discount_code_id: string | null
+          guest_email: string | null
+          guest_name: string | null
+          guest_phone: string | null
           id: string
           payment_reference: string | null
           payment_status: string
+          referral_code: string | null
           shipping_address: Json
           status: string
           total_amount: number
           updated_at: string
-          wholesaler_id: string
+          wholesaler_id: string | null
         }
         Insert: {
           created_at?: string
           currency?: string | null
           discount_amount?: number | null
           discount_code_id?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
           id?: string
           payment_reference?: string | null
           payment_status?: string
+          referral_code?: string | null
           shipping_address?: Json
           status?: string
           total_amount?: number
           updated_at?: string
-          wholesaler_id: string
+          wholesaler_id?: string | null
         }
         Update: {
           created_at?: string
           currency?: string | null
           discount_amount?: number | null
           discount_code_id?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
+          guest_phone?: string | null
           id?: string
           payment_reference?: string | null
           payment_status?: string
+          referral_code?: string | null
           shipping_address?: Json
           status?: string
           total_amount?: number
           updated_at?: string
-          wholesaler_id?: string
+          wholesaler_id?: string | null
         }
         Relationships: [
           {
