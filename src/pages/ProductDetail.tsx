@@ -181,18 +181,17 @@ export default function ProductDetail() {
             </Card>
           )}
 
-          {user ? (
-            <div className="mt-6 flex items-end gap-3">
-              <div className="flex-1">
-                <label className="mb-1 block text-sm font-medium">Quantity (min {product.moq})</label>
-                <Input type="number" min={product.moq} value={qty} onChange={e => setQty(e.target.value)} placeholder={`${product.moq}`} />
-              </div>
-              <Button onClick={handleAddToCart} className="gap-1"><ShoppingCart className="h-4 w-4" /> Add to Cart</Button>
+          <div className="mt-6 flex items-end gap-3">
+            <div className="flex-1">
+              <label className="mb-1 block text-sm font-medium">Quantity (min {product.moq})</label>
+              <Input type="number" min={product.moq} value={qty} onChange={e => setQty(e.target.value)} placeholder={`${product.moq}`} />
             </div>
-          ) : (
-            <div className="mt-6 rounded-lg border bg-muted/50 p-4 text-center text-sm text-muted-foreground">
-              <Button variant="link" onClick={() => navigate(`/signup${refCode ? `?ref=${refCode}` : ''}`)}>Sign up</Button> or <Button variant="link" onClick={() => navigate('/login')}>log in</Button> to place orders.
-            </div>
+            <Button onClick={handleAddToCart} className="gap-1"><ShoppingCart className="h-4 w-4" /> Add to Cart</Button>
+          </div>
+          {!user && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              No account needed — you can checkout as a guest. <Button variant="link" className="h-auto p-0 text-xs" onClick={() => navigate(`/signup${refCode ? `?ref=${refCode}` : ''}`)}>Sign up</Button> to track orders.
+            </p>
           )}
 
           {isReferrer && productRefLink && (
