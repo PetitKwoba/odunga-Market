@@ -61,16 +61,14 @@ export default function Navbar() {
               <Heart className="h-5 w-5" />
             </Button>
           )}
-          {user && (
-            <Button variant="ghost" size="icon" className="relative" onClick={() => navigate('/checkout')}>
-              <ShoppingCart className="h-5 w-5" />
-              {itemCount > 0 && (
-                <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 text-[10px] flex items-center justify-center bg-secondary text-secondary-foreground">
-                  {itemCount}
-                </Badge>
-              )}
-            </Button>
-          )}
+          <Button variant="ghost" size="icon" className="relative" onClick={() => navigate('/checkout')}>
+            <ShoppingCart className="h-5 w-5" />
+            {itemCount > 0 && (
+              <Badge className="absolute -right-1 -top-1 h-5 w-5 rounded-full p-0 text-[10px] flex items-center justify-center bg-secondary text-secondary-foreground">
+                {itemCount}
+              </Badge>
+            )}
+          </Button>
           {user ? (
             <>
               <NotificationCenter />
@@ -103,11 +101,9 @@ export default function Navbar() {
               {navLinks.map(l => (
                 <Link key={l.href} to={l.href} onClick={() => setOpen(false)} className="text-sm font-medium hover:text-primary">{l.label}</Link>
               ))}
-              {user && (
-                <Link to="/checkout" onClick={() => setOpen(false)} className="flex items-center gap-2 text-sm font-medium">
-                  <ShoppingCart className="h-4 w-4" /> Cart ({itemCount})
-                </Link>
-              )}
+              <Link to="/checkout" onClick={() => setOpen(false)} className="flex items-center gap-2 text-sm font-medium">
+                <ShoppingCart className="h-4 w-4" /> Cart ({itemCount})
+              </Link>
               {user ? (
                 <>
                   <Link to={dashboardPath} onClick={() => setOpen(false)} className="text-sm font-medium">Dashboard</Link>

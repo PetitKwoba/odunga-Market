@@ -38,7 +38,7 @@ serve(async (req) => {
     }
 
     const { reference, metadata, amount, currency } = event.data;
-    const orderId = metadata?.order_id || reference?.replace("waholo_", "");
+    const orderId = metadata?.order_id || reference?.replace(/^(odunga_|waholo_)/, "");
 
     if (!orderId) throw new Error("No order_id in webhook payload");
 
@@ -88,41 +88,51 @@ serve(async (req) => {
     // Handle referral commissions
     const { data: order } = await supabase
       .from("orders")
-      .select("wholesaler_id")
+      .select("wholesaler_id, referral_code")
       .eq("id", orderId)
       .single();
 
-    if (order) {
+    // Resolve referrer: either via order.referral_code (guest or explicit) or via referred_by_user_id on profile
+    let referrerUserId: string | null = null;
+    if (order?.referral_code) {
+      const { data: refProfile } = await supabase
+        .from("profiles")
+        .select("user_id")
+        .eq("referral_code", order.referral_code)
+        .maybeSingle();
+      if (refProfile) referrerUserId = refProfile.user_id;
+    }
+    if (!referrerUserId && order?.wholesaler_id) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("referred_by_user_id")
         .eq("user_id", order.wholesaler_id)
         .single();
+      referrerUserId = profile?.referred_by_user_id ?? null;
+    }
 
-      if (profile?.referred_by_user_id && orderItems) {
-        // Calculate referral commission (from producer profile settings)
-        for (const item of orderItems) {
-          const { data: producerProfile } = await supabase
-            .from("producer_profiles")
-            .select("referral_reward_type, referral_reward_value")
-            .eq("user_id", item.producer_id)
-            .single();
+    if (referrerUserId && orderItems) {
+      for (const item of orderItems) {
+        const { data: producerProfile } = await supabase
+          .from("producer_profiles")
+          .select("referral_reward_type, referral_reward_value")
+          .eq("user_id", item.producer_id)
+          .single();
 
-          if (producerProfile) {
-            const commission =
-              producerProfile.referral_reward_type === "percentage"
-                ? Number(item.subtotal) * (producerProfile.referral_reward_value / 100)
-                : producerProfile.referral_reward_value;
+        if (producerProfile) {
+          const commission =
+            producerProfile.referral_reward_type === "percentage"
+              ? Number(item.subtotal) * (producerProfile.referral_reward_value / 100)
+              : producerProfile.referral_reward_value;
 
-            await supabase.from("product_referral_sales").insert({
-              referrer_user_id: profile.referred_by_user_id,
-              product_id: item.producer_id, // We don't have product_id in order_items grouped, use producer_id
-              order_id: orderId,
-              quantity: 1,
-              subtotal: Number(item.subtotal),
-              commission_earned: commission,
-            });
-          }
+          await supabase.from("product_referral_sales").insert({
+            referrer_user_id: referrerUserId,
+            product_id: item.producer_id,
+            order_id: orderId,
+            quantity: 1,
+            subtotal: Number(item.subtotal),
+            commission_earned: commission,
+          });
         }
       }
     }
