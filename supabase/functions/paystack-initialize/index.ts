@@ -20,16 +20,15 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Authenticate the request
+    // Optionally authenticate the request — guests can also initialize payments
+    let authedUserId: string | null = null;
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Missing authorization header");
+    if (authHeader) {
+      const { data: { user } } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
+      if (user) authedUserId = user.id;
+    }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace("Bearer ", "")
-    );
-    if (authError || !user) throw new Error("Unauthorized");
-
-    const { order_id, callback_url } = await req.json();
+    const { order_id, callback_url, guest_email } = await req.json();
     if (!order_id || !callback_url) throw new Error("order_id and callback_url required");
 
     // Fetch order
@@ -37,21 +36,36 @@ serve(async (req) => {
       .from("orders")
       .select("*")
       .eq("id", order_id)
-      .eq("wholesaler_id", user.id)
       .single();
 
     if (orderError || !order) throw new Error("Order not found");
     if (order.payment_status === "paid") throw new Error("Order already paid");
 
-    // Fetch user profile for email
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("email, name, phone")
-      .eq("user_id", user.id)
-      .single();
+    // Authorize: order must belong to the auth'd user, or be a guest order
+    if (order.wholesaler_id) {
+      if (order.wholesaler_id !== authedUserId) throw new Error("Unauthorized");
+    } else {
+      // Guest order — require matching email
+      if (!guest_email || guest_email.trim().toLowerCase() !== (order.guest_email || "").toLowerCase()) {
+        throw new Error("Unauthorized");
+      }
+    }
 
-    // Initialize Paystack transaction (amount in kobo/cents — Paystack uses smallest currency unit)
-    // For KES, amount is in cents
+    // Resolve buyer email/name for Paystack
+    let buyerEmail = order.guest_email || guest_email;
+    let buyerName = order.guest_name || "Guest";
+    if (order.wholesaler_id) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, name")
+        .eq("user_id", order.wholesaler_id)
+        .single();
+      buyerEmail = profile?.email || buyerEmail;
+      buyerName = profile?.name || buyerName;
+    }
+    if (!buyerEmail) throw new Error("No email found for order");
+
+    // Initialize Paystack transaction
     const paystackRes = await fetch("https://api.paystack.co/transaction/initialize", {
       method: "POST",
       headers: {
@@ -59,17 +73,18 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email: profile?.email || user.email,
-        amount: Math.round(order.total_amount * 100), // Convert to cents
+        email: buyerEmail,
+        amount: Math.round(order.total_amount * 100),
         currency: "KES",
-        reference: `waholo_${order_id}`,
+        reference: `odunga_${order_id}`,
         callback_url,
         metadata: {
           order_id,
-          wholesaler_id: user.id,
+          wholesaler_id: order.wholesaler_id,
+          is_guest: !order.wholesaler_id,
           custom_fields: [
             { display_name: "Order ID", variable_name: "order_id", value: order_id },
-            { display_name: "Customer", variable_name: "customer_name", value: profile?.name || "N/A" },
+            { display_name: "Customer", variable_name: "customer_name", value: buyerName },
           ],
         },
         channels: ["card", "bank", "mobile_money", "bank_transfer"],
@@ -82,10 +97,9 @@ serve(async (req) => {
       throw new Error(`Paystack error: ${paystackData.message || "Unknown error"}`);
     }
 
-    // Save reference on order
     await supabase
       .from("orders")
-      .update({ payment_status: "pending" })
+      .update({ payment_status: "pending", payment_reference: paystackData.data.reference })
       .eq("id", order_id);
 
     return new Response(
