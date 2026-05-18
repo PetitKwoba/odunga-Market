@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Search, Package, Copy, SlidersHorizontal, X, ArrowUpDown, Heart, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 import { Product } from '@/lib/types';
