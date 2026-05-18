@@ -149,11 +149,13 @@ export default function Products() {
 
   const activeFilterCount = [
     category !== 'all',
+    inStockOnly,
     priceRange[0] > priceBounds.min || priceRange[1] < priceBounds.max,
   ].filter(Boolean).length;
 
   const clearFilters = () => {
     setCategory('all');
+    setInStockOnly(false);
     setPriceRange([priceBounds.min, priceBounds.max]);
     setSearch('');
     setSort('newest');
