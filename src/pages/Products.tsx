@@ -33,6 +33,7 @@ export default function Products() {
   const [sort, setSort] = useState<SortOption>('newest');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [showFilters, setShowFilters] = useState(false);
+  const [inStockOnly, setInStockOnly] = useState(false);
 
   // Fall back to mock data if DB is empty / still loading
   const products: ProductWithProducer[] = useMemo(() => {
