@@ -51,7 +51,7 @@ const App = () => (
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/products" element={<Products />} />
                 <Route path="/products/:id" element={<ProductDetail />} />
-                <Route path="/checkout" element={<ProtectedRoute allowedRoles={['wholesaler']}><Checkout /></ProtectedRoute>} />
+                <Route path="/checkout" element={<Checkout />} />
                 <Route path="/payment/callback" element={<PaymentCallback />} />
                 <Route path="/support" element={<Support />} />
                 <Route path="/support/:id" element={<ProtectedRoute><SupportTicket /></ProtectedRoute>} />
