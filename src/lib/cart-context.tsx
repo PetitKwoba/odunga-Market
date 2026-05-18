@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { CartItem, Product } from './types';
 
 interface CartContextType {
@@ -13,13 +13,35 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | null>(null);
 
+const CART_STORAGE_KEY = 'odunga_cart_v1';
+
 function getUnitPrice(product: Product, qty: number): number {
   const tier = [...product.bulk_pricing].reverse().find(t => qty >= t.min_qty);
   return tier ? tier.price : product.base_price;
 }
 
+function loadCart(): CartItem[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(i => i && i.product && typeof i.quantity === 'number');
+  } catch {
+    return [];
+  }
+}
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(() => loadCart());
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    } catch { /* ignore quota errors */ }
+  }, [items]);
+
 
   const addItem = useCallback((product: Product, quantity: number) => {
     setItems(prev => {
