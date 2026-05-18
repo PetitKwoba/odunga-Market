@@ -121,6 +121,29 @@ export default function Products() {
     }
   };
 
+  const addToCart = (p: ProductWithProducer, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const product: Product = {
+      id: p.id,
+      producer_id: p.producer_id,
+      producer_name: p.producer_name,
+      producer_country: p.producer_country,
+      name: p.name,
+      description: p.description || '',
+      category: p.category,
+      images: p.images || [],
+      moq: p.moq,
+      base_price: Number(p.base_price),
+      bulk_pricing: Array.isArray(p.bulk_pricing) ? p.bulk_pricing : [],
+      stock_quantity: p.stock_quantity,
+      lead_time_days: p.lead_time_days,
+      is_active: p.is_active,
+    };
+    addItem(product, p.moq);
+    toast.success(`Added ${p.moq}x ${p.name} to cart`);
+  };
+
   const activeFilterCount = [
     category !== 'all',
     priceRange[0] > priceBounds.min || priceRange[1] < priceBounds.max,
