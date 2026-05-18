@@ -5,6 +5,7 @@ import { mockProducts } from '@/lib/mock-data';
 import { useAuth } from '@/lib/auth-context';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useCurrency } from '@/lib/currency-context';
+import { useCart } from '@/lib/cart-context';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -12,8 +13,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Package, Copy, SlidersHorizontal, X, ArrowUpDown, Heart } from 'lucide-react';
+import { Search, Package, Copy, SlidersHorizontal, X, ArrowUpDown, Heart, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
+import { Product } from '@/lib/types';
 
 type SortOption = 'newest' | 'price_low' | 'price_high' | 'name_az' | 'moq_low';
 
