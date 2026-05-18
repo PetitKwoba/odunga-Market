@@ -5,6 +5,7 @@ import { mockProducts } from '@/lib/mock-data';
 import { useAuth } from '@/lib/auth-context';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useCurrency } from '@/lib/currency-context';
+import { useCart } from '@/lib/cart-context';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -12,8 +13,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Package, Copy, SlidersHorizontal, X, ArrowUpDown, Heart } from 'lucide-react';
+import { Search, Package, Copy, SlidersHorizontal, X, ArrowUpDown, Heart, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
+import { Product } from '@/lib/types';
 
 type SortOption = 'newest' | 'price_low' | 'price_high' | 'name_az' | 'moq_low';
 
@@ -21,6 +23,7 @@ export default function Products() {
   const { user } = useAuth();
   const { isInWishlist, toggle: toggleWishlist } = useWishlist();
   const { format } = useCurrency();
+  const { addItem } = useCart();
   const { data: dbProducts, isLoading, error } = useProducts();
   const { data: dbCategories } = useCategories();
 
@@ -116,6 +119,29 @@ export default function Products() {
       navigator.clipboard.writeText(link);
       toast.success('Product referral link copied!');
     }
+  };
+
+  const addToCart = (p: ProductWithProducer, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const product: Product = {
+      id: p.id,
+      producer_id: p.producer_id,
+      producer_name: p.producer_name,
+      producer_country: p.producer_country,
+      name: p.name,
+      description: p.description || '',
+      category: p.category,
+      images: p.images || [],
+      moq: p.moq,
+      base_price: Number(p.base_price),
+      bulk_pricing: Array.isArray(p.bulk_pricing) ? p.bulk_pricing : [],
+      stock_quantity: p.stock_quantity,
+      lead_time_days: p.lead_time_days,
+      is_active: p.is_active,
+    };
+    addItem(product, p.moq);
+    toast.success(`Added ${p.moq}x ${p.name} to cart`);
   };
 
   const activeFilterCount = [
@@ -326,16 +352,26 @@ export default function Products() {
                   </div>
                   <div className="mt-2 flex items-center justify-between">
                     <p className="text-xs text-muted-foreground">Lead time: {p.lead_time_days} days</p>
-                    {canRefer && (
+                    <div className="flex items-center gap-1">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        className="h-7 gap-1 text-xs text-secondary hover:text-secondary"
-                        onClick={(e) => copyRefLink(p.id, e)}
+                        className="h-7 gap-1 text-xs"
+                        onClick={(e) => addToCart(p, e)}
                       >
-                        <Copy className="h-3 w-3" /> Share & Earn
+                        <ShoppingCart className="h-3 w-3" /> Add
                       </Button>
-                    )}
+                      {canRefer && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 gap-1 text-xs text-secondary hover:text-secondary"
+                          onClick={(e) => copyRefLink(p.id, e)}
+                        >
+                          <Copy className="h-3 w-3" /> Share
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
