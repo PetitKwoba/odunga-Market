@@ -352,16 +352,26 @@ export default function Products() {
                   </div>
                   <div className="mt-2 flex items-center justify-between">
                     <p className="text-xs text-muted-foreground">Lead time: {p.lead_time_days} days</p>
-                    {canRefer && (
+                    <div className="flex items-center gap-1">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        className="h-7 gap-1 text-xs text-secondary hover:text-secondary"
-                        onClick={(e) => copyRefLink(p.id, e)}
+                        className="h-7 gap-1 text-xs"
+                        onClick={(e) => addToCart(p, e)}
                       >
-                        <Copy className="h-3 w-3" /> Share & Earn
+                        <ShoppingCart className="h-3 w-3" /> Add
                       </Button>
-                    )}
+                      {canRefer && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 gap-1 text-xs text-secondary hover:text-secondary"
+                          onClick={(e) => copyRefLink(p.id, e)}
+                        >
+                          <Copy className="h-3 w-3" /> Share
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
