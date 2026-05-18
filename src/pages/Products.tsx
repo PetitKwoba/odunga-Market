@@ -23,6 +23,7 @@ export default function Products() {
   const { user } = useAuth();
   const { isInWishlist, toggle: toggleWishlist } = useWishlist();
   const { format } = useCurrency();
+  const { addItem } = useCart();
   const { data: dbProducts, isLoading, error } = useProducts();
   const { data: dbCategories } = useCategories();
 
