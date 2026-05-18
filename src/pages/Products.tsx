@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Search, Package, Copy, SlidersHorizontal, X, ArrowUpDown, Heart, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 import { Product } from '@/lib/types';
@@ -32,6 +33,7 @@ export default function Products() {
   const [sort, setSort] = useState<SortOption>('newest');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [showFilters, setShowFilters] = useState(false);
+  const [inStockOnly, setInStockOnly] = useState(false);
 
   // Fall back to mock data if DB is empty / still loading
   const products: ProductWithProducer[] = useMemo(() => {
@@ -73,6 +75,7 @@ export default function Products() {
   const filtered = useMemo(() => {
     let result = products.filter(p => {
       if (category !== 'all' && p.category !== category) return false;
+      if (inStockOnly && p.stock_quantity <= 0) return false;
       if (p.base_price < priceRange[0] || p.base_price > priceRange[1]) return false;
       if (search) {
         const q = search.toLowerCase();
@@ -107,7 +110,7 @@ export default function Products() {
     }
 
     return result;
-  }, [products, search, category, sort, priceRange]);
+  }, [products, search, category, sort, priceRange, inStockOnly]);
 
   const canRefer = user && user.role === 'referrer';
 
@@ -146,11 +149,13 @@ export default function Products() {
 
   const activeFilterCount = [
     category !== 'all',
+    inStockOnly,
     priceRange[0] > priceBounds.min || priceRange[1] < priceBounds.max,
   ].filter(Boolean).length;
 
   const clearFilters = () => {
     setCategory('all');
+    setInStockOnly(false);
     setPriceRange([priceBounds.min, priceBounds.max]);
     setSearch('');
     setSort('newest');
@@ -163,7 +168,7 @@ export default function Products() {
         <p className="mt-1 text-muted-foreground">Find bulk products from verified producers worldwide</p>
       </div>
 
-      {/* Search + Filter Bar */}
+      {/* Search + Sort Bar */}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -195,6 +200,7 @@ export default function Products() {
             size="icon"
             onClick={() => setShowFilters(!showFilters)}
             className="relative shrink-0"
+            title="Advanced filters"
           >
             <SlidersHorizontal className="h-4 w-4" />
             {activeFilterCount > 0 && (
@@ -206,12 +212,40 @@ export default function Products() {
         </div>
       </div>
 
-      {/* Expandable Filters Panel */}
+      {/* Quick category chips */}
+      <div className="mb-4 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <Badge
+          variant={category === 'all' ? 'default' : 'secondary'}
+          className="shrink-0 cursor-pointer select-none"
+          onClick={() => setCategory('all')}
+        >
+          All
+        </Badge>
+        {categories.map(c => (
+          <Badge
+            key={c}
+            variant={category === c ? 'default' : 'secondary'}
+            className="shrink-0 cursor-pointer select-none"
+            onClick={() => setCategory(category === c ? 'all' : c)}
+          >
+            {c}
+          </Badge>
+        ))}
+        <Badge
+          variant={inStockOnly ? 'default' : 'secondary'}
+          className="shrink-0 cursor-pointer select-none ml-2 border-l border-border pl-2"
+          onClick={() => setInStockOnly(v => !v)}
+        >
+          In Stock Only
+        </Badge>
+      </div>
+
+      {/* Advanced Filters Panel */}
       {showFilters && (
         <Card className="mb-6 animate-in slide-in-from-top-2 duration-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display font-semibold text-sm">Filters</h3>
+              <h3 className="font-display font-semibold text-sm">Advanced Filters</h3>
               {activeFilterCount > 0 && (
                 <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
                   <X className="h-3 w-3" /> Clear all
@@ -219,25 +253,9 @@ export default function Products() {
               )}
             </div>
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Category */}
-              <div>
-                <label className="mb-2 block text-xs font-medium text-muted-foreground uppercase tracking-wider">Category</label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {categories.map(c => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
+            <div className="grid gap-6 sm:grid-cols-2">
               {/* Price Range */}
-              <div className="sm:col-span-2 lg:col-span-2">
+              <div>
                 <label className="mb-2 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Price Range: ${priceRange[0].toFixed(2)} – ${priceRange[1].toFixed(2)}
                 </label>
@@ -250,13 +268,28 @@ export default function Products() {
                   className="mt-3"
                 />
               </div>
+
+              {/* Stock Toggle */}
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="inStockOnly"
+                  checked={inStockOnly}
+                  onCheckedChange={(checked) => setInStockOnly(checked as boolean)}
+                />
+                <div className="grid gap-1 leading-none">
+                  <label htmlFor="inStockOnly" className="text-sm font-medium cursor-pointer">
+                    In Stock Only
+                  </label>
+                  <p className="text-xs text-muted-foreground">Hide products that are currently out of stock</p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
       )}
 
       {/* Active filter chips */}
-      {(category !== 'all' || search) && (
+      {(category !== 'all' || search || inStockOnly || priceRange[0] > priceBounds.min || priceRange[1] < priceBounds.max) && (
         <div className="mb-4 flex flex-wrap items-center gap-2">
           {search && (
             <Badge variant="secondary" className="gap-1 pr-1">
@@ -270,6 +303,22 @@ export default function Products() {
             <Badge variant="secondary" className="gap-1 pr-1">
               {category}
               <button onClick={() => setCategory('all')} className="ml-1 rounded-full p-0.5 hover:bg-foreground/10">
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          )}
+          {inStockOnly && (
+            <Badge variant="secondary" className="gap-1 pr-1">
+              In Stock
+              <button onClick={() => setInStockOnly(false)} className="ml-1 rounded-full p-0.5 hover:bg-foreground/10">
+                <X className="h-3 w-3" />
+              </button>
+            </Badge>
+          )}
+          {(priceRange[0] > priceBounds.min || priceRange[1] < priceBounds.max) && (
+            <Badge variant="secondary" className="gap-1 pr-1">
+              ${priceRange[0].toFixed(0)} – ${priceRange[1].toFixed(0)}
+              <button onClick={() => setPriceRange([priceBounds.min, priceBounds.max])} className="ml-1 rounded-full p-0.5 hover:bg-foreground/10">
                 <X className="h-3 w-3" />
               </button>
             </Badge>
