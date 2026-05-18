@@ -75,6 +75,7 @@ export default function Products() {
   const filtered = useMemo(() => {
     let result = products.filter(p => {
       if (category !== 'all' && p.category !== category) return false;
+      if (inStockOnly && p.stock_quantity <= 0) return false;
       if (p.base_price < priceRange[0] || p.base_price > priceRange[1]) return false;
       if (search) {
         const q = search.toLowerCase();
@@ -109,7 +110,7 @@ export default function Products() {
     }
 
     return result;
-  }, [products, search, category, sort, priceRange]);
+  }, [products, search, category, sort, priceRange, inStockOnly]);
 
   const canRefer = user && user.role === 'referrer';
 
