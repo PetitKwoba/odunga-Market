@@ -403,28 +403,57 @@ export default function Products() {
                     <span className="font-display text-lg font-bold">{format(p.base_price)}</span>
                     <span className="text-xs text-muted-foreground">/ unit · MOQ {p.moq}</span>
                   </div>
-                  <div className="mt-2 flex items-center justify-between">
-                    <p className="text-xs text-muted-foreground">Lead time: {p.lead_time_days} days</p>
-                    <div className="flex items-center gap-1">
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <p className="text-xs text-muted-foreground truncate">Lead: {p.lead_time_days}d</p>
+                    {canRefer && (
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
-                        className="h-7 gap-1 text-xs"
-                        onClick={(e) => addToCart(p, e)}
+                        className="h-7 gap-1 px-2 text-xs text-secondary hover:text-secondary"
+                        onClick={(e) => copyRefLink(p.id, e)}
                       >
-                        <ShoppingCart className="h-3 w-3" /> Add
+                        <Copy className="h-3 w-3" /> Share
                       </Button>
-                      {canRefer && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 gap-1 text-xs text-secondary hover:text-secondary"
-                          onClick={(e) => copyRefLink(p.id, e)}
-                        >
-                          <Copy className="h-3 w-3" /> Share
-                        </Button>
-                      )}
+                    )}
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="flex items-center rounded-md border" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-r-none"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setQty(p.id, Math.max(p.moq, getQty(p) - 1)); }}
+                        aria-label="Decrease quantity"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <Input
+                        type="number"
+                        min={p.moq}
+                        value={getQty(p)}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                        onChange={(e) => { e.stopPropagation(); const v = parseInt(e.target.value); setQty(p.id, isNaN(v) ? p.moq : Math.max(p.moq, v)); }}
+                        className="h-8 w-14 rounded-none border-x-0 text-center text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-l-none"
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setQty(p.id, getQty(p) + 1); }}
+                        aria-label="Increase quantity"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
                     </div>
+                    <Button
+                      size="sm"
+                      className="h-8 flex-1 gap-1 text-xs"
+                      onClick={(e) => addToCart(p, e)}
+                    >
+                      <ShoppingCart className="h-3 w-3" /> Add to Cart
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
