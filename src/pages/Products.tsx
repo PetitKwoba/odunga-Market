@@ -130,6 +130,7 @@ export default function Products() {
   const addToCart = (p: ProductWithProducer, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    const qty = Math.max(p.moq, getQty(p));
     const product: Product = {
       id: p.id,
       producer_id: p.producer_id,
@@ -146,8 +147,8 @@ export default function Products() {
       lead_time_days: p.lead_time_days,
       is_active: p.is_active,
     };
-    addItem(product, p.moq);
-    toast.success(`Added ${p.moq}x ${p.name} to cart`);
+    addItem(product, qty);
+    toast.success(`Added ${qty}x ${p.name} to cart`);
   };
 
   const activeFilterCount = [
