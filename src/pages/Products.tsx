@@ -14,7 +14,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, Package, Copy, SlidersHorizontal, X, ArrowUpDown, Heart, ShoppingCart, Minus, Plus } from 'lucide-react';
+import { Search, Package, Copy, SlidersHorizontal, X, ArrowUpDown, Heart, ShoppingCart } from 'lucide-react';
 import { toast } from 'sonner';
 import { Product } from '@/lib/types';
 
@@ -33,9 +33,6 @@ export default function Products() {
   const [sort, setSort] = useState<SortOption>('newest');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [showFilters, setShowFilters] = useState(false);
-  const [qtyById, setQtyById] = useState<Record<string, number>>({});
-  const getQty = (p: ProductWithProducer) => qtyById[p.id] ?? p.moq;
-  const setQty = (id: string, v: number) => setQtyById(prev => ({ ...prev, [id]: v }));
   const [inStockOnly, setInStockOnly] = useState(false);
 
   // Fall back to mock data if DB is empty / still loading
@@ -130,7 +127,6 @@ export default function Products() {
   const addToCart = (p: ProductWithProducer, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const qty = Math.max(p.moq, getQty(p));
     const product: Product = {
       id: p.id,
       producer_id: p.producer_id,
@@ -147,8 +143,8 @@ export default function Products() {
       lead_time_days: p.lead_time_days,
       is_active: p.is_active,
     };
-    addItem(product, qty);
-    toast.success(`Added ${qty}x ${p.name} to cart`);
+    addItem(product, p.moq);
+    toast.success(`Added ${p.moq}x ${p.name} to cart`);
   };
 
   const activeFilterCount = [
@@ -403,57 +399,28 @@ export default function Products() {
                     <span className="font-display text-lg font-bold">{format(p.base_price)}</span>
                     <span className="text-xs text-muted-foreground">/ unit · MOQ {p.moq}</span>
                   </div>
-                  <div className="mt-2 flex items-center justify-between gap-2">
-                    <p className="text-xs text-muted-foreground truncate">Lead: {p.lead_time_days}d</p>
-                    {canRefer && (
+                  <div className="mt-2 flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">Lead time: {p.lead_time_days} days</p>
+                    <div className="flex items-center gap-1">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        className="h-7 gap-1 px-2 text-xs text-secondary hover:text-secondary"
-                        onClick={(e) => copyRefLink(p.id, e)}
+                        className="h-7 gap-1 text-xs"
+                        onClick={(e) => addToCart(p, e)}
                       >
-                        <Copy className="h-3 w-3" /> Share
+                        <ShoppingCart className="h-3 w-3" /> Add
                       </Button>
-                    )}
-                  </div>
-                  <div className="mt-2 flex items-center gap-2">
-                    <div className="flex items-center rounded-md border" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-r-none"
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setQty(p.id, Math.max(p.moq, getQty(p) - 1)); }}
-                        aria-label="Decrease quantity"
-                      >
-                        <Minus className="h-3 w-3" />
-                      </Button>
-                      <Input
-                        type="number"
-                        min={p.moq}
-                        value={getQty(p)}
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                        onChange={(e) => { e.stopPropagation(); const v = parseInt(e.target.value); setQty(p.id, isNaN(v) ? p.moq : Math.max(p.moq, v)); }}
-                        className="h-8 w-14 rounded-none border-x-0 text-center text-sm [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 rounded-l-none"
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setQty(p.id, getQty(p) + 1); }}
-                        aria-label="Increase quantity"
-                      >
-                        <Plus className="h-3 w-3" />
-                      </Button>
+                      {canRefer && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 gap-1 text-xs text-secondary hover:text-secondary"
+                          onClick={(e) => copyRefLink(p.id, e)}
+                        >
+                          <Copy className="h-3 w-3" /> Share
+                        </Button>
+                      )}
                     </div>
-                    <Button
-                      size="sm"
-                      className="h-8 flex-1 gap-1 text-xs"
-                      onClick={(e) => addToCart(p, e)}
-                    >
-                      <ShoppingCart className="h-3 w-3" /> Add to Cart
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
