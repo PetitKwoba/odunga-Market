@@ -33,6 +33,9 @@ export default function Products() {
   const [sort, setSort] = useState<SortOption>('newest');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [showFilters, setShowFilters] = useState(false);
+  const [qtyById, setQtyById] = useState<Record<string, number>>({});
+  const getQty = (p: ProductWithProducer) => qtyById[p.id] ?? p.moq;
+  const setQty = (id: string, v: number) => setQtyById(prev => ({ ...prev, [id]: v }));
   const [inStockOnly, setInStockOnly] = useState(false);
 
   // Fall back to mock data if DB is empty / still loading
