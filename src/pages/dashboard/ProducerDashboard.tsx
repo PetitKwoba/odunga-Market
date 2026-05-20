@@ -26,6 +26,8 @@ import DemandForecast from '@/components/DemandForecast';
 import DiscountManager from '@/components/DiscountManager';
 import DirectMessaging from '@/components/DirectMessaging';
 import ProducerAnalytics from '@/components/ProducerAnalytics';
+import WalletTab from '@/components/producer/WalletTab';
+import CommissionsTab from '@/components/producer/CommissionsTab';
 import { Separator } from '@/components/ui/separator';
 
 const PLATFORM_FEE_PERCENT = 5;
@@ -176,9 +178,14 @@ export default function ProducerDashboard() {
           <TabsTrigger value="discounts"><Percent className="mr-1 h-4 w-4" /> Discounts</TabsTrigger>
           <TabsTrigger value="pos"><CreditCard className="mr-1 h-4 w-4" /> POS</TabsTrigger>
           <TabsTrigger value="team"><Users className="mr-1 h-4 w-4" /> Team</TabsTrigger>
-          <TabsTrigger value="payouts"><Wallet className="mr-1 h-4 w-4" /> Payouts</TabsTrigger>
+          <TabsTrigger value="wallet"><Wallet className="mr-1 h-4 w-4" /> Wallet</TabsTrigger>
+          <TabsTrigger value="commissions"><Percent className="mr-1 h-4 w-4" /> Commissions</TabsTrigger>
+          <TabsTrigger value="payouts"><DollarSign className="mr-1 h-4 w-4" /> Payouts</TabsTrigger>
           <TabsTrigger value="referrals">Referral Settings</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="wallet" className="mt-4"><WalletTab /></TabsContent>
+        <TabsContent value="commissions" className="mt-4"><CommissionsTab /></TabsContent>
 
         {/* ─── PRODUCTS TAB ─── */}
         <TabsContent value="products" className="mt-4 space-y-4">

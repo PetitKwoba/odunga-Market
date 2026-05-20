@@ -3,6 +3,12 @@ project_id = "eoehwrezwmzftacawxpw"
 [functions.paystack-webhook]
 verify_jwt = false
 
+[functions.paystack-transfer-webhook]
+verify_jwt = false
+
+[functions.weekly-payouts]
+verify_jwt = false
+
 [functions.ai-demand-forecast]
 verify_jwt = false
 

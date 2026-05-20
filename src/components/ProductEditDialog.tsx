@@ -115,6 +115,8 @@ export default function ProductEditDialog({ product, open, onOpenChange, onSaved
       images,
       bulk_pricing: bulkTiers,
       is_active: form.is_active,
+      commission_type: form.commission_override ? form.commission_type : null,
+      commission_value: form.commission_override ? (parseFloat(String(form.commission_value)) || 0) : null,
     };
 
     const dbPayload = {
@@ -203,6 +205,41 @@ export default function ProductEditDialog({ product, open, onOpenChange, onSaved
             <Label>Product is active and visible to buyers</Label>
           </div>
 
+          {/* Commission override */}
+          <div className="space-y-3 rounded-md border p-3">
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={form.commission_override}
+                onCheckedChange={v => setForm(f => ({ ...f, commission_override: v }))}
+              />
+              <Label>Override storewide commission for this product</Label>
+            </div>
+            {form.commission_override && (
+              <div className="grid gap-3 grid-cols-2">
+                <div className="space-y-1">
+                  <Label className="text-xs">Type</Label>
+                  <select
+                    className="h-9 w-full rounded-md border bg-background px-2 text-sm"
+                    value={form.commission_type}
+                    onChange={e => setForm(f => ({ ...f, commission_type: e.target.value as any }))}
+                  >
+                    <option value="percentage">Percentage of sale</option>
+                    <option value="fixed">Fixed per unit</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">{form.commission_type === 'percentage' ? 'Percent (%)' : 'Amount / unit'}</Label>
+                  <Input
+                    type="number" step="0.01"
+                    value={form.commission_value}
+                    onChange={e => setForm(f => ({ ...f, commission_value: e.target.value }))}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+
           {/* Bulk Pricing */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -242,7 +279,7 @@ export default function ProductEditDialog({ product, open, onOpenChange, onSaved
   );
 }
 
-function getDefaults(p: ProductData | null | undefined, producerId?: string) {
+function getDefaults(p: any, producerId?: string) {
   return {
     name: p?.name || '',
     description: p?.description || '',
@@ -252,6 +289,9 @@ function getDefaults(p: ProductData | null | undefined, producerId?: string) {
     lead_time_days: p?.lead_time_days ?? '',
     stock_quantity: p?.stock_quantity ?? '',
     is_active: p?.is_active ?? true,
+    commission_override: !!(p?.commission_type && p?.commission_value != null),
+    commission_type: (p?.commission_type as 'percentage' | 'fixed') || 'percentage',
+    commission_value: p?.commission_value ?? '',
   };
 }
 
