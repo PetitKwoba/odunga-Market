@@ -205,6 +205,41 @@ export default function ProductEditDialog({ product, open, onOpenChange, onSaved
             <Label>Product is active and visible to buyers</Label>
           </div>
 
+          {/* Commission override */}
+          <div className="space-y-3 rounded-md border p-3">
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={form.commission_override}
+                onCheckedChange={v => setForm(f => ({ ...f, commission_override: v }))}
+              />
+              <Label>Override storewide commission for this product</Label>
+            </div>
+            {form.commission_override && (
+              <div className="grid gap-3 grid-cols-2">
+                <div className="space-y-1">
+                  <Label className="text-xs">Type</Label>
+                  <select
+                    className="h-9 w-full rounded-md border bg-background px-2 text-sm"
+                    value={form.commission_type}
+                    onChange={e => setForm(f => ({ ...f, commission_type: e.target.value as any }))}
+                  >
+                    <option value="percentage">Percentage of sale</option>
+                    <option value="fixed">Fixed per unit</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">{form.commission_type === 'percentage' ? 'Percent (%)' : 'Amount / unit'}</Label>
+                  <Input
+                    type="number" step="0.01"
+                    value={form.commission_value}
+                    onChange={e => setForm(f => ({ ...f, commission_value: e.target.value }))}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+
           {/* Bulk Pricing */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
