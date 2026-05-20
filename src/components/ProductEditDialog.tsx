@@ -115,6 +115,8 @@ export default function ProductEditDialog({ product, open, onOpenChange, onSaved
       images,
       bulk_pricing: bulkTiers,
       is_active: form.is_active,
+      commission_type: form.commission_override ? form.commission_type : null,
+      commission_value: form.commission_override ? (parseFloat(String(form.commission_value)) || 0) : null,
     };
 
     const dbPayload = {
