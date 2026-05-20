@@ -244,7 +244,7 @@ export default function ProductEditDialog({ product, open, onOpenChange, onSaved
   );
 }
 
-function getDefaults(p: ProductData | null | undefined, producerId?: string) {
+function getDefaults(p: any, producerId?: string) {
   return {
     name: p?.name || '',
     description: p?.description || '',
@@ -254,6 +254,9 @@ function getDefaults(p: ProductData | null | undefined, producerId?: string) {
     lead_time_days: p?.lead_time_days ?? '',
     stock_quantity: p?.stock_quantity ?? '',
     is_active: p?.is_active ?? true,
+    commission_override: !!(p?.commission_type && p?.commission_value != null),
+    commission_type: (p?.commission_type as 'percentage' | 'fixed') || 'percentage',
+    commission_value: p?.commission_value ?? '',
   };
 }
 
