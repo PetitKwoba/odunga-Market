@@ -26,6 +26,8 @@ import DemandForecast from '@/components/DemandForecast';
 import DiscountManager from '@/components/DiscountManager';
 import DirectMessaging from '@/components/DirectMessaging';
 import ProducerAnalytics from '@/components/ProducerAnalytics';
+import WalletTab from '@/components/producer/WalletTab';
+import CommissionsTab from '@/components/producer/CommissionsTab';
 import { Separator } from '@/components/ui/separator';
 
 const PLATFORM_FEE_PERCENT = 5;
