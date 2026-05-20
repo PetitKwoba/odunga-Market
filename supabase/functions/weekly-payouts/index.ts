@@ -77,26 +77,19 @@ serve(async (req) => {
         continue;
       }
 
-      // Debit wallet
-      const { data: updated } = await supabase
+      // Debit wallet (read-modify-write)
+      const { data: current } = await supabase
+        .from("wallet_balances")
+        .select("available_balance, lifetime_paid_out")
+        .eq("producer_id", w.producer_id)
+        .single();
+      await supabase
         .from("wallet_balances")
         .update({
-          available_balance: 0,
-          lifetime_paid_out: amount,
+          available_balance: Math.max(0, Number(current?.available_balance || 0) - amount),
+          lifetime_paid_out: Number(current?.lifetime_paid_out || 0) + amount,
         })
-        .eq("producer_id", w.producer_id)
-        .select()
-        .single();
-
-      // Use raw SQL via rpc-less approach: do a fetch-and-add
-      if (updated) {
-        await supabase
-          .from("wallet_balances")
-          .update({
-            lifetime_paid_out: Number(updated.lifetime_paid_out) + amount - amount, // placeholder fixed below
-          })
-          .eq("producer_id", w.producer_id);
-      }
+        .eq("producer_id", w.producer_id);
 
       await supabase.from("wallet_transactions").insert({
         producer_id: w.producer_id,
