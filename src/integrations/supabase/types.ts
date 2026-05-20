@@ -836,39 +836,54 @@ export type Database = {
       }
       payouts: {
         Row: {
+          batch_id: string | null
           created_at: string
+          failure_reason: string | null
           gross_amount: number
           id: string
           net_amount: number
           order_id: string
           paid_at: string | null
+          paystack_recipient_code: string | null
+          paystack_transfer_code: string | null
           platform_fee: number
           producer_id: string
           referral_fee: number
+          scheduled_for: string | null
           status: string
         }
         Insert: {
+          batch_id?: string | null
           created_at?: string
+          failure_reason?: string | null
           gross_amount?: number
           id?: string
           net_amount?: number
           order_id: string
           paid_at?: string | null
+          paystack_recipient_code?: string | null
+          paystack_transfer_code?: string | null
           platform_fee?: number
           producer_id: string
           referral_fee?: number
+          scheduled_for?: string | null
           status?: string
         }
         Update: {
+          batch_id?: string | null
           created_at?: string
+          failure_reason?: string | null
           gross_amount?: number
           id?: string
           net_amount?: number
           order_id?: string
           paid_at?: string | null
+          paystack_recipient_code?: string | null
+          paystack_transfer_code?: string | null
           platform_fee?: number
           producer_id?: string
           referral_fee?: number
+          scheduled_for?: string | null
           status?: string
         }
         Relationships: [
@@ -1052,9 +1067,54 @@ export type Database = {
         }
         Relationships: []
       }
+      producer_bank_accounts: {
+        Row: {
+          account_name: string
+          account_number: string
+          bank_code: string
+          bank_name: string
+          created_at: string
+          currency: string
+          id: string
+          is_verified: boolean
+          paystack_recipient_code: string | null
+          producer_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          bank_code: string
+          bank_name: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_verified?: boolean
+          paystack_recipient_code?: string | null
+          producer_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          bank_code?: string
+          bank_name?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_verified?: boolean
+          paystack_recipient_code?: string | null
+          producer_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       producer_profiles: {
         Row: {
           categories: string[] | null
+          commission_scope: string
+          commission_type: string
+          commission_value: number
           id: string
           logo_url: string | null
           minimum_order_rules: string | null
@@ -1065,6 +1125,9 @@ export type Database = {
         }
         Insert: {
           categories?: string[] | null
+          commission_scope?: string
+          commission_type?: string
+          commission_value?: number
           id?: string
           logo_url?: string | null
           minimum_order_rules?: string | null
@@ -1075,6 +1138,9 @@ export type Database = {
         }
         Update: {
           categories?: string[] | null
+          commission_scope?: string
+          commission_type?: string
+          commission_value?: number
           id?: string
           logo_url?: string | null
           minimum_order_rules?: string | null
@@ -1204,6 +1270,8 @@ export type Database = {
           base_price: number
           bulk_pricing: Json | null
           category: string
+          commission_type: string | null
+          commission_value: number | null
           created_at: string
           description: string | null
           id: string
@@ -1220,6 +1288,8 @@ export type Database = {
           base_price?: number
           bulk_pricing?: Json | null
           category?: string
+          commission_type?: string | null
+          commission_value?: number | null
           created_at?: string
           description?: string | null
           id?: string
@@ -1236,6 +1306,8 @@ export type Database = {
           base_price?: number
           bulk_pricing?: Json | null
           category?: string
+          commission_type?: string | null
+          commission_value?: number | null
           created_at?: string
           description?: string | null
           id?: string
@@ -2044,6 +2116,78 @@ export type Database = {
         }
         Relationships: []
       }
+      wallet_balances: {
+        Row: {
+          available_balance: number
+          created_at: string
+          currency: string
+          id: string
+          lifetime_earned: number
+          lifetime_paid_out: number
+          pending_balance: number
+          producer_id: string
+          updated_at: string
+        }
+        Insert: {
+          available_balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          lifetime_earned?: number
+          lifetime_paid_out?: number
+          pending_balance?: number
+          producer_id: string
+          updated_at?: string
+        }
+        Update: {
+          available_balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          lifetime_earned?: number
+          lifetime_paid_out?: number
+          pending_balance?: number
+          producer_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          balance_after: number | null
+          created_at: string
+          description: string | null
+          id: string
+          order_id: string | null
+          payout_id: string | null
+          producer_id: string
+          type: string
+        }
+        Insert: {
+          amount: number
+          balance_after?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          payout_id?: string | null
+          producer_id: string
+          type: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          payout_id?: string | null
+          producer_id?: string
+          type?: string
+        }
+        Relationships: []
+      }
       wishlists: {
         Row: {
           created_at: string
@@ -2078,6 +2222,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      compute_commission: {
+        Args: { _product_id: string; _quantity: number; _subtotal: number }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
