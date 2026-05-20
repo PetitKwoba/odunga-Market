@@ -364,25 +364,7 @@ export default function AdminPanel() {
         </TabsContent>
 
         <TabsContent value="payouts" className="mt-4">
-          <SearchableTable
-            data={payouts}
-            columns={[
-              { key: 'producer_id', label: 'Producer', render: p => <span className="font-medium">{profiles.find(pr => pr.user_id === p.producer_id)?.name || '—'}</span>, exportValue: p => profiles.find(pr => pr.user_id === p.producer_id)?.name || p.producer_id },
-              { key: 'order_id', label: 'Order', render: p => <span className="font-mono text-xs">{p.order_id.slice(0, 8)}...</span>, exportValue: p => p.order_id },
-              { key: 'gross_amount', label: 'Gross', render: p => `$${Number(p.gross_amount).toFixed(2)}`, exportValue: p => String(p.gross_amount) },
-              { key: 'platform_fee', label: 'Fee', render: p => <span className="text-destructive">-${Number(p.platform_fee).toFixed(2)}</span>, exportValue: p => String(p.platform_fee) },
-              { key: 'net_amount', label: 'Net', render: p => <span className="font-semibold text-success">${Number(p.net_amount).toFixed(2)}</span>, exportValue: p => String(p.net_amount) },
-              { key: 'status', label: 'Status', render: p => <Badge variant={p.status === 'paid' ? 'default' : 'outline'}>{p.status}</Badge> },
-              { key: 'paid_at', label: 'Paid', render: p => p.paid_at ? new Date(p.paid_at).toLocaleDateString() : '—', exportValue: p => p.paid_at || '' },
-            ]}
-            keyExtractor={p => p.id}
-            actions={p => p.status !== 'paid' && (
-              <Button size="sm" onClick={() => handlePayoutPaid(p.id)}>
-                <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Mark Paid
-              </Button>
-            )}
-            exportFileName="payouts"
-          />
+          <PayoutsManagement />
         </TabsContent>
 
         <TabsContent value="disputes" className="mt-4">
