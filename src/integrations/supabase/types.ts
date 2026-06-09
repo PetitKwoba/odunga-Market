@@ -688,29 +688,47 @@ export type Database = {
       }
       order_items: {
         Row: {
+          funds_released_at: string | null
           id: string
           order_id: string
+          paid_at: string | null
+          platform_fee: number
           producer_id: string
+          producer_net: number
           product_id: string
           quantity: number
+          referrer_fee: number
+          referrer_id: string | null
           subtotal: number
           unit_price: number
         }
         Insert: {
+          funds_released_at?: string | null
           id?: string
           order_id: string
+          paid_at?: string | null
+          platform_fee?: number
           producer_id: string
+          producer_net?: number
           product_id: string
           quantity?: number
+          referrer_fee?: number
+          referrer_id?: string | null
           subtotal?: number
           unit_price?: number
         }
         Update: {
+          funds_released_at?: string | null
           id?: string
           order_id?: string
+          paid_at?: string | null
+          platform_fee?: number
           producer_id?: string
+          producer_net?: number
           product_id?: string
           quantity?: number
+          referrer_fee?: number
+          referrer_id?: string | null
           subtotal?: number
           unit_price?: number
         }
@@ -895,6 +913,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_revenue: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          order_id: string
+          order_item_id: string
+          producer_id: string
+          source: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          order_id: string
+          order_item_id: string
+          producer_id: string
+          source?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          order_id?: string
+          order_item_id?: string
+          producer_id?: string
+          source?: string
+        }
+        Relationships: []
       }
       platform_settings: {
         Row: {
@@ -1461,6 +1512,81 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      referrer_wallet_balances: {
+        Row: {
+          available_balance: number
+          created_at: string
+          currency: string
+          id: string
+          last_payout_at: string | null
+          lifetime_earned: number
+          lifetime_paid_out: number
+          pending_balance: number
+          referrer_id: string
+          updated_at: string
+        }
+        Insert: {
+          available_balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          last_payout_at?: string | null
+          lifetime_earned?: number
+          lifetime_paid_out?: number
+          pending_balance?: number
+          referrer_id: string
+          updated_at?: string
+        }
+        Update: {
+          available_balance?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          last_payout_at?: string | null
+          lifetime_earned?: number
+          lifetime_paid_out?: number
+          pending_balance?: number
+          referrer_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      referrer_wallet_transactions: {
+        Row: {
+          amount: number
+          balance_after: number | null
+          created_at: string
+          description: string | null
+          id: string
+          order_id: string | null
+          referrer_id: string
+          type: string
+          withdrawal_id: string | null
+        }
+        Insert: {
+          amount: number
+          balance_after?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          referrer_id: string
+          type: string
+          withdrawal_id?: string | null
+        }
+        Update: {
+          amount?: number
+          balance_after?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_id?: string | null
+          referrer_id?: string
+          type?: string
+          withdrawal_id?: string | null
+        }
+        Relationships: []
       }
       returns: {
         Row: {
@@ -2122,6 +2248,7 @@ export type Database = {
           created_at: string
           currency: string
           id: string
+          last_payout_at: string | null
           lifetime_earned: number
           lifetime_paid_out: number
           pending_balance: number
@@ -2133,6 +2260,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          last_payout_at?: string | null
           lifetime_earned?: number
           lifetime_paid_out?: number
           pending_balance?: number
@@ -2144,6 +2272,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          last_payout_at?: string | null
           lifetime_earned?: number
           lifetime_paid_out?: number
           pending_balance?: number
@@ -2217,6 +2346,57 @@ export type Database = {
           },
         ]
       }
+      withdrawal_requests: {
+        Row: {
+          amount: number
+          bank_account_id: string | null
+          created_at: string
+          currency: string
+          failure_reason: string | null
+          id: string
+          paystack_reference: string | null
+          paystack_transfer_code: string | null
+          processed_at: string | null
+          requested_at: string
+          status: string
+          updated_at: string
+          user_id: string
+          user_type: string
+        }
+        Insert: {
+          amount: number
+          bank_account_id?: string | null
+          created_at?: string
+          currency?: string
+          failure_reason?: string | null
+          id?: string
+          paystack_reference?: string | null
+          paystack_transfer_code?: string | null
+          processed_at?: string | null
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          user_type: string
+        }
+        Update: {
+          amount?: number
+          bank_account_id?: string | null
+          created_at?: string
+          currency?: string
+          failure_reason?: string | null
+          id?: string
+          paystack_reference?: string | null
+          paystack_transfer_code?: string | null
+          processed_at?: string | null
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          user_type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -2225,6 +2405,22 @@ export type Database = {
       compute_commission: {
         Args: { _product_id: string; _quantity: number; _subtotal: number }
         Returns: number
+      }
+      compute_platform_commission: {
+        Args: { _quantity: number; _subtotal: number }
+        Returns: number
+      }
+      compute_referrer_commission: {
+        Args: { _quantity: number; _subtotal: number }
+        Returns: number
+      }
+      get_setting_numeric: {
+        Args: { _default: number; _key: string }
+        Returns: number
+      }
+      get_setting_text: {
+        Args: { _default: string; _key: string }
+        Returns: string
       }
       has_role: {
         Args: {
@@ -2245,6 +2441,7 @@ export type Database = {
         Args: { _order_id: string; _user_id: string }
         Returns: boolean
       }
+      release_held_funds: { Args: never; Returns: number }
       validate_stock_availability: { Args: { p_items: Json }; Returns: Json }
     }
     Enums: {
