@@ -9,6 +9,15 @@ verify_jwt = false
 [functions.weekly-payouts]
 verify_jwt = false
 
+[functions.biweekly-producer-payouts]
+verify_jwt = false
+
+[functions.monthly-referrer-payouts]
+verify_jwt = false
+
+[functions.release-held-funds]
+verify_jwt = false
+
 [functions.ai-demand-forecast]
 verify_jwt = false
 

@@ -7,8 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, Link2, DollarSign, Users, Package, Share2 } from 'lucide-react';
+import { Copy, Link2, DollarSign, Users, Package, Share2, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
+import ReferrerWalletTab from '@/components/referrer/ReferrerWalletTab';
 
 export default function ReferrerDashboard() {
   const { user } = useAuth();
@@ -53,7 +54,9 @@ export default function ReferrerDashboard() {
           <TabsTrigger value="products">Product Links</TabsTrigger>
           <TabsTrigger value="sales">My Sales</TabsTrigger>
           <TabsTrigger value="referrals">Referred Users</TabsTrigger>
+          <TabsTrigger value="wallet"><Wallet className="h-4 w-4 mr-1" />Wallet</TabsTrigger>
         </TabsList>
+        <TabsContent value="wallet" className="mt-4"><ReferrerWalletTab /></TabsContent>
 
         <TabsContent value="products" className="mt-4 space-y-4">
           <Card>
