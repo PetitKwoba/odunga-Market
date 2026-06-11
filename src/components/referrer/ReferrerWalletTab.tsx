@@ -77,11 +77,22 @@ export default function ReferrerWalletTab() {
       <div className="grid gap-4 sm:grid-cols-3">
         <Card><CardHeader className="pb-2"><CardDescription>Available</CardDescription></CardHeader>
           <CardContent><div className="text-2xl font-bold text-primary">{format(available)}</div></CardContent></Card>
-        <Card><CardHeader className="pb-2"><CardDescription>Pending (7-day hold)</CardDescription></CardHeader>
+        <Card><CardHeader className="pb-2"><CardDescription>Pending (return hold)</CardDescription></CardHeader>
           <CardContent><div className="text-2xl font-bold">{format(Number(balance?.pending_balance || 0))}</div></CardContent></Card>
         <Card><CardHeader className="pb-2"><CardDescription>Lifetime earned</CardDescription></CardHeader>
           <CardContent><div className="text-2xl font-bold">{format(Number(balance?.lifetime_earned || 0))}</div></CardContent></Card>
       </div>
+
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          <strong>Available</strong> funds can be withdrawn anytime. <strong>Pending</strong> referral commissions are held for 7 days
+          after the buyer's payment to cover the return window, then move to Available automatically.
+        </AlertDescription>
+      </Alert>
+
+      <PendingReleasesCard userType="referrer" />
+
 
       <Card>
         <CardHeader>
@@ -116,23 +127,26 @@ export default function ReferrerWalletTab() {
 
       {withdrawals.length > 0 && (
         <Card>
-          <CardHeader><CardTitle>Withdrawal requests</CardTitle></CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Amount</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-              <TableBody>
-                {withdrawals.map((w: any) => (
-                  <TableRow key={w.id}>
-                    <TableCell className="text-xs">{new Date(w.created_at).toLocaleString()}</TableCell>
-                    <TableCell>{format(Number(w.amount))}</TableCell>
-                    <TableCell><Badge variant={w.status === 'paid' ? 'default' : w.status === 'failed' ? 'destructive' : 'outline'}>{w.status}</Badge></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <CardHeader><CardTitle>Withdrawal history</CardTitle><CardDescription>Track each withdrawal from request through payout.</CardDescription></CardHeader>
+          <CardContent className="space-y-4">
+            {withdrawals.map((w: any) => (
+              <div key={w.id} className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="font-medium">{format(Number(w.amount))} {w.currency}</div>
+                  <span className="text-xs font-mono text-muted-foreground">{w.paystack_reference || w.id.slice(0, 8)}</span>
+                </div>
+                <WithdrawalStatusTimeline
+                  status={w.status}
+                  createdAt={w.created_at}
+                  processedAt={w.processed_at}
+                  failureReason={w.failure_reason}
+                />
+              </div>
+            ))}
           </CardContent>
         </Card>
       )}
+
 
       <Card>
         <CardHeader><CardTitle>Recent transactions</CardTitle></CardHeader>
