@@ -8,8 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Wallet, CheckCircle2, ArrowDownToLine } from 'lucide-react';
+import { Wallet, CheckCircle2, ArrowDownToLine, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import PendingReleasesCard from '@/components/wallet/PendingReleasesCard';
+import WithdrawalStatusTimeline from '@/components/wallet/WithdrawalStatusTimeline';
+
 
 export default function ReferrerWalletTab() {
   const { user } = useAuth();
