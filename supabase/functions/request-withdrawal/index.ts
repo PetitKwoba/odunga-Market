@@ -102,6 +102,10 @@ serve(async (req) => {
       await supabase.from("withdrawal_requests").update({
         status: "failed", failure_reason: trData.message || "transfer_failed", processed_at: new Date().toISOString(),
       }).eq("id", wr.id);
+      await supabase.functions.invoke("send-notification", { body: {
+        event_type: "withdrawal_failed", user_id: userId,
+        metadata: { amount, currency: wallet.currency, reason: trData.message || "transfer_failed", reference },
+      }}).catch(() => {});
       return new Response(JSON.stringify({ error: trData.message || "Transfer failed" }), { status: 502, headers: corsHeaders });
     }
 
@@ -110,8 +114,14 @@ serve(async (req) => {
       paystack_reference: reference,
     }).eq("id", wr.id);
 
+    await supabase.functions.invoke("send-notification", { body: {
+      event_type: "withdrawal_requested", user_id: userId,
+      metadata: { amount, currency: wallet.currency, reference },
+    }}).catch(() => {});
+
     return new Response(JSON.stringify({ ok: true, withdrawal_id: wr.id, amount, reference }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
   } catch (e) {
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });

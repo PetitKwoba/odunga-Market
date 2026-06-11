@@ -73,6 +73,10 @@ serve(async (req) => {
             last_payout_at: new Date().toISOString(),
           }).eq(key, wr.user_id);
         }
+        await supabase.functions.invoke("send-notification", { body: {
+          event_type: "withdrawal_completed", user_id: wr.user_id,
+          metadata: { amount: Number(wr.amount), currency: wr.currency, reference: wr.paystack_reference },
+        }}).catch(() => {});
       } else if (status === "failed" || status === "reversed") {
         // Refund available balance
         const table = wr.user_type === "producer" ? "wallet_balances" : "referrer_wallet_balances";
@@ -89,8 +93,13 @@ serve(async (req) => {
             balance_after: newBal,
           });
         }
+        await supabase.functions.invoke("send-notification", { body: {
+          event_type: "withdrawal_failed", user_id: wr.user_id,
+          metadata: { amount: Number(wr.amount), currency: wr.currency, reason: event?.data?.reason || status, reference: wr.paystack_reference },
+        }}).catch(() => {});
       }
     }
+
 
     return new Response(JSON.stringify({ received: true }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } });

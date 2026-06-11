@@ -85,9 +85,34 @@ serve(async (req) => {
         break;
       }
 
+      case "withdrawal_requested": {
+        subject = `Withdrawal requested — ${metadata?.amount} ${metadata?.currency || 'KES'}`;
+        body = `Hi,\n\nWe've received your withdrawal request for ${metadata?.amount} ${metadata?.currency || 'KES'}.\n\nReference: ${metadata?.reference || '—'}\nStatus: Processing\n\nYou'll get another email when the transfer completes (usually within a few minutes to 1 business day).\n\nThanks for selling on OdungaMarket!`;
+        break;
+      }
+
+      case "withdrawal_completed": {
+        subject = `Withdrawal paid — ${metadata?.amount} ${metadata?.currency || 'KES'}`;
+        body = `Hi,\n\nGood news! Your withdrawal of ${metadata?.amount} ${metadata?.currency || 'KES'} has been sent to your bank account.\n\nReference: ${metadata?.reference || '—'}\n\nThanks for selling on OdungaMarket!`;
+        break;
+      }
+
+      case "withdrawal_failed": {
+        subject = `Withdrawal failed — ${metadata?.amount} ${metadata?.currency || 'KES'}`;
+        body = `Hi,\n\nUnfortunately your withdrawal of ${metadata?.amount} ${metadata?.currency || 'KES'} could not be processed.\n\nReason: ${metadata?.reason || 'unknown'}\n\nThe funds have been returned to your available balance. Please verify your bank details and try again, or contact support.`;
+        break;
+      }
+
+      case "auto_payout_paid": {
+        subject = `Auto-payout sent — ${metadata?.amount} ${metadata?.currency || 'KES'}`;
+        body = `Hi,\n\nYour scheduled ${metadata?.cadence || 'auto'} payout of ${metadata?.amount} ${metadata?.currency || 'KES'} is on its way to your bank account.\n\nReference: ${metadata?.reference || '—'}\n\nThanks for being part of OdungaMarket!`;
+        break;
+      }
+
       default:
-        subject = `Notification from OdungaMarket`;
-        body = metadata?.message || "You have a new notification.";
+        subject = metadata?.subject || `Notification from OdungaMarket`;
+        body = metadata?.message || metadata?.body || "You have a new notification.";
+
     }
 
     // Log the email (in production, integrate with Resend/SendGrid)

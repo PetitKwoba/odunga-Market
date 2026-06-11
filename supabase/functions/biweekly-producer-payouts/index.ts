@@ -71,7 +71,13 @@ serve(async (req) => {
         paystack_recipient_code: bank.paystack_recipient_code,
       });
 
+      await supabase.functions.invoke("send-notification", { body: {
+        event_type: "auto_payout_paid", user_id: w.producer_id,
+        metadata: { amount, currency: w.currency || "KES", reference, cadence: "biweekly" },
+      }}).catch(() => {});
+
       results.push({ producer_id: w.producer_id, amount, transfer_code: trData.data.transfer_code });
+
     }
 
     return new Response(JSON.stringify({ batch_id, processed: results.length, results }),

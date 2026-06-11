@@ -63,7 +63,13 @@ serve(async (req) => {
         description: `Monthly referrer payout (${reference})`, balance_after: 0,
       });
 
+      await supabase.functions.invoke("send-notification", { body: {
+        event_type: "auto_payout_paid", user_id: w.referrer_id,
+        metadata: { amount, currency: w.currency || "KES", reference, cadence: "monthly" },
+      }}).catch(() => {});
+
       results.push({ referrer_id: w.referrer_id, amount, transfer_code: trData.data.transfer_code });
+
     }
 
     return new Response(JSON.stringify({ batch_id, processed: results.length, results }),
