@@ -8,8 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Wallet, CheckCircle2, ArrowDownToLine } from 'lucide-react';
+import { Wallet, CheckCircle2, ArrowDownToLine, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import PendingReleasesCard from '@/components/wallet/PendingReleasesCard';
+import WithdrawalStatusTimeline from '@/components/wallet/WithdrawalStatusTimeline';
+
+
 
 export default function WalletTab() {
   const { user } = useAuth();
@@ -79,7 +84,7 @@ export default function WalletTab() {
           <CardContent><div className="text-2xl font-bold text-primary">{format(available)}</div></CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardDescription>Pending (7-day return hold)</CardDescription></CardHeader>
+          <CardHeader className="pb-2"><CardDescription>Pending (return hold)</CardDescription></CardHeader>
           <CardContent><div className="text-2xl font-bold">{format(Number(balance?.pending_balance || 0))}</div></CardContent>
         </Card>
         <Card>
@@ -88,9 +93,20 @@ export default function WalletTab() {
         </Card>
       </div>
 
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          <strong>Available</strong> funds can be withdrawn anytime. <strong>Pending</strong> funds are held for 7 days after each sale
+          to cover the buyer's return window, then move to Available automatically.
+        </AlertDescription>
+      </Alert>
+
+      <PendingReleasesCard userType="producer" />
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><ArrowDownToLine className="h-5 w-5" /> Withdraw funds</CardTitle>
+
           <CardDescription>
             Auto payouts run biweekly (1st & 15th). You can also withdraw on demand once your available balance reaches {format(minWithdrawal)}.
           </CardDescription>
@@ -125,24 +141,26 @@ export default function WalletTab() {
 
       {withdrawals.length > 0 && (
         <Card>
-          <CardHeader><CardTitle>Withdrawal requests</CardTitle></CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Amount</TableHead><TableHead>Status</TableHead><TableHead>Reference</TableHead></TableRow></TableHeader>
-              <TableBody>
-                {withdrawals.map((w: any) => (
-                  <TableRow key={w.id}>
-                    <TableCell className="text-xs">{new Date(w.created_at).toLocaleString()}</TableCell>
-                    <TableCell>{format(Number(w.amount))}</TableCell>
-                    <TableCell><Badge variant={w.status === 'paid' ? 'default' : w.status === 'failed' ? 'destructive' : 'outline'}>{w.status}</Badge>{w.failure_reason && <div className="text-xs text-destructive">{w.failure_reason}</div>}</TableCell>
-                    <TableCell className="text-xs font-mono">{w.paystack_reference || '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <CardHeader><CardTitle>Withdrawal history</CardTitle><CardDescription>Track each withdrawal from request through payout.</CardDescription></CardHeader>
+          <CardContent className="space-y-4">
+            {withdrawals.map((w: any) => (
+              <div key={w.id} className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="font-medium">{format(Number(w.amount))} {w.currency}</div>
+                  <span className="text-xs font-mono text-muted-foreground">{w.paystack_reference || w.id.slice(0, 8)}</span>
+                </div>
+                <WithdrawalStatusTimeline
+                  status={w.status}
+                  createdAt={w.created_at}
+                  processedAt={w.processed_at}
+                  failureReason={w.failure_reason}
+                />
+              </div>
+            ))}
           </CardContent>
         </Card>
       )}
+
 
       <Card>
         <CardHeader><CardTitle>Recent transactions</CardTitle></CardHeader>
