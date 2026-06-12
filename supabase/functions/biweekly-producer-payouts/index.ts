@@ -73,7 +73,11 @@ serve(async (req) => {
 
       await supabase.functions.invoke("send-notification", { body: {
         event_type: "auto_payout_paid", user_id: w.producer_id,
-        metadata: { amount, currency: w.currency || "KES", reference, cadence: "biweekly" },
+        metadata: {
+          amount, currency: w.currency || "KES", reference,
+          cadence: "biweekly",
+          batch_name: `Biweekly producer payout ${new Date().toISOString().slice(0,10)} (batch ${batch_id.slice(0,8)})`,
+        },
       }}).catch(() => {});
 
       results.push({ producer_id: w.producer_id, amount, transfer_code: trData.data.transfer_code });
