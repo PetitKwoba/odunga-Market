@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import PendingReleasesCard from '@/components/wallet/PendingReleasesCard';
 import WithdrawalStatusTimeline from '@/components/wallet/WithdrawalStatusTimeline';
+import ReturnPolicyDialog from '@/components/wallet/ReturnPolicyDialog';
 
 
 export default function ReferrerWalletTab() {
@@ -85,9 +86,12 @@ export default function ReferrerWalletTab() {
 
       <Alert>
         <Info className="h-4 w-4" />
-        <AlertDescription>
-          <strong>Available</strong> funds can be withdrawn anytime. <strong>Pending</strong> referral commissions are held for 7 days
-          after the buyer's payment to cover the return window, then move to Available automatically.
+        <AlertDescription className="flex items-start justify-between gap-3 flex-wrap">
+          <span>
+            <strong>Available</strong> funds can be withdrawn anytime. <strong>Pending</strong> referral commissions are held for 7 days
+            after the buyer's payment to cover the return window, then move to Available automatically.
+          </span>
+          <ReturnPolicyDialog windowDays={7} />
         </AlertDescription>
       </Alert>
 
