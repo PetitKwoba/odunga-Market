@@ -18,6 +18,9 @@ verify_jwt = false
 [functions.release-held-funds]
 verify_jwt = false
 
+[functions.retry-failed-webhooks]
+verify_jwt = false
+
 [functions.ai-demand-forecast]
 verify_jwt = false
 
