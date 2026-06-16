@@ -360,12 +360,12 @@ export default function B2BInvoicing() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Link to Order (optional)</Label>
-                <Select value={form.order_id} onValueChange={v => setForm(f => ({ ...f, order_id: v }))}>
+                <Select value={form.order_id || 'none'} onValueChange={v => setForm(f => ({ ...f, order_id: v === 'none' ? '' : v }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select order" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {orders.map(o => (
                       <SelectItem key={o.id} value={o.id}>
                         {o.id.slice(0, 8)}... - ${Number(o.total_amount).toFixed(2)}
