@@ -2317,51 +2317,6 @@ export type Database = {
         }
         Relationships: []
       }
-      webhook_failures: {
-        Row: {
-          created_at: string
-          error_message: string | null
-          event_type: string | null
-          id: string
-          next_retry_at: string | null
-          payload: Json | null
-          reference: string | null
-          resolved_at: string | null
-          retry_count: number
-          source: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          error_message?: string | null
-          event_type?: string | null
-          id?: string
-          next_retry_at?: string | null
-          payload?: Json | null
-          reference?: string | null
-          resolved_at?: string | null
-          retry_count?: number
-          source: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          error_message?: string | null
-          event_type?: string | null
-          id?: string
-          next_retry_at?: string | null
-          payload?: Json | null
-          reference?: string | null
-          resolved_at?: string | null
-          retry_count?: number
-          source?: string
-          status?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       wishlists: {
         Row: {
           created_at: string

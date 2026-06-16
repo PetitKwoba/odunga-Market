@@ -92,59 +92,20 @@ serve(async (req) => {
       }
 
       case "withdrawal_completed": {
-        const cur = metadata?.currency || 'KES';
-        const amt = metadata?.amount;
-        const ref = metadata?.paystack_reference || metadata?.reference || '—';
-        const batch = metadata?.batch_name || 'On-demand withdrawal';
-        subject = `Withdrawal receipt — ${amt} ${cur} paid`;
-        body = [
-          `Hi,`,
-          ``,
-          `This is your receipt for a completed withdrawal.`,
-          ``,
-          `Amount:           ${amt} ${cur}`,
-          `Payout batch:     ${batch}`,
-          `Paystack ref:     ${ref}`,
-          metadata?.transfer_code ? `Transfer code:    ${metadata.transfer_code}` : '',
-          `Status:           Paid`,
-          `Date:             ${new Date().toISOString().slice(0, 19).replace('T', ' ')} UTC`,
-          ``,
-          `Funds have been sent to your verified bank account.`,
-          ``,
-          `Thanks for being part of OdungaMarket!`,
-        ].filter(Boolean).join('\n');
+        subject = `Withdrawal paid — ${metadata?.amount} ${metadata?.currency || 'KES'}`;
+        body = `Hi,\n\nGood news! Your withdrawal of ${metadata?.amount} ${metadata?.currency || 'KES'} has been sent to your bank account.\n\nReference: ${metadata?.reference || '—'}\n\nThanks for selling on OdungaMarket!`;
         break;
       }
 
       case "withdrawal_failed": {
         subject = `Withdrawal failed — ${metadata?.amount} ${metadata?.currency || 'KES'}`;
-        body = `Hi,\n\nUnfortunately your withdrawal of ${metadata?.amount} ${metadata?.currency || 'KES'} could not be processed.\n\nBatch: ${metadata?.batch_name || '—'}\nReason: ${metadata?.reason || 'unknown'}\n\nThe funds have been returned to your available balance. Please verify your bank details and try again, or contact support.`;
+        body = `Hi,\n\nUnfortunately your withdrawal of ${metadata?.amount} ${metadata?.currency || 'KES'} could not be processed.\n\nReason: ${metadata?.reason || 'unknown'}\n\nThe funds have been returned to your available balance. Please verify your bank details and try again, or contact support.`;
         break;
       }
 
       case "auto_payout_paid": {
-        const cur = metadata?.currency || 'KES';
-        subject = `Auto-payout receipt — ${metadata?.amount} ${cur}`;
-        body = [
-          `Hi,`,
-          ``,
-          `Your scheduled ${metadata?.cadence || 'auto'} payout has been sent.`,
-          ``,
-          `Amount:        ${metadata?.amount} ${cur}`,
-          `Payout batch:  ${metadata?.batch_name || metadata?.cadence || '—'}`,
-          `Paystack ref:  ${metadata?.reference || '—'}`,
-          `Status:        Processing → bank account`,
-          ``,
-          `You'll receive a final receipt once the bank confirms the transfer.`,
-          ``,
-          `Thanks for being part of OdungaMarket!`,
-        ].join('\n');
-        break;
-      }
-
-      case "admin_alert": {
-        subject = metadata?.subject || `Admin alert`;
-        body = `[ADMIN ALERT]\n\n${metadata?.message || 'An admin alert was raised.'}`;
+        subject = `Auto-payout sent — ${metadata?.amount} ${metadata?.currency || 'KES'}`;
+        body = `Hi,\n\nYour scheduled ${metadata?.cadence || 'auto'} payout of ${metadata?.amount} ${metadata?.currency || 'KES'} is on its way to your bank account.\n\nReference: ${metadata?.reference || '—'}\n\nThanks for being part of OdungaMarket!`;
         break;
       }
 

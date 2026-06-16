@@ -65,10 +65,7 @@ serve(async (req) => {
 
       await supabase.functions.invoke("send-notification", { body: {
         event_type: "auto_payout_paid", user_id: w.referrer_id,
-        metadata: {
-          amount, currency: w.currency || "KES", reference, cadence: "monthly",
-          batch_name: `Monthly referrer payout ${new Date().toISOString().slice(0,10)} (batch ${batch_id.slice(0,8)})`,
-        },
+        metadata: { amount, currency: w.currency || "KES", reference, cadence: "monthly" },
       }}).catch(() => {});
 
       results.push({ referrer_id: w.referrer_id, amount, transfer_code: trData.data.transfer_code });

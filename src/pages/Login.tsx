@@ -15,18 +15,8 @@ export default function Login() {
   const { login, signInWithOAuth, user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  const dashboardFor = (role?: string) => {
-    switch (role) {
-      case 'admin': return '/admin';
-      case 'producer': return '/dashboard/producer';
-      case 'wholesaler': return '/dashboard/wholesaler';
-      case 'referrer': return '/dashboard/referrer';
-      default: return '/';
-    }
-  };
-
   if (!authLoading && user) {
-    return <Navigate to={dashboardFor(user.role)} replace />;
+    return <Navigate to="/" replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,7 +28,7 @@ export default function Login() {
       toast.error(result.error);
     } else {
       toast.success('Welcome back!');
-      // user state updates from auth listener; Navigate above will redirect on next render
+      navigate('/');
     }
   };
 
