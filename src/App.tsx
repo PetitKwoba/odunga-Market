@@ -28,6 +28,9 @@ import ProducerDashboard from "./pages/dashboard/ProducerDashboard";
 import AdminPanel from "./pages/dashboard/AdminPanel";
 import ProfilePage from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Refunds from "./pages/Refunds";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +59,9 @@ const App = () => (
                 <Route path="/support" element={<Support />} />
                 <Route path="/support/:id" element={<ProtectedRoute><SupportTicket /></ProtectedRoute>} />
                 <Route path="/help" element={<HelpCenter />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/refunds" element={<Refunds />} />
                 <Route path="/dashboard/referrer" element={<ProtectedRoute allowedRoles={['referrer']}><ReferrerDashboard /></ProtectedRoute>} />
                 <Route path="/dashboard/wholesaler" element={<ProtectedRoute allowedRoles={['wholesaler']}><WholesalerDashboard /></ProtectedRoute>} />
                 <Route path="/dashboard/producer" element={<ProtectedRoute allowedRoles={['producer']}><ProducerDashboard /></ProtectedRoute>} />
