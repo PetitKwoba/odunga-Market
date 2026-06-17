@@ -41,7 +41,7 @@ export default function Refunds() {
         <h2 className="text-xl font-semibold">7. Chargebacks</h2>
         <p>Initiating a chargeback without first contacting OdungaMarket support may result in account suspension. We work with Paystack to resolve disputes fairly.</p>
 
-        <h2 className="text-xl function-semibold">8. Shipping Costs on Returns</h2>
+        <h2 className="text-xl font-semibold">8. Shipping Costs on Returns</h2>
         <p>If the return is due to producer error, return shipping is covered by the producer. Otherwise the wholesaler bears return shipping.</p>
 
         <h2 className="text-xl font-semibold">9. Cancellations</h2>
